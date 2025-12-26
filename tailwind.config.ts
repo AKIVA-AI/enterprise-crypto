@@ -81,6 +81,11 @@ export default {
         long: "hsl(var(--long))",
         short: "hsl(var(--short))",
         neutral: "hsl(var(--neutral))",
+        // Supabase brand color
+        supabase: {
+          DEFAULT: "hsl(var(--supabase))",
+          foreground: "hsl(var(--supabase-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
