@@ -1,447 +1,267 @@
 """
-Crypto Ops Trading Engine - FastAPI Application
+Hedge Fund Trading Platform - FastAPI Backend
 
-Production-grade trading backend for the Crypto Ops Control Center.
-Connects to Supabase for state persistence and real-time updates.
+Production-grade institutional trading system with:
+- Advanced risk management
+- Quantitative strategies
+- Smart order routing
+- Real-time market data
+- Enterprise security
 """
-import structlog
+
+import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Header, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional, List
-from uuid import UUID
-from pydantic import BaseModel
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
+import structlog
 from datetime import datetime
+import uvicorn
 
-from app.config import settings
-from app.database import get_supabase, audit_log, create_alert
-from app.services.risk_engine import risk_engine
-from app.services.portfolio_engine import portfolio_engine
-from app.services.oms_execution import oms_service
-from app.services.reconciliation import recon_service
-from app.services.engine_runner import engine_runner
-from app.services.strategy_engine import strategy_engine
-from app.services.market_data import market_data_service
-from app.adapters.coinbase_adapter import CoinbaseAdapter
-from app.adapters.mexc_adapter import MEXCAdapter
-from app.adapters.dex_adapter import DEXAdapter
-from app.api import trading, risk, venues, meme
+from app.api.routes import api_router
+from app.core.config import settings
+from app.core.security import verify_token, get_current_user
+from app.database import init_db, close_db
+from app.services.market_data_service import market_data_service
+from app.services.quantitative_strategy_engine import quantitative_strategy_engine
+from app.services.smart_order_router import smart_order_router
+from app.services.advanced_risk_engine import advanced_risk_engine
+from app.core.logging import setup_logging
 
-structlog.configure(processors=[structlog.processors.JSONRenderer()])
-logger = structlog.get_logger()
+# FreqTrade Integration
+from app.services.freqtrade_integration import (
+    get_freqtrade_hub,
+    initialize_freqtrade_integration,
+    shutdown_freqtrade_integration,
+    get_freqtrade_status
+)
 
+# Setup structured logging
+logger = setup_logging()
 
-# Lifespan context manager for startup/shutdown
+# Lifespan context manager for startup/shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    logger.info("trading_engine_starting", paper_mode=settings.is_paper_mode)
-    
-    # Initialize adapters
-    coinbase = CoinbaseAdapter()
-    mexc = MEXCAdapter()
-    dex = DEXAdapter()
-    
-    await coinbase.connect()
-    await mexc.connect()
-    await dex.connect()
-    
-    oms_service.register_adapter("coinbase", coinbase)
-    oms_service.register_adapter("mexc", mexc)
-    oms_service.register_adapter("dex", dex)
-    
-    recon_service.register_adapter("coinbase", coinbase)
-    recon_service.register_adapter("mexc", mexc)
-    
-    # Initialize market data
-    await market_data_service.initialize()
-    
-    # Load strategies
-    await strategy_engine.load_strategies()
-    
-    logger.info("trading_engine_started", 
-                paper_mode=settings.is_paper_mode,
-                adapters=["coinbase", "mexc", "dex"])
-    
-    yield
-    
-    # Shutdown
-    logger.info("trading_engine_stopping")
-    await engine_runner.stop()
+    """Application lifespan manager."""
+    logger.info("Starting Hedge Fund Trading Platform with FreqTrade Integration")
 
+    try:
+        # Initialize database
+        await init_db()
+        logger.info("Database initialized")
 
+        # Start market data service
+        await market_data_service.start()
+        logger.info("Market data service started")
+
+        # Initialize FreqTrade integration (highest priority)
+        logger.info("Initializing FreqTrade integration...")
+        await initialize_freqtrade_integration()
+        logger.info("FreqTrade integration initialized")
+
+        # Initialize trading engines
+        await quantitative_strategy_engine.initialize()
+        await smart_order_router.initialize()
+        await advanced_risk_engine.initialize()
+        logger.info("Trading engines initialized")
+
+        logger.info("🎉 All systems operational - FreqTrade enhanced platform ready")
+
+        yield
+
+    except Exception as e:
+        logger.error("Startup error", error=str(e))
+        raise
+
+    finally:
+        logger.info("Shutting down Hedge Fund Trading Platform")
+
+        # Stop FreqTrade integration first
+        await shutdown_freqtrade_integration()
+        logger.info("FreqTrade integration stopped")
+
+        # Stop other services
+        await market_data_service.stop()
+        await close_db()
+        logger.info("Services stopped")
+
+# Create FastAPI application
 app = FastAPI(
-    title="Crypto Ops Trading Engine",
+    title="Hedge Fund Trading Platform",
+    description="Institutional-grade crypto trading system",
     version="1.0.0",
-    description="Production trading backend for Crypto Ops Control Center",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
     lifespan=lifespan
 )
 
+# Security
+security = HTTPBearer()
+
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Include API routers
-app.include_router(trading.router, prefix="/api/trading", tags=["trading"])
-app.include_router(risk.router, prefix="/api/risk", tags=["risk"])
-app.include_router(venues.router, prefix="/api/venues", tags=["venues"])
-app.include_router(meme.router, prefix="/api/meme", tags=["meme"])
+# Trusted host middleware
+if not settings.DEBUG:
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.ALLOWED_HOSTS
+    )
 
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler for consistent error responses."""
+    logger.error(
+        "Unhandled exception",
+        exc_info=exc,
+        path=request.url.path,
+        method=request.method,
+        client_ip=getattr(request.client, 'host', 'unknown') if request.client else 'unknown'
+    )
 
-# === Core Endpoints ===
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "message": "An unexpected error occurred" if not settings.DEBUG else str(exc),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    )
 
+# Health check endpoint
 @app.get("/health")
-async def health():
-    """Health check endpoint."""
+async def health_check():
+    """Health check endpoint for load balancers and monitoring."""
+    freqtrade_status = get_freqtrade_status()
+
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "paper_mode": settings.is_paper_mode,
-        "env": settings.env
+        "version": "1.0.0",
+        "services": {
+            "database": "connected",
+            "redis": "connected",
+            "market_data": "active",
+            "trading_engines": "ready",
+            "freqtrade_integration": freqtrade_status.get('freqtrade_integration', {}).get('status', 'unknown')
+        }
     }
 
+# FreqTrade health check endpoint
+@app.get("/health/freqtrade")
+async def freqtrade_health_check():
+    """FreqTrade-specific health check endpoint."""
+    return get_freqtrade_status()
 
-@app.get("/version")
-async def version():
-    """Version endpoint."""
+# FreqTrade components health check
+@app.get("/health/freqtrade/components")
+async def freqtrade_components_health():
+    """Detailed FreqTrade component health status."""
+    status = get_freqtrade_status()
+    return status.get('component_health', {})
+
+# Authentication middleware
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    """Authentication middleware for protected routes."""
+    # Skip auth for health checks and docs
+    if request.url.path in ["/health", "/docs", "/redoc", "/openapi.json"]:
+        return await call_next(request)
+
+    # Skip auth for OPTIONS requests
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
+    try:
+        # Extract token from Authorization header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing or invalid token")
+
+        token = auth_header.split(" ")[1]
+        user = await get_current_user(token)
+
+        # Add user to request state
+        request.state.user = user
+        request.state.user_id = user["id"]
+        request.state.user_role = user.get("role", "trader")
+
+        # Log authenticated request
+        logger.info(
+            "Authenticated request",
+            user_id=user["id"],
+            role=user.get("role"),
+            path=request.url.path,
+            method=request.method
+        )
+
+    except Exception as e:
+        logger.warning("Authentication failed", error=str(e), path=request.url.path)
+        raise HTTPException(status_code=401, detail="Authentication failed")
+
+    response = await call_next(request)
+    return response
+
+# API routes
+app.include_router(
+    api_router,
+    prefix="/api/v1",
+    dependencies=[Depends(get_current_user)]
+)
+
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint with API information."""
+    return {
+        "message": "Hedge Fund Trading Platform API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+        "status": "operational"
+    }
+
+# System info endpoint (admin only)
+@app.get("/system/info")
+async def system_info(request: Request):
+    """System information endpoint (admin only)."""
+    if request.state.user_role not in ["admin", "cio"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    freqtrade_status = get_freqtrade_status()
+
     return {
         "version": "1.0.0",
-        "api_version": "v1",
-        "paper_mode": settings.is_paper_mode
-    }
-
-
-@app.get("/status")
-async def status():
-    """Engine status endpoint."""
-    return engine_runner.get_status()
-
-
-# === Engine Control ===
-
-@app.post("/engine/run_once")
-async def run_once(background_tasks: BackgroundTasks, x_user_id: str = Header(None)):
-    """
-    Run a single engine cycle.
-    Useful for cron-based operation or manual triggering.
-    """
-    result = await engine_runner.run_cycle()
-    
-    await audit_log(
-        action="engine_cycle_triggered",
-        resource_type="engine",
-        resource_id="manual",
-        user_id=x_user_id,
-        after_state=result
-    )
-    
-    return result
-
-
-@app.post("/engine/start")
-async def start_engine(background_tasks: BackgroundTasks, x_user_id: str = Header(None)):
-    """Start the continuous engine loop."""
-    background_tasks.add_task(engine_runner.start)
-    
-    await audit_log(
-        action="engine_started",
-        resource_type="engine",
-        resource_id="continuous",
-        user_id=x_user_id
-    )
-    
-    return {"status": "starting", "paper_mode": settings.is_paper_mode}
-
-
-@app.post("/engine/stop")
-async def stop_engine(x_user_id: str = Header(None)):
-    """Stop the engine loop."""
-    await engine_runner.stop()
-    
-    await audit_log(
-        action="engine_stopped",
-        resource_type="engine",
-        resource_id="continuous",
-        user_id=x_user_id
-    )
-    
-    return {"status": "stopped"}
-
-
-class PauseBookRequest(BaseModel):
-    book_id: str
-    reason: str = "Manual pause"
-
-
-@app.post("/engine/pause_book")
-async def pause_book(req: PauseBookRequest, x_user_id: str = Header(None)):
-    """Pause trading for a specific book."""
-    await engine_runner.pause_book(UUID(req.book_id), req.reason, x_user_id)
-    return {"status": "paused", "book_id": req.book_id}
-
-
-@app.post("/engine/resume_book")
-async def resume_book(req: PauseBookRequest, x_user_id: str = Header(None)):
-    """Resume trading for a specific book."""
-    await engine_runner.resume_book(UUID(req.book_id), x_user_id)
-    return {"status": "resumed", "book_id": req.book_id}
-
-
-# === Overview & Dashboard ===
-
-@app.get("/api/overview")
-async def get_overview():
-    """Get trading overview for dashboard."""
-    supabase = get_supabase()
-    
-    # Get positions
-    positions = supabase.table("positions").select(
-        "unrealized_pnl, realized_pnl"
-    ).eq("is_open", True).execute()
-    
-    # Get books
-    books = supabase.table("books").select(
-        "capital_allocated, current_exposure, status"
-    ).execute()
-    
-    # Get today's orders
-    today = datetime.utcnow().date().isoformat()
-    orders = supabase.table("orders").select(
-        "status, filled_size, filled_price"
-    ).gte("created_at", today).execute()
-    
-    total_unrealized = sum(p.get("unrealized_pnl", 0) for p in positions.data)
-    total_realized = sum(p.get("realized_pnl", 0) for p in positions.data)
-    total_aum = sum(b.get("capital_allocated", 0) for b in books.data)
-    total_exposure = sum(b.get("current_exposure", 0) for b in books.data)
-    active_books = sum(1 for b in books.data if b.get("status") == "active")
-    
-    return {
-        "total_pnl": total_unrealized + total_realized,
-        "unrealized_pnl": total_unrealized,
-        "realized_pnl": total_realized,
-        "total_aum": total_aum,
-        "total_exposure": total_exposure,
-        "exposure_pct": (total_exposure / total_aum * 100) if total_aum > 0 else 0,
-        "active_books": active_books,
-        "total_books": len(books.data),
-        "orders_today": len(orders.data),
-        "paper_mode": settings.is_paper_mode,
+        "environment": settings.ENVIRONMENT,
+        "database_connected": True,
+        "services_status": {
+            "market_data": "active",
+            "risk_engine": "ready",
+            "strategy_engine": "ready",
+            "order_router": "ready",
+            "freqtrade_integration": freqtrade_status.get('freqtrade_integration', {}).get('status', 'unknown')
+        },
+        "freqtrade_enhanced": True,
+        "freqtrade_components": list(freqtrade_status.get('component_health', {}).keys()),
         "timestamp": datetime.utcnow().isoformat()
     }
 
-
-# === Books ===
-
-@app.get("/api/books")
-async def get_books():
-    """Get all trading books."""
-    books = await portfolio_engine.get_books()
-    return [b.dict() for b in books]
-
-
-@app.get("/api/books/{book_id}")
-async def get_book(book_id: str):
-    """Get a specific book."""
-    supabase = get_supabase()
-    result = supabase.table("books").select("*").eq("id", book_id).single().execute()
-    return result.data
-
-
-class ReallocateRequest(BaseModel):
-    book_id: str
-    new_capital: float
-
-
-@app.post("/api/books/reallocate")
-async def reallocate_capital(req: ReallocateRequest, x_user_id: str = Header(None)):
-    """Reallocate capital to a book (privileged action)."""
-    book = await portfolio_engine.reallocate_capital(
-        UUID(req.book_id), 
-        req.new_capital, 
-        x_user_id or "system"
+if __name__ == "__main__":
+    # Development server
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.DEBUG,
+        log_level="info"
     )
-    return book.dict()
-
-
-# === Strategies ===
-
-@app.get("/api/strategies")
-async def get_strategies():
-    """Get all strategies."""
-    supabase = get_supabase()
-    return supabase.table("strategies").select("*").execute().data
-
-
-@app.post("/api/strategies/{strategy_id}/toggle")
-async def toggle_strategy(strategy_id: str, x_user_id: str = Header(None)):
-    """Toggle strategy status."""
-    supabase = get_supabase()
-    current = supabase.table("strategies").select("status").eq("id", strategy_id).single().execute()
-    
-    status_cycle = {"off": "paper", "paper": "live", "live": "off"}
-    new_status = status_cycle.get(current.data["status"], "off")
-    
-    supabase.table("strategies").update({"status": new_status}).eq("id", strategy_id).execute()
-    
-    await audit_log(
-        action="strategy_toggled",
-        resource_type="strategy",
-        resource_id=strategy_id,
-        user_id=x_user_id,
-        before_state={"status": current.data["status"]},
-        after_state={"status": new_status}
-    )
-    
-    return {"status": new_status}
-
-
-# === Positions & Orders ===
-
-@app.get("/api/positions")
-async def get_positions(book_id: Optional[str] = None, is_open: bool = True):
-    """Get positions."""
-    supabase = get_supabase()
-    query = supabase.table("positions").select("*")
-    
-    if book_id:
-        query = query.eq("book_id", book_id)
-    if is_open:
-        query = query.eq("is_open", True)
-    
-    return query.execute().data
-
-
-@app.get("/api/orders")
-async def get_orders(book_id: Optional[str] = None, limit: int = 100):
-    """Get recent orders."""
-    supabase = get_supabase()
-    query = supabase.table("orders").select("*").order("created_at", desc=True).limit(limit)
-    
-    if book_id:
-        query = query.eq("book_id", book_id)
-    
-    return query.execute().data
-
-
-# === Risk ===
-
-class KillSwitchRequest(BaseModel):
-    book_id: Optional[str] = None
-    activate: bool = True
-    reason: str = "Manual activation"
-
-
-@app.post("/api/risk/kill-switch")
-async def kill_switch(req: KillSwitchRequest, x_user_id: str = Header(None)):
-    """Activate/deactivate kill switch."""
-    if req.activate:
-        await risk_engine.activate_kill_switch(
-            UUID(req.book_id) if req.book_id else None,
-            x_user_id,
-            req.reason
-        )
-    else:
-        # Deactivate
-        supabase = get_supabase()
-        if req.book_id:
-            supabase.table("books").update({"status": "active"}).eq("id", req.book_id).execute()
-        else:
-            supabase.table("global_settings").update({"global_kill_switch": False}).execute()
-        
-        await audit_log(
-            action="kill_switch_deactivated",
-            resource_type="kill_switch",
-            resource_id=req.book_id or "global",
-            user_id=x_user_id,
-            after_state={"active": False}
-        )
-    
-    return {"activated": req.activate, "scope": req.book_id or "global"}
-
-
-@app.get("/api/risk/breaches")
-async def get_risk_breaches(is_resolved: Optional[bool] = None, limit: int = 50):
-    """Get risk breaches."""
-    supabase = get_supabase()
-    query = supabase.table("risk_breaches").select("*").order("created_at", desc=True).limit(limit)
-    
-    if is_resolved is not None:
-        query = query.eq("is_resolved", is_resolved)
-    
-    return query.execute().data
-
-
-# === Venues ===
-
-@app.get("/api/venues")
-async def get_venues():
-    """Get all venues with health status."""
-    supabase = get_supabase()
-    return supabase.table("venues").select("*").execute().data
-
-
-@app.get("/api/venues/health")
-async def venues_health():
-    """Get venue health status."""
-    supabase = get_supabase()
-    return supabase.table("venue_health").select("*, venues(name)").execute().data
-
-
-# === Audit ===
-
-@app.get("/api/audit")
-async def get_audit(limit: int = 100, action: Optional[str] = None):
-    """Get audit events."""
-    supabase = get_supabase()
-    query = supabase.table("audit_events").select("*").order("created_at", desc=True).limit(limit)
-    
-    if action:
-        query = query.eq("action", action)
-    
-    return query.execute().data
-
-
-@app.get("/api/alerts")
-async def get_alerts(limit: int = 50, severity: Optional[str] = None, is_resolved: Optional[bool] = None):
-    """Get alerts."""
-    supabase = get_supabase()
-    query = supabase.table("alerts").select("*").order("created_at", desc=True).limit(limit)
-    
-    if severity:
-        query = query.eq("severity", severity)
-    if is_resolved is not None:
-        query = query.eq("is_resolved", is_resolved)
-    
-    return query.execute().data
-
-
-# === Debug (Admin Only) ===
-
-@app.get("/debug/state")
-async def debug_state():
-    """Get engine internal state (admin only)."""
-    if settings.is_production:
-        raise HTTPException(status_code=403, detail="Not available in production")
-    
-    return {
-        "engine": engine_runner.get_status(),
-        "adapters": {
-            name: {
-                "connected": adapter._connected,
-                "paper_mode": adapter.paper_mode
-            }
-            for name, adapter in oms_service._adapters.items()
-        },
-        "market_data": {
-            venue: market_data_service.check_data_quality(venue)
-            for venue in ["coinbase", "mexc", "dex"]
-        },
-        "risk": {
-            "circuit_breakers": risk_engine._circuit_breakers
-        }
-    }
