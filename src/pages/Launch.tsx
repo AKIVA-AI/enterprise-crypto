@@ -5,11 +5,12 @@ import { MemeProjectCard } from '@/components/meme/MemeProjectCard';
 import { MemeScorePanel } from '@/components/meme/MemeScorePanel';
 import { MemeApprovalPanel } from '@/components/meme/MemeApprovalPanel';
 import { MemePipelineView } from '@/components/meme/MemePipelineView';
+import { TokenMonitorPanel } from '@/components/blockchain/TokenMonitorPanel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Rocket, LayoutGrid, Columns3, Plus, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Rocket, LayoutGrid, Columns3, Plus, CheckCircle2, Clock, AlertCircle, Activity } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type MemeProject = Database['public']['Tables']['meme_projects']['Row'];
@@ -182,15 +183,19 @@ export default function Launch() {
 
                 {/* Tabs for details */}
                 <Tabs defaultValue="scores" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="scores">Scores</TabsTrigger>
                     <TabsTrigger value="approval">Approval</TabsTrigger>
+                    <TabsTrigger value="chain">On-Chain</TabsTrigger>
                   </TabsList>
                   <TabsContent value="scores" className="mt-4">
                     <MemeScorePanel project={selectedProject} />
                   </TabsContent>
                   <TabsContent value="approval" className="mt-4">
                     <MemeApprovalPanel project={selectedProject} />
+                  </TabsContent>
+                  <TabsContent value="chain" className="mt-4">
+                    <TokenMonitorPanel />
                   </TabsContent>
                 </Tabs>
 
