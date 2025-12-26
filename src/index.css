@@ -16,7 +16,7 @@
     --popover: 220 25% 10%;
     --popover-foreground: 210 40% 96%;
 
-    /* Primary - Cyan/Teal for trading (trust, precision) */
+    /* Primary - Cyan/Teal for data visualization and charts */
     --primary: 185 75% 50%;
     --primary-foreground: 220 25% 5%;
 
@@ -28,9 +28,13 @@
     --muted: 220 20% 12%;
     --muted-foreground: 215 15% 55%;
 
-    /* Accent - Coral for highlights and CTAs */
-    --accent: 15 75% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Supabase Green for CTAs, success states, interactive elements */
+    --accent: 153 60% 53%;
+    --accent-foreground: 220 25% 5%;
+
+    /* Supabase brand green for key highlights */
+    --supabase: 153 60% 53%;
+    --supabase-foreground: 220 25% 5%;
 
     /* Semantic states */
     --destructive: 0 72% 51%;
@@ -66,13 +70,15 @@
 
     /* Glow effects */
     --glow-primary: 185 75% 50%;
-    --glow-accent: 15 75% 55%;
+    --glow-accent: 153 60% 53%;
+    --glow-supabase: 153 60% 53%;
     --glow-success: 145 70% 42%;
     --glow-destructive: 0 72% 51%;
     
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(185 75% 50%), hsl(200 80% 45%));
-    --gradient-accent: linear-gradient(135deg, hsl(15 75% 55%), hsl(25 85% 58%));
+    --gradient-accent: linear-gradient(135deg, hsl(153 60% 53%), hsl(160 65% 48%));
+    --gradient-supabase: linear-gradient(135deg, hsl(153 60% 53%), hsl(165 70% 45%));
     --gradient-card: linear-gradient(180deg, hsl(220 25% 10%), hsl(220 25% 7%));
     --gradient-surface: radial-gradient(ellipse 80% 50% at 50% -20%, hsl(185 75% 50% / 0.08), transparent);
     --gradient-success: linear-gradient(135deg, hsl(145 70% 42%), hsl(160 70% 38%));

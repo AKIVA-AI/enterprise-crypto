@@ -11,9 +11,42 @@ import { useQuery } from '@tanstack/react-query';
 import { useBooks } from '@/hooks/useBooks';
 import { cn } from '@/lib/utils';
 
+// Type definitions for risk data
+interface VaRData {
+  var_95: number;
+  var_99: number;
+  var_999: number;
+  expected_shortfall_95: number;
+  expected_shortfall_99: number;
+  method: string;
+}
+
+interface StressTestScenario {
+  scenario_name: string;
+  portfolio_return: number;
+  max_drawdown: number;
+  var_breached: boolean;
+  liquidity_impact: number;
+  recovery_time_days: number;
+  risk_metrics: { volatility: number; sharpe_ratio: number; sortino_ratio: number };
+}
+
+interface RiskAttribution {
+  total_risk: number;
+  systematic_risk: number;
+  idiosyncratic_risk: number;
+  asset_contributions: Record<string, number>;
+  factor_contributions: Record<string, number>;
+}
+
+interface CounterpartyExposure {
+  exposure: number;
+  concentration_pct: number;
+  risk_score: number;
+}
+
 // Mock API calls - in production, these would call the backend
-const fetchVaR = async (bookId: string) => {
-  // Simulate API call
+const fetchVaR = async (bookId: string): Promise<VaRData> => {
   return new Promise(resolve => setTimeout(() => resolve({
     var_95: 0.023,
     var_99: 0.041,
@@ -24,7 +57,7 @@ const fetchVaR = async (bookId: string) => {
   }), 500));
 };
 
-const fetchStressTests = async (bookId: string) => {
+const fetchStressTests = async (bookId: string): Promise<StressTestScenario[]> => {
   return new Promise(resolve => setTimeout(() => resolve([
     {
       scenario_name: '2008_crisis',
@@ -56,7 +89,7 @@ const fetchStressTests = async (bookId: string) => {
   ]), 800));
 };
 
-const fetchRiskAttribution = async (bookId: string) => {
+const fetchRiskAttribution = async (bookId: string): Promise<RiskAttribution> => {
   return new Promise(resolve => setTimeout(() => resolve({
     total_risk: 0.18,
     systematic_risk: 0.126,
@@ -66,11 +99,11 @@ const fetchRiskAttribution = async (bookId: string) => {
   }), 600));
 };
 
-const fetchLiquidityVaR = async (bookId: string) => {
+const fetchLiquidityVaR = async (bookId: string): Promise<number> => {
   return new Promise(resolve => setTimeout(() => resolve(0.028), 400));
 };
 
-const fetchCounterpartyRisk = async (bookId: string) => {
+const fetchCounterpartyRisk = async (bookId: string): Promise<Record<string, CounterpartyExposure>> => {
   return new Promise(resolve => setTimeout(() => resolve({
     binance: { exposure: 2500000, concentration_pct: 35.2, risk_score: 0.08 },
     coinbase: { exposure: 1800000, concentration_pct: 25.4, risk_score: 0.12 },
