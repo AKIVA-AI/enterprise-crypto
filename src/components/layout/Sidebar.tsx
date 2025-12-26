@@ -14,20 +14,25 @@ import {
   ChevronLeft,
   ChevronRight,
   Cpu,
+  BarChart3,
+  History,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Markets', href: '/markets', icon: BarChart3 },
   { name: 'Engine', href: '/engine', icon: Cpu },
+  { name: 'Analytics', href: '/analytics', icon: LineChart },
   { name: 'Agents', href: '/agents', icon: Bot },
-  { name: 'Strategies', href: '/strategies', icon: LineChart },
+  { name: 'Strategies', href: '/strategies', icon: Activity },
   { name: 'Execution', href: '/execution', icon: Crosshair },
   { name: 'Risk', href: '/risk', icon: Shield },
   { name: 'Meme Ventures', href: '/launch', icon: Rocket },
   { name: 'Treasury', href: '/treasury', icon: Wallet },
   { name: 'Observability', href: '/observability', icon: Activity },
+  { name: 'Audit Log', href: '/audit', icon: History },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

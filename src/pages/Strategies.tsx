@@ -9,10 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { LineChart, Plus, Play, Pause, Settings, TrendingUp, TrendingDown, Trash2, Edit, Loader2 } from 'lucide-react';
+import { LineChart, Plus, Play, Pause, Settings, TrendingUp, TrendingDown, Trash2, Edit, Loader2, Rocket, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { BacktestPanel } from '@/components/backtest/BacktestPanel';
+import { StrategyDeploymentWizard } from '@/components/strategies/StrategyDeploymentWizard';
+import { StrategyTemplateSelector } from '@/components/strategies/StrategyTemplateSelector';
+import { StrategyTemplate } from '@/lib/strategyTemplates';
 
 const statusColors: Record<string, string> = {
   off: 'bg-muted text-muted-foreground',
@@ -28,6 +31,9 @@ export default function Strategies() {
   const deleteStrategy = useDeleteStrategy();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isDeployOpen, setIsDeployOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [deployStrategyId, setDeployStrategyId] = useState<string | undefined>();
   const [formData, setFormData] = useState({ name: '', book_id: '', timeframe: '1h', risk_tier: 1 });
 
   const handleCreate = async () => {
@@ -35,6 +41,16 @@ export default function Strategies() {
     await createStrategy.mutateAsync(formData);
     setIsCreateOpen(false);
     setFormData({ name: '', book_id: '', timeframe: '1h', risk_tier: 1 });
+  };
+
+  const handleTemplateSelect = (template: StrategyTemplate) => {
+    setFormData({
+      name: template.name,
+      book_id: formData.book_id || (books[0]?.id || ''),
+      timeframe: template.defaultConfig.timeframe,
+      risk_tier: template.defaultConfig.riskTier,
+    });
+    setIsCreateOpen(true);
   };
 
   const handleStatusChange = async (id: string, status: 'off' | 'paper' | 'live') => {
@@ -52,11 +68,18 @@ export default function Strategies() {
             </h1>
             <p className="text-muted-foreground">Create, backtest, and deploy trading strategies</p>
           </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" />New Strategy</Button>
-            </DialogTrigger>
-            <DialogContent>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setIsTemplatesOpen(true)}>
+              <Zap className="h-4 w-4" />Templates
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={() => { setDeployStrategyId(undefined); setIsDeployOpen(true); }}>
+              <Rocket className="h-4 w-4" />Deploy Strategy
+            </Button>
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2"><Plus className="h-4 w-4" />New Strategy</Button>
+              </DialogTrigger>
+              <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Strategy</DialogTitle>
                 <DialogDescription>Add a new trading strategy</DialogDescription>
@@ -104,6 +127,7 @@ export default function Strategies() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {isLoading ? (
@@ -135,6 +159,14 @@ export default function Strategies() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="gap-1"
+                      onClick={() => { setDeployStrategyId(strategy.id); setIsDeployOpen(true); }}
+                    >
+                      <Rocket className="h-3 w-3" />Deploy
+                    </Button>
                     <Select value={strategy.status} onValueChange={(v: 'off' | 'paper' | 'live') => handleStatusChange(strategy.id, v)}>
                       <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -159,6 +191,20 @@ export default function Strategies() {
 
         {/* Backtesting Panel */}
         <BacktestPanel />
+
+        {/* Strategy Deployment Wizard */}
+        <StrategyDeploymentWizard 
+          open={isDeployOpen} 
+          onOpenChange={setIsDeployOpen}
+          strategyId={deployStrategyId}
+        />
+
+        {/* Strategy Template Selector */}
+        <StrategyTemplateSelector
+          open={isTemplatesOpen}
+          onOpenChange={setIsTemplatesOpen}
+          onSelectTemplate={handleTemplateSelect}
+        />
       </div>
     </MainLayout>
   );

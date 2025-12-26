@@ -1,36 +1,19 @@
 import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { positions as initialPositions, orders, generatePriceUpdate, Position } from '@/lib/mockData';
+import { PositionManagementPanel } from '@/components/positions/PositionManagementPanel';
+import { useOrders } from '@/hooks/useOrders';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Crosshair, AlertOctagon, XCircle, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Crosshair, AlertOctagon, XCircle, RefreshCw, TrendingUp, TrendingDown, Activity, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function Execution() {
-  const [positions, setPositions] = useState<Position[]>(initialPositions);
+  const { data: orders = [] } = useOrders();
   const [killSwitchActive, setKillSwitchActive] = useState(false);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!killSwitchActive) {
-        setPositions((prev) =>
-          prev.map((pos) => {
-            const newPrice = generatePriceUpdate(pos.currentPrice, 0.002);
-            const pnl = pos.side === 'long'
-              ? (newPrice - pos.entryPrice) * pos.size
-              : (pos.entryPrice - newPrice) * pos.size;
-            const pnlPercent = (pnl / (pos.entryPrice * pos.size)) * 100;
-            return { ...pos, currentPrice: newPrice, unrealizedPnl: pnl, unrealizedPnlPercent: pnlPercent };
-          })
-        );
-      }
-    }, 1500);
-    return () => clearInterval(interval);
-  }, [killSwitchActive]);
-
-  const totalPnl = positions.reduce((sum, p) => sum + p.unrealizedPnl, 0);
-  const totalExposure = positions.reduce((sum, p) => sum + Math.abs(p.currentPrice * p.size), 0);
+  const pendingOrders = orders.filter(o => o.status === 'open');
 
   return (
     <MainLayout>
@@ -66,151 +49,93 @@ export default function Execution() {
           </div>
         )}
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="metric-card">
-            <p className="text-sm text-muted-foreground">Total Exposure</p>
-            <p className="text-2xl font-mono font-semibold">${totalExposure.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-          </div>
-          <div className="metric-card">
-            <p className="text-sm text-muted-foreground">Unrealized P&L</p>
-            <p className={cn(
-              'text-2xl font-mono font-semibold flex items-center gap-2',
-              totalPnl >= 0 ? 'text-success' : 'text-destructive'
-            )}>
-              {totalPnl >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-              ${Math.abs(totalPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-          </div>
-          <div className="metric-card">
-            <p className="text-sm text-muted-foreground">Open Positions</p>
-            <p className="text-2xl font-mono font-semibold">{positions.length}</p>
-          </div>
-          <div className="metric-card">
-            <p className="text-sm text-muted-foreground">Pending Orders</p>
-            <p className="text-2xl font-mono font-semibold">{orders.filter(o => o.status === 'pending').length}</p>
-          </div>
-        </div>
+        {/* Tabs for Positions and Orders */}
+        <Tabs defaultValue="positions" className="space-y-4">
+          <TabsList className="glass-panel">
+            <TabsTrigger value="positions" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Positions
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Orders ({pendingOrders.length})
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Positions table */}
-        <div className="glass-panel rounded-xl p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Positions</h3>
-            <Button variant="ghost" size="sm" className="gap-1">
-              <RefreshCw className="h-3 w-3" />
-              Refresh
-            </Button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full data-grid">
-              <thead>
-                <tr className="text-muted-foreground text-left">
-                  <th className="pb-3 font-medium">Symbol</th>
-                  <th className="pb-3 font-medium">Side</th>
-                  <th className="pb-3 font-medium text-right">Size</th>
-                  <th className="pb-3 font-medium text-right">Entry</th>
-                  <th className="pb-3 font-medium text-right">Current</th>
-                  <th className="pb-3 font-medium text-right">uPnL</th>
-                  <th className="pb-3 font-medium text-right">Leverage</th>
-                  <th className="pb-3 font-medium text-right">Venue</th>
-                  <th className="pb-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {positions.map((pos) => (
-                  <tr key={pos.id} className="border-t border-border/50 hover:bg-muted/30">
-                    <td className="py-3 font-medium">{pos.symbol}</td>
-                    <td className="py-3">
-                      <span className={cn(
-                        'px-2 py-0.5 rounded text-xs font-medium',
-                        pos.side === 'long' ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'
-                      )}>
-                        {pos.side.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-3 text-right">{pos.size.toLocaleString()}</td>
-                    <td className="py-3 text-right">${pos.entryPrice.toLocaleString()}</td>
-                    <td className="py-3 text-right">${pos.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td className={cn(
-                      'py-3 text-right font-medium',
-                      pos.unrealizedPnl >= 0 ? 'text-success' : 'text-destructive'
-                    )}>
-                      {pos.unrealizedPnl >= 0 ? '+' : ''}${pos.unrealizedPnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      <span className="text-xs ml-1">({pos.unrealizedPnlPercent >= 0 ? '+' : ''}{pos.unrealizedPnlPercent.toFixed(2)}%)</span>
-                    </td>
-                    <td className="py-3 text-right">{pos.leverage}x</td>
-                    <td className="py-3 text-right text-muted-foreground">{pos.venue}</td>
-                    <td className="py-3 text-right">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
-                        <XCircle className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <TabsContent value="positions">
+            <PositionManagementPanel />
+          </TabsContent>
 
-        {/* Orders table */}
-        <div className="glass-panel rounded-xl p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Orders</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full data-grid">
-              <thead>
-                <tr className="text-muted-foreground text-left">
-                  <th className="pb-3 font-medium">Symbol</th>
-                  <th className="pb-3 font-medium">Side</th>
-                  <th className="pb-3 font-medium">Type</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium text-right">Size</th>
-                  <th className="pb-3 font-medium text-right">Price</th>
-                  <th className="pb-3 font-medium text-right">Filled</th>
-                  <th className="pb-3 font-medium text-right">Venue</th>
-                  <th className="pb-3 font-medium text-right">Age</th>
-                  <th className="pb-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id} className="border-t border-border/50 hover:bg-muted/30">
-                    <td className="py-3 font-medium">{order.symbol}</td>
-                    <td className="py-3">
-                      <span className={cn(
-                        'px-2 py-0.5 rounded text-xs font-medium',
-                        order.side === 'buy' ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'
-                      )}>
-                        {order.side.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-3 uppercase text-xs">{order.type}</td>
-                    <td className="py-3">
-                      <Badge variant={order.status === 'filled' ? 'success' : order.status === 'pending' ? 'warning' : 'destructive'}>
-                        {order.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3 text-right">{order.size}</td>
-                    <td className="py-3 text-right">${order.price.toLocaleString()}</td>
-                    <td className="py-3 text-right">{order.filledSize}/{order.size}</td>
-                    <td className="py-3 text-right text-muted-foreground">{order.venue}</td>
-                    <td className="py-3 text-right text-muted-foreground text-xs">
-                      {formatDistanceToNow(order.createdAt, { addSuffix: false })}
-                    </td>
-                    <td className="py-3 text-right">
-                      {order.status === 'pending' && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <TabsContent value="orders">
+            {/* Orders table */}
+            <div className="glass-panel rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Orders</h3>
+                <Badge variant="outline">{orders.length} total</Badge>
+              </div>
+              {orders.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No orders</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full data-grid">
+                    <thead>
+                      <tr className="text-muted-foreground text-left">
+                        <th className="pb-3 font-medium">Instrument</th>
+                        <th className="pb-3 font-medium">Side</th>
+                        <th className="pb-3 font-medium">Status</th>
+                        <th className="pb-3 font-medium text-right">Size</th>
+                        <th className="pb-3 font-medium text-right">Price</th>
+                        <th className="pb-3 font-medium text-right">Filled</th>
+                        <th className="pb-3 font-medium text-right">Age</th>
+                        <th className="pb-3 font-medium text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.map((order) => (
+                        <tr key={order.id} className="border-t border-border/50 hover:bg-muted/30">
+                          <td className="py-3 font-medium">{order.instrument}</td>
+                          <td className="py-3">
+                            <span className={cn(
+                              'px-2 py-0.5 rounded text-xs font-medium',
+                              order.side === 'buy' ? 'bg-trading-long/20 text-trading-long' : 'bg-trading-short/20 text-trading-short'
+                            )}>
+                              {order.side.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="py-3">
+                            <Badge variant={
+                              order.status === 'filled' ? 'success' : 
+                              order.status === 'open' ? 'warning' : 
+                              'destructive'
+                            }>
+                              {order.status}
+                            </Badge>
+                          </td>
+                          <td className="py-3 text-right font-mono">{Number(order.size).toLocaleString()}</td>
+                          <td className="py-3 text-right font-mono">${order.price ? Number(order.price).toLocaleString() : 'Market'}</td>
+                          <td className="py-3 text-right font-mono">{Number(order.filled_size)}/{Number(order.size)}</td>
+                          <td className="py-3 text-right text-muted-foreground text-xs">
+                            {formatDistanceToNow(new Date(order.created_at), { addSuffix: false })}
+                          </td>
+                          <td className="py-3 text-right">
+                            {order.status === 'open' && (
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-trading-short hover:text-trading-short">
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );
