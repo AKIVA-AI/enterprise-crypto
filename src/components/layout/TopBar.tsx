@@ -22,6 +22,7 @@ import { useVenues } from '@/hooks/useVenues';
 import { useUnreadAlertsCount, useAlerts } from '@/hooks/useAlerts';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { WalletButton } from '@/components/wallet/WalletButton';
 
 export function TopBar() {
   const [time, setTime] = useState(new Date());
@@ -191,6 +192,9 @@ export function TopBar() {
               </div>
             </PopoverContent>
           </Popover>
+
+          {/* Wallet Connection */}
+          <WalletButton />
 
           {/* Connection status */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
