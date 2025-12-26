@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { LineChart, Plus, Play, Pause, Settings, TrendingUp, TrendingDown, Trash2, Edit, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { BacktestPanel } from '@/components/backtest/BacktestPanel';
 
 const statusColors: Record<string, string> = {
   off: 'bg-muted text-muted-foreground',
@@ -155,6 +156,9 @@ export default function Strategies() {
             ))}
           </div>
         )}
+
+        {/* Backtesting Panel */}
+        <BacktestPanel />
       </div>
     </MainLayout>
   );
