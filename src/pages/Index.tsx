@@ -5,10 +5,14 @@ import { PositionsTable } from '@/components/dashboard/PositionsTable';
 import { RecentEvents } from '@/components/dashboard/RecentEvents';
 import { RiskGauge } from '@/components/dashboard/RiskGauge';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
+import { useDashboardRealtime } from '@/hooks/useRealtimeSubscriptions';
 import { DollarSign, TrendingUp, Layers, AlertTriangle, Loader2 } from 'lucide-react';
 
 export default function Index() {
   const { data: metrics, isLoading } = useDashboardMetrics();
+  
+  // Enable realtime updates for dashboard
+  useDashboardRealtime();
 
   return (
     <MainLayout>
