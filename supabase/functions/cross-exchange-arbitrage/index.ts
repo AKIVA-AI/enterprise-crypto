@@ -235,8 +235,8 @@ serve(async (req) => {
 
     switch (action) {
       case 'scan':
-        // Scan for arbitrage opportunities
-        const symbols = params.symbols || ['BTC/USD', 'ETH/USD', 'SOL/USD'];
+        // Scan for arbitrage opportunities - now includes 5 pairs
+        const symbols = params.symbols || ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'LINK/USD'];
         const minSpread = params.minSpreadPercent || 0.1;
         
         const allOpportunities: ArbitrageOpportunity[] = [];
@@ -271,6 +271,88 @@ serve(async (req) => {
           scanned: symbols.length,
           found: profitableOpportunities.length,
           alerted: profitableOpportunities.filter(o => o.spreadPercent >= alertThreshold).length,
+          timestamp: Date.now(),
+        };
+        break;
+
+      case 'auto-execute':
+        // Auto-execute with safety controls
+        const autoSymbols = params.symbols || ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'LINK/USD'];
+        const autoMinSpread = params.minSpreadPercent || 0.1;
+        const minProfitThreshold = params.minProfitThreshold || 25; // $25 minimum
+        const maxPositionSize = params.maxPositionSize || 0.1; // Max position
+        const cooldownMs = params.cooldownMs || 60000; // 1 minute cooldown
+        
+        console.log('[Arbitrage] Auto-execute scan with params:', {
+          minProfitThreshold,
+          maxPositionSize,
+          cooldownMs,
+        });
+        
+        // Scan for opportunities
+        const autoAllOpps: ArbitrageOpportunity[] = [];
+        for (const symbol of autoSymbols) {
+          const prices = await fetchPrices(symbol);
+          const opportunities = findOpportunities(prices, autoMinSpread);
+          autoAllOpps.push(...opportunities);
+        }
+        
+        // Analyze costs
+        const autoAnalyzed = autoAllOpps.map(opp => ({
+          ...opp,
+          volume: Math.min(opp.volume, maxPositionSize), // Cap position size
+          costs: calculateCosts({ ...opp, volume: Math.min(opp.volume, maxPositionSize) }),
+        }));
+        
+        // Filter for profitable opportunities above threshold
+        const executableOpps = autoAnalyzed.filter(
+          opp => opp.costs.netProfit >= minProfitThreshold
+        );
+        
+        let executedTrades = [];
+        
+        if (executableOpps.length > 0) {
+          // Sort by profit and take best opportunity
+          const bestOpp = executableOpps.sort((a, b) => b.costs.netProfit - a.costs.netProfit)[0];
+          
+          console.log('[Arbitrage] Auto-executing best opportunity:', bestOpp);
+          
+          // Send alert
+          await sendTelegramAlert(bestOpp, bestOpp.costs);
+          
+          // Execute (simulation mode for now)
+          const execResult = {
+            status: 'SIMULATED',
+            opportunity: bestOpp,
+            buyOrder: {
+              exchange: bestOpp.buyExchange,
+              orderId: `auto_buy_${Date.now()}`,
+              status: 'FILLED',
+              price: bestOpp.buyPrice,
+              quantity: bestOpp.volume,
+            },
+            sellOrder: {
+              exchange: bestOpp.sellExchange,
+              orderId: `auto_sell_${Date.now()}`,
+              status: 'FILLED',
+              price: bestOpp.sellPrice,
+              quantity: bestOpp.volume,
+            },
+            netProfit: bestOpp.costs.netProfit,
+            executedAt: Date.now(),
+          };
+          
+          executedTrades.push(execResult);
+        }
+        
+        result = {
+          scanned: autoSymbols.length,
+          found: autoAnalyzed.filter(o => o.costs.netProfit > 0).length,
+          qualified: executableOpps.length,
+          executed: executedTrades.length,
+          trades: executedTrades,
+          nextScanAfter: Date.now() + cooldownMs,
+          settings: { minProfitThreshold, maxPositionSize, cooldownMs },
           timestamp: Date.now(),
         };
         break;

@@ -34,9 +34,9 @@ export interface ArbitrageOpportunity {
   };
 }
 
-// Scan for opportunities
+// Scan for opportunities - now includes all 5 pairs
 export function useArbitrageScan(
-  symbols: string[] = ['BTC/USD', 'ETH/USD', 'SOL/USD'],
+  symbols: string[] = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'LINK/USD'],
   minSpreadPercent: number = 0.1,
   enabled: boolean = true
 ) {
@@ -121,9 +121,9 @@ export function useExecuteArbitrage() {
   });
 }
 
-// Convenience hook for real-time monitoring
+// Convenience hook for real-time monitoring - now includes all 5 pairs
 export function useArbitrageMonitor(enabled: boolean = true) {
-  const scan = useArbitrageScan(['BTC/USD', 'ETH/USD', 'SOL/USD'], 0.05, enabled);
+  const scan = useArbitrageScan(['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'LINK/USD'], 0.05, enabled);
   const status = useArbitrageStatus();
 
   return {
@@ -133,4 +133,38 @@ export function useArbitrageMonitor(enabled: boolean = true) {
     status: status.data,
     refetch: scan.refetch,
   };
+}
+
+// Auto-execute settings interface
+export interface AutoExecuteSettings {
+  enabled: boolean;
+  minProfitThreshold: number; // Minimum profit in USD
+  maxPositionSize: number; // Maximum position size
+  cooldownMs: number; // Cooldown between trades
+}
+
+// Hook for auto-execute functionality
+export function useAutoExecuteArbitrage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (settings: Omit<AutoExecuteSettings, 'enabled'>) =>
+      invokeArbitrage('auto-execute', {
+        minProfitThreshold: settings.minProfitThreshold,
+        maxPositionSize: settings.maxPositionSize,
+        cooldownMs: settings.cooldownMs,
+      }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['arbitrage'] });
+      
+      if (data.executed > 0) {
+        toast.success('Auto-execute trade completed', {
+          description: `Net profit: $${data.trades[0]?.netProfit?.toFixed(2) || 'N/A'}`,
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast.error('Auto-execute failed', { description: error.message });
+    },
+  });
 }
