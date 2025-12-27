@@ -18,6 +18,7 @@ import {
   History,
   Briefcase,
   CircleCheck,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,6 +26,7 @@ import { useAuth } from '@/hooks/useAuth';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Markets', href: '/markets', icon: BarChart3 },
+  { name: 'Arbitrage', href: '/arbitrage', icon: ArrowLeftRight },
   { name: 'Engine', href: '/engine', icon: Cpu },
   { name: 'Analytics', href: '/analytics', icon: LineChart },
   { name: 'Agents', href: '/agents', icon: Bot },

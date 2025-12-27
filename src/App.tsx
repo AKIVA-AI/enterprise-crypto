@@ -22,6 +22,7 @@ import Markets from "./pages/Markets";
 import Positions from "./pages/Positions";
 import AuditLog from "./pages/AuditLog";
 import SystemStatus from "./pages/SystemStatus";
+import Arbitrage from "./pages/Arbitrage";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/positions" element={<ProtectedRoute><Positions /></ProtectedRoute>} />
                 <Route path="/audit" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
                 <Route path="/status" element={<ProtectedRoute><SystemStatus /></ProtectedRoute>} />
+                <Route path="/arbitrage" element={<ProtectedRoute><Arbitrage /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AlertNotificationProvider>
