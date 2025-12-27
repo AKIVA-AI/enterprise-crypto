@@ -28,32 +28,54 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useArbitrageMonitor, useExecuteArbitrage, useTestArbitrageExecution, ArbitrageOpportunity } from '@/hooks/useCrossExchangeArbitrage';
+import { useArbitrageMonitor, useExecuteArbitrage, useTestArbitrageExecution, useAutoExecuteArbitrage, ArbitrageOpportunity, AutoExecuteSettings } from '@/hooks/useCrossExchangeArbitrage';
 import { useArbitrageHistory, useArbitrageStats, useRecordArbitrageExecution } from '@/hooks/useArbitrageHistory';
 import { VENUES } from '@/lib/tradingModes';
+
+// All supported pairs
+const SUPPORTED_PAIRS = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'LINK/USD'];
 
 export default function Arbitrage() {
   const [isScanning, setIsScanning] = useState(true);
   const [minSpreadPercent, setMinSpreadPercent] = useState([0.1]);
-  const [autoExecute, setAutoExecute] = useState(false);
+  
+  // Auto-execute settings state
+  const [autoExecuteSettings, setAutoExecuteSettings] = useState<AutoExecuteSettings>({
+    enabled: false,
+    minProfitThreshold: 25, // $25 minimum
+    maxPositionSize: 0.1,   // 0.1 BTC equivalent
+    cooldownMs: 60000,      // 1 minute cooldown
+  });
+  const [lastAutoExecute, setLastAutoExecute] = useState<number>(0);
+  
   const [selectedOpportunity, setSelectedOpportunity] = useState<ArbitrageOpportunity | null>(null);
 
   const { opportunities, isScanning: loading, lastScan, status, refetch } = useArbitrageMonitor(isScanning);
   const executeArbitrage = useExecuteArbitrage();
   const testExecution = useTestArbitrageExecution();
+  const autoExecute = useAutoExecuteArbitrage();
   const recordExecution = useRecordArbitrageExecution();
   const { data: history = [], isLoading: historyLoading } = useArbitrageHistory(20);
   const { data: stats } = useArbitrageStats();
 
-  // Auto-execute logic
+  // Auto-execute logic with cooldown
   useEffect(() => {
-    if (autoExecute && opportunities.length > 0) {
-      const best = opportunities[0];
-      if (best.costs && best.costs.netProfit > 10) { // Only if > $10 profit
-        handleExecute(best);
-      }
+    if (!autoExecuteSettings.enabled || opportunities.length === 0) return;
+    
+    const now = Date.now();
+    if (now - lastAutoExecute < autoExecuteSettings.cooldownMs) return;
+    
+    // Find best opportunity that meets threshold
+    const qualifiedOpps = opportunities.filter(
+      opp => opp.costs && opp.costs.netProfit >= autoExecuteSettings.minProfitThreshold
+    );
+    
+    if (qualifiedOpps.length > 0) {
+      const best = qualifiedOpps[0];
+      setLastAutoExecute(now);
+      handleExecute(best);
     }
-  }, [opportunities, autoExecute]);
+  }, [opportunities, autoExecuteSettings]);
 
   const handleExecute = async (opportunity: ArbitrageOpportunity) => {
     // Execute the arbitrage
@@ -260,23 +282,75 @@ export default function Arbitrage() {
                     </p>
                   </div>
                   <Switch
-                    checked={autoExecute}
-                    onCheckedChange={setAutoExecute}
+                    checked={autoExecuteSettings.enabled}
+                    onCheckedChange={(checked) => 
+                      setAutoExecuteSettings(prev => ({ ...prev, enabled: checked }))
+                    }
                   />
                 </div>
                 
-                {autoExecute && (
-                  <div className="p-2 rounded-lg bg-warning/10 border border-warning/30">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
-                      <div className="text-xs">
-                        <p className="font-medium text-warning">Caution</p>
-                        <p className="text-muted-foreground">
-                          Auto-execution will place real orders when APIs are configured.
-                        </p>
+                {autoExecuteSettings.enabled && (
+                  <>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Min Profit</Label>
+                        <span className="text-sm font-mono">${autoExecuteSettings.minProfitThreshold}</span>
+                      </div>
+                      <Slider
+                        value={[autoExecuteSettings.minProfitThreshold]}
+                        onValueChange={([val]) => 
+                          setAutoExecuteSettings(prev => ({ ...prev, minProfitThreshold: val }))
+                        }
+                        min={5}
+                        max={100}
+                        step={5}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Max Position</Label>
+                        <span className="text-sm font-mono">{autoExecuteSettings.maxPositionSize} BTC</span>
+                      </div>
+                      <Slider
+                        value={[autoExecuteSettings.maxPositionSize]}
+                        onValueChange={([val]) => 
+                          setAutoExecuteSettings(prev => ({ ...prev, maxPositionSize: val }))
+                        }
+                        min={0.01}
+                        max={1}
+                        step={0.01}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Cooldown</Label>
+                        <span className="text-sm font-mono">{autoExecuteSettings.cooldownMs / 1000}s</span>
+                      </div>
+                      <Slider
+                        value={[autoExecuteSettings.cooldownMs]}
+                        onValueChange={([val]) => 
+                          setAutoExecuteSettings(prev => ({ ...prev, cooldownMs: val }))
+                        }
+                        min={10000}
+                        max={300000}
+                        step={10000}
+                      />
+                    </div>
+                    
+                    <div className="p-2 rounded-lg bg-warning/10 border border-warning/30">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
+                        <div className="text-xs">
+                          <p className="font-medium text-warning">Caution</p>
+                          <p className="text-muted-foreground">
+                            Auto-execution will place real orders when APIs are configured.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </CardContent>
             </Card>
