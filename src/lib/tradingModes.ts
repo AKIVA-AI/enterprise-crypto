@@ -86,6 +86,23 @@ export const VENUES: Record<string, VenueConfig> = {
     apiIntegrated: true, // Now integrated
     description: 'Full-featured US exchange with futures',
   },
+  binance_us: {
+    id: 'binance_us',
+    name: 'Binance.US',
+    icon: '🟡',
+    modes: ['us'],
+    capabilities: {
+      spot: true,
+      futures: false,
+      perpetuals: false,
+      margin: false,
+      staking: true,
+      options: false,
+    },
+    usCompliant: true,
+    apiIntegrated: true,
+    description: 'US-compliant Binance with spot trading',
+  },
   binance: {
     id: 'binance',
     name: 'Binance',
@@ -100,7 +117,7 @@ export const VENUES: Record<string, VenueConfig> = {
       options: true,
     },
     usCompliant: false,
-    apiIntegrated: true, // Data only
+    apiIntegrated: false,
     description: 'Global exchange with full derivatives',
   },
   bybit: {
@@ -163,7 +180,7 @@ export const ARBITRAGE_STRATEGIES: ArbitrageStrategy[] = [
     name: 'Cross-Exchange Spot',
     description: 'Exploit price differences between exchanges for the same asset',
     modes: ['us', 'international'],
-    venues: ['coinbase', 'kraken', 'binance'],
+    venues: ['coinbase', 'kraken', 'binance_us', 'binance'],
     riskLevel: 'low',
     estimatedApy: '5-15%',
   },
@@ -181,7 +198,7 @@ export const ARBITRAGE_STRATEGIES: ArbitrageStrategy[] = [
     name: 'Triangular Arbitrage',
     description: 'Exploit pricing inefficiencies across trading pairs',
     modes: ['us', 'international'],
-    venues: ['coinbase', 'kraken', 'binance'],
+    venues: ['coinbase', 'kraken', 'binance_us', 'binance'],
     riskLevel: 'medium',
     estimatedApy: '3-10%',
   },
@@ -190,7 +207,7 @@ export const ARBITRAGE_STRATEGIES: ArbitrageStrategy[] = [
     name: 'Basis Trade',
     description: 'Trade the spread between futures and spot',
     modes: ['us', 'international'],
-    venues: ['coinbase', 'kraken', 'binance'],
+    venues: ['coinbase', 'kraken', 'binance_us', 'binance'],
     riskLevel: 'low',
     estimatedApy: '8-20%',
   },
@@ -211,7 +228,7 @@ export const TRADING_MODES: Record<TradingMode, TradingModeConfig> = {
     mode: 'us',
     label: 'US Mode',
     description: 'US-compliant trading with regulated exchanges',
-    venues: ['coinbase', 'kraken'],
+    venues: ['coinbase', 'kraken', 'binance_us'],
     features: {
       spot: true,
       futures: true, // CME-style only
