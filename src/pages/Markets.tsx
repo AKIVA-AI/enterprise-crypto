@@ -1,7 +1,7 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { TradingViewChart } from '@/components/charts/TradingViewChart';
-import { TradeTicket } from '@/components/trading/TradeTicket';
+import { UnifiedSpotTrader } from '@/components/trading/UnifiedSpotTrader';
 import { LiveOrderBook } from '@/components/trading/LiveOrderBook';
 import { TradeBlotter } from '@/components/trading/TradeBlotter';
 import { PortfolioSummaryWidget } from '@/components/portfolio/PortfolioSummaryWidget';
@@ -158,11 +158,8 @@ export default function Markets() {
                 Trade
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-md p-0 border-l border-border/50">
-              <TradeTicket 
-                defaultInstrument={selectedSymbol.replace('-', '/')} 
-                onClose={() => setIsTradeTicketOpen(false)}
-              />
+            <SheetContent className="w-full sm:max-w-lg p-0 border-l border-border/50 overflow-y-auto">
+              <UnifiedSpotTrader />
             </SheetContent>
           </Sheet>
         </div>
