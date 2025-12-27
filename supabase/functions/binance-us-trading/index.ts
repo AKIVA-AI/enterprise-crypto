@@ -51,6 +51,12 @@ async function binanceRequest(
   
   if (!response.ok) {
     const error = await response.text();
+
+    // Mark common auth/permission failures explicitly so we can fall back to simulation.
+    if (error.includes('"code":-2015') || error.includes('Invalid API-key')) {
+      throw new Error(`BINANCE_US_AUTH_ERROR:${error}`);
+    }
+
     throw new Error(`Binance.US API error: ${error}`);
   }
   
@@ -66,6 +72,35 @@ async function publicRequest(endpoint: string): Promise<any> {
   return response.json();
 }
 
+function getErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function isBinanceUsAuthError(err: unknown): boolean {
+  const msg = getErrorMessage(err);
+  return msg.startsWith('BINANCE_US_AUTH_ERROR:') || msg.includes('"code":-2015') || msg.includes('Invalid API-key');
+}
+
+async function binanceAuthOrSimulate<T extends Record<string, any>>(
+  hasCredentials: boolean,
+  simulatedResult: T,
+  fn: () => Promise<T>
+): Promise<T> {
+  if (!hasCredentials) return simulatedResult;
+
+  try {
+    return await fn();
+  } catch (err) {
+    if (isBinanceUsAuthError(err)) {
+      const msg = getErrorMessage(err).replace(/^BINANCE_US_AUTH_ERROR:/, '');
+      console.warn('[Binance.US] Auth error, falling back to simulation:', msg);
+      return { ...simulatedResult, simulated: true, authError: true, warning: msg };
+    }
+
+    throw err;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -79,7 +114,7 @@ serve(async (req) => {
     console.log(`[Binance.US] Action: ${action}`, params);
 
     let result;
-    const hasCredentials = apiKey && apiSecret;
+    const hasCredentials = Boolean(apiKey && apiSecret);
 
     switch (action) {
       // ========== PUBLIC ENDPOINTS ==========
@@ -108,98 +143,100 @@ serve(async (req) => {
         break;
 
       // ========== AUTHENTICATED ENDPOINTS ==========
-      case 'account':
-        if (!hasCredentials) {
-          result = {
-            simulated: true,
-            balances: [
-              { asset: 'BTC', free: '0.5', locked: '0.1' },
-              { asset: 'ETH', free: '5.0', locked: '0.0' },
-              { asset: 'USD', free: '10000.00', locked: '500.00' },
-              { asset: 'USDT', free: '5000.00', locked: '0.00' },
-            ],
-            canTrade: true,
-            canWithdraw: true,
-            canDeposit: true,
-          };
-        } else {
-          result = await binanceRequest('/api/v3/account', 'GET', apiKey, apiSecret);
-        }
-        break;
+      case 'account': {
+        const simulatedAccount = {
+          simulated: true,
+          balances: [
+            { asset: 'BTC', free: '0.5', locked: '0.1' },
+            { asset: 'ETH', free: '5.0', locked: '0.0' },
+            { asset: 'USD', free: '10000.00', locked: '500.00' },
+            { asset: 'USDT', free: '5000.00', locked: '0.00' },
+          ],
+          canTrade: true,
+          canWithdraw: true,
+          canDeposit: true,
+        };
 
-      case 'open_orders':
-        if (!hasCredentials) {
-          result = { simulated: true, orders: [] };
-        } else {
+        result = await binanceAuthOrSimulate(hasCredentials, simulatedAccount, () =>
+          binanceRequest('/api/v3/account', 'GET', apiKey!, apiSecret!)
+        );
+        break;
+      }
+
+      case 'open_orders': {
+        const simulatedOrders = { simulated: true, orders: [] as any[] };
+        result = await binanceAuthOrSimulate(hasCredentials, simulatedOrders, async () => {
           const orderParams: Record<string, string> = {};
           if (params.symbol) orderParams.symbol = params.symbol;
-          result = await binanceRequest('/api/v3/openOrders', 'GET', apiKey, apiSecret, orderParams);
-        }
+          return await binanceRequest('/api/v3/openOrders', 'GET', apiKey!, apiSecret!, orderParams);
+        });
         break;
+      }
 
-      case 'all_orders':
-        if (!hasCredentials) {
-          result = { simulated: true, orders: [] };
-        } else {
+      case 'all_orders': {
+        const simulatedOrders = { simulated: true, orders: [] as any[] };
+        result = await binanceAuthOrSimulate(hasCredentials, simulatedOrders, async () => {
           if (!params.symbol) throw new Error('Symbol required for all_orders');
-          result = await binanceRequest('/api/v3/allOrders', 'GET', apiKey, apiSecret, { symbol: params.symbol });
-        }
+          return await binanceRequest('/api/v3/allOrders', 'GET', apiKey!, apiSecret!, { symbol: params.symbol });
+        });
         break;
+      }
 
-      case 'place_order':
-        if (!hasCredentials) {
-          result = {
-            simulated: true,
-            orderId: `sim_${Date.now()}`,
-            symbol: params.symbol,
-            side: params.side,
-            type: params.type || 'LIMIT',
-            quantity: params.quantity,
-            price: params.price,
-            status: 'SIMULATED',
-            message: 'Order simulated - configure API keys for live trading',
-          };
-        } else {
+      case 'place_order': {
+        const simulatedOrder = {
+          simulated: true,
+          orderId: `sim_${Date.now()}`,
+          symbol: params.symbol,
+          side: params.side,
+          type: params.type || 'LIMIT',
+          quantity: params.quantity,
+          price: params.price,
+          status: 'SIMULATED',
+          message: 'Order simulated - configure API keys for live trading',
+        };
+
+        result = await binanceAuthOrSimulate(hasCredentials, simulatedOrder, async () => {
           const orderParams: Record<string, string> = {
             symbol: params.symbol,
             side: params.side.toUpperCase(),
             type: params.type?.toUpperCase() || 'LIMIT',
             quantity: params.quantity.toString(),
           };
-          
+
           if (params.type === 'LIMIT' || !params.type) {
             orderParams.timeInForce = params.timeInForce || 'GTC';
             orderParams.price = params.price.toString();
           }
-          
+
           if (params.stopPrice) {
             orderParams.stopPrice = params.stopPrice.toString();
           }
-          
-          result = await binanceRequest('/api/v3/order', 'POST', apiKey, apiSecret, orderParams);
-        }
-        break;
 
-      case 'cancel_order':
-        if (!hasCredentials) {
-          result = { simulated: true, status: 'CANCELED', orderId: params.orderId };
-        } else {
+          return await binanceRequest('/api/v3/order', 'POST', apiKey!, apiSecret!, orderParams);
+        });
+        break;
+      }
+
+      case 'cancel_order': {
+        const simulatedCancel = { simulated: true, status: 'CANCELED', orderId: params.orderId };
+        result = await binanceAuthOrSimulate(hasCredentials, simulatedCancel, async () => {
           if (!params.symbol || !params.orderId) throw new Error('Symbol and orderId required');
-          result = await binanceRequest('/api/v3/order', 'DELETE', apiKey, apiSecret, {
+          return await binanceRequest('/api/v3/order', 'DELETE', apiKey!, apiSecret!, {
             symbol: params.symbol,
             orderId: params.orderId,
           });
-        }
+        });
         break;
+      }
 
-      case 'my_trades':
-        if (!hasCredentials) {
-          result = { simulated: true, trades: [] };
-        } else {
+      case 'my_trades': {
+        const simulatedTrades = { simulated: true, trades: [] as any[] };
+        result = await binanceAuthOrSimulate(hasCredentials, simulatedTrades, async () => {
           if (!params.symbol) throw new Error('Symbol required for my_trades');
-          result = await binanceRequest('/api/v3/myTrades', 'GET', apiKey, apiSecret, { symbol: params.symbol });
-        }
+          return await binanceRequest('/api/v3/myTrades', 'GET', apiKey!, apiSecret!, { symbol: params.symbol });
+        });
         break;
+      }
 
       case 'status':
         result = {

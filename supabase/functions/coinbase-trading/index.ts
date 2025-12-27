@@ -25,6 +25,16 @@ interface OrderRequest {
   clientOrderId?: string;
 }
 
+async function base64ToUint8Array(base64: string): Promise<Uint8Array> {
+  // Deno provides atob/btoa for base64 <-> binary string
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
 // Generate Coinbase Advanced Trade API signature using Web Crypto API
 async function generateSignature(
   secret: string,
@@ -34,24 +44,32 @@ async function generateSignature(
   body: string = ''
 ): Promise<string> {
   const message = timestamp + method.toUpperCase() + requestPath + body;
+
+  // Coinbase API secrets are commonly provided as base64 strings.
+  // If decoding fails, fall back to using the raw secret as-is.
+  let secretKeyBytes: Uint8Array;
+  try {
+    secretKeyBytes = await base64ToUint8Array(secret);
+  } catch {
+    secretKeyBytes = new TextEncoder().encode(secret);
+  }
+
   const encoder = new TextEncoder();
-  
-  // Import the secret key
+
+  // Ensure we pass a plain ArrayBuffer (Deno types can treat Uint8Array buffers as ArrayBufferLike)
+  const keyData = new ArrayBuffer(secretKeyBytes.byteLength);
+  new Uint8Array(keyData).set(secretKeyBytes);
+
   const key = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(secret),
+    keyData,
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
   );
-  
-  // Sign the message
-  const signature = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    encoder.encode(message)
-  );
-  
+
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
+
   // Convert ArrayBuffer to base64
   const signatureBytes = new Uint8Array(signature);
   let binary = '';
