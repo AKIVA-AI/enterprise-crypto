@@ -498,21 +498,56 @@ class AdvancedRiskEngine:
         """Get historical portfolio returns for VaR calculation."""
         supabase = get_supabase()
 
-        # Get historical P&L data
+        # Get historical P&L data from portfolio_snapshots table
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
 
-        # This is a simplified version - in reality you'd have daily P&L tracking
-        result = supabase.table("positions").select(
-            "created_at, unrealized_pnl, realized_pnl"
-        ).eq("book_id", str(book_id)).execute()
+        try:
+            # Try to get daily portfolio snapshots (preferred)
+            result = supabase.table("portfolio_snapshots").select(
+                "snapshot_date, total_value, daily_pnl"
+            ).eq("book_id", str(book_id)).gte("snapshot_date", start_date.isoformat()).lte("snapshot_date", end_date.isoformat()).order("snapshot_date").execute()
 
-        # Mock daily returns for demonstration
-        # In production, this would be actual daily P&L data
-        dates = pd.date_range(start=start_date, end=end_date, freq='D')
-        returns = np.random.normal(0.001, 0.02, len(dates))  # Mock daily returns
+            if result.data and len(result.data) > 1:
+                # Calculate returns from portfolio values
+                values = [snapshot['total_value'] for snapshot in result.data]
+                returns = []
+                for i in range(1, len(values)):
+                    if values[i-1] > 0:
+                        daily_return = (values[i] - values[i-1]) / values[i-1]
+                        returns.append(daily_return)
+                    else:
+                        returns.append(0.0)  # Handle zero/negative values
+                return np.array(returns)
 
-        return returns
+        except Exception as e:
+            logger.warning(f"Could not get portfolio snapshots: {e}. Falling back to position data.")
+
+        # Fallback: Calculate from position history if snapshots not available
+        try:
+            result = supabase.table("positions").select(
+                "created_at, entry_price, mark_price, size"
+            ).eq("book_id", str(book_id)).eq("is_open", False).gte("updated_at", start_date.isoformat()).execute()
+
+            if result.data:
+                # Group by date and calculate daily P&L
+                daily_pnl = {}
+                for position in result.data:
+                    date = position['created_at'][:10]  # YYYY-MM-DD
+                    pnl = (position['mark_price'] - position['entry_price']) * position['size']
+                    daily_pnl[date] = daily_pnl.get(date, 0) + pnl
+
+                # Convert to returns (simplified - assumes constant portfolio value)
+                returns = list(daily_pnl.values())
+                if returns:
+                    return np.array(returns)
+
+        except Exception as e:
+            logger.warning(f"Could not get position data: {e}")
+
+        # Last resort: return zeros (better than random data)
+        logger.warning("No historical data available for VaR calculation, using zero returns")
+        return np.zeros(min(days, 252))  # Return zeros for up to 1 year
 
     async def _get_portfolio_data(self, book_id: UUID) -> Tuple[List[str], np.ndarray, np.ndarray]:
         """Get assets, expected returns, and covariance matrix."""
@@ -528,15 +563,49 @@ class AdvancedRiskEngine:
 
         # Extract unique assets
         assets = list(set(pos['instrument'] for pos in result.data))
-
-        # Mock expected returns and covariance (in production, use historical data)
         n_assets = len(assets)
-        expected_returns = np.random.normal(0.001, 0.0005, n_assets)  # Daily expected returns
 
-        # Create covariance matrix
-        cov_matrix = np.random.rand(n_assets, n_assets) * 0.0004
-        cov_matrix = (cov_matrix + cov_matrix.T) / 2  # Make symmetric
-        np.fill_diagonal(cov_matrix, np.random.uniform(0.0001, 0.0008, n_assets))  # Realistic volatilities
+        # Try to get historical returns for each asset
+        expected_returns = np.zeros(n_assets)
+        for i, asset in enumerate(assets):
+            try:
+                # Get historical price data for the asset
+                asset_returns = await self._get_asset_returns(asset, 90)  # 90 days
+                if len(asset_returns) > 0:
+                    expected_returns[i] = np.mean(asset_returns)
+                else:
+                    expected_returns[i] = 0.0005  # Default small positive return
+            except Exception as e:
+                logger.warning(f"Could not get returns for {asset}: {e}")
+                expected_returns[i] = 0.0005  # Default
+
+        # Build covariance matrix from historical data
+        cov_matrix = np.zeros((n_assets, n_assets))
+
+        # Get pairwise correlations
+        for i in range(n_assets):
+            for j in range(n_assets):
+                if i == j:
+                    # Variance on diagonal
+                    try:
+                        asset_returns = await self._get_asset_returns(assets[i], 90)
+                        if len(asset_returns) > 1:
+                            cov_matrix[i, j] = np.var(asset_returns)
+                        else:
+                            cov_matrix[i, j] = 0.0004  # Default variance
+                    except Exception:
+                        cov_matrix[i, j] = 0.0004
+                else:
+                    # Covariance off-diagonal
+                    try:
+                        returns_i = await self._get_asset_returns(assets[i], 90)
+                        returns_j = await self._get_asset_returns(assets[j], 90)
+                        if len(returns_i) > 1 and len(returns_j) > 1:
+                            cov_matrix[i, j] = np.cov(returns_i, returns_j)[0, 1]
+                        else:
+                            cov_matrix[i, j] = 0.0  # Assume no correlation if no data
+                    except Exception:
+                        cov_matrix[i, j] = 0.0
 
         return assets, expected_returns, cov_matrix
 
@@ -697,6 +766,34 @@ class AdvancedRiskEngine:
         }
 
         return base_scores.get(counterparty.lower(), base_scores['default'])
+
+    async def _get_asset_returns(self, instrument: str, days: int) -> np.ndarray:
+        """Get historical returns for a specific asset."""
+        supabase = get_supabase()
+
+        try:
+            # Try to get price history from market_data table
+            end_date = datetime.utcnow()
+            start_date = end_date - timedelta(days=days)
+
+            result = supabase.table("market_data").select(
+                "price, timestamp"
+            ).eq("instrument", instrument).gte("timestamp", start_date.isoformat()).lte("timestamp", end_date.isoformat()).order("timestamp").execute()
+
+            if result.data and len(result.data) > 1:
+                prices = [data['price'] for data in result.data]
+                returns = []
+                for i in range(1, len(prices)):
+                    if prices[i-1] > 0:
+                        daily_return = (prices[i] - prices[i-1]) / prices[i-1]
+                        returns.append(daily_return)
+                return np.array(returns)
+
+        except Exception as e:
+            logger.warning(f"Could not get market data for {instrument}: {e}")
+
+        # Fallback: return empty array (will use defaults)
+        return np.array([])
 
 
 # Singleton instance

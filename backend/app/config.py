@@ -38,7 +38,7 @@ class Settings:
         
         # Supabase
         self.supabase_url = os.getenv("SUPABASE_URL", "")
-        self.supabase_service_key = os.getenv("SUPABASE_SERVICE_KEY", "")
+        self.supabase_service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
         
         # Redis
         self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")

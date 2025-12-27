@@ -103,56 +103,150 @@ class HistoricalDataProvider:
         end_date: datetime,
         timeframe_minutes: int = 60
     ) -> List[Dict]:
-        """Generate simulated OHLCV data for backtesting."""
-        
-        # Base prices for different instruments
-        base_prices = {
-            "BTC-USD": 45000,
-            "ETH-USD": 2800,
-            "SOL-USD": 95,
+        """Generate simulated OHLCV data for backtesting with realistic price dynamics."""
+
+        # Base prices and characteristics for different instruments
+        instrument_profiles = {
+            "BTC-USD": {
+                "base_price": 45000,
+                "daily_volatility": 0.025,  # 2.5% daily volatility
+                "trend_strength": 0.001,    # Slight upward trend
+                "volume_base": 1500000000,  # $1.5B daily volume
+                "market_cap": 850000000000  # $850B market cap
+            },
+            "ETH-USD": {
+                "base_price": 2800,
+                "daily_volatility": 0.035,  # 3.5% daily volatility
+                "trend_strength": 0.002,    # Moderate upward trend
+                "volume_base": 800000000,   # $800M daily volume
+                "market_cap": 340000000000  # $340B market cap
+            },
+            "SOL-USD": {
+                "base_price": 95,
+                "daily_volatility": 0.08,    # 8% daily volatility
+                "trend_strength": 0.005,     # Strong growth trend
+                "volume_base": 200000000,    # $200M daily volume
+                "market_cap": 42000000000   # $42B market cap
+            },
+            "ADA-USD": {
+                "base_price": 0.45,
+                "daily_volatility": 0.06,    # 6% daily volatility
+                "trend_strength": 0.001,     # Slight upward trend
+                "volume_base": 150000000,    # $150M daily volume
+                "market_cap": 16000000000   # $16B market cap
+            }
         }
-        
-        base_price = base_prices.get(instrument, 100)
+
+        profile = instrument_profiles.get(instrument, {
+            "base_price": 100,
+            "daily_volatility": 0.04,
+            "trend_strength": 0.001,
+            "volume_base": 50000000,
+            "market_cap": 1000000000
+        })
+
         data = []
         current_time = start_date
-        current_price = base_price
-        
-        # Simulate price movement with random walk + momentum
+        current_price = profile["base_price"]
+
+        # Advanced price simulation parameters
         momentum = 0.0
-        volatility = 0.02  # 2% daily volatility
-        
+        volatility_cluster = 1.0  # Volatility clustering effect
+        trend_component = profile["trend_strength"]
+        base_volatility = profile["daily_volatility"]
+
+        # Market regime simulation (bull/bear/normal markets)
+        regime_duration = 0
+        current_regime = "normal"
+        regime_multiplier = 1.0
+
+        # Seasonality factors (crypto markets are 24/7)
+        hourly_seasonality = [0.8, 0.7, 0.6, 0.5, 0.6, 0.8, 1.0, 1.2, 1.3, 1.2, 1.1, 1.0,
+                             1.0, 1.1, 1.2, 1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.8, 0.8, 0.8]
+
         while current_time <= end_date:
-            # Skip weekends for traditional markets (keep for crypto)
-            
-            # Random price movement
-            momentum = momentum * 0.9 + random.gauss(0, 0.01)
-            returns = momentum + random.gauss(0, volatility / 24)  # Hourly volatility
-            
+            # Update market regime every ~30 days
+            if regime_duration <= 0:
+                regime_duration = random.randint(20, 40)  # 20-40 days
+                regime_choice = random.choices(
+                    ["bull", "bear", "normal"],
+                    weights=[0.3, 0.2, 0.5]  # Bull markets less common
+                )[0]
+
+                if regime_choice != current_regime:
+                    current_regime = regime_choice
+                    if current_regime == "bull":
+                        regime_multiplier = 1.5
+                        trend_component = abs(profile["trend_strength"]) * 2
+                    elif current_regime == "bear":
+                        regime_multiplier = 2.0
+                        trend_component = -abs(profile["trend_strength"]) * 1.5
+                    else:  # normal
+                        regime_multiplier = 1.0
+                        trend_component = profile["trend_strength"]
+
+            regime_duration -= 1
+
+            # Hourly seasonality factor
+            hour = current_time.hour
+            seasonal_factor = hourly_seasonality[hour]
+
+            # Update momentum with mean reversion
+            momentum = momentum * 0.85 + random.gauss(0, 0.005)  # Slower decay
+
+            # Volatility clustering (high vol periods tend to persist)
+            vol_shock = abs(random.gauss(0, 0.5))
+            volatility_cluster = volatility_cluster * 0.9 + vol_shock * 0.1
+            current_volatility = base_volatility * regime_multiplier * volatility_cluster * seasonal_factor
+
+            # Combined return components
+            trend_return = trend_component / 24  # Distribute daily trend across hours
+            momentum_return = momentum
+            random_return = random.gauss(0, current_volatility / 24)  # Hourly volatility
+
+            total_return = trend_return + momentum_return + random_return
+
+            # Generate OHLC from return
             open_price = current_price
-            close_price = open_price * (1 + returns)
-            
-            # Generate high/low
-            intra_vol = abs(returns) + random.uniform(0.001, 0.005)
-            high_price = max(open_price, close_price) * (1 + intra_vol)
-            low_price = min(open_price, close_price) * (1 - intra_vol)
-            
-            # Volume (correlated with volatility)
-            base_volume = 1000000 if instrument.startswith("BTC") else 100000
-            volume = base_volume * (1 + abs(returns) * 10) * random.uniform(0.5, 1.5)
-            
+            close_price = max(0.01, open_price * (1 + total_return))  # Floor at $0.01
+
+            # Generate realistic high/low based on volatility
+            price_range = abs(total_return) + random.uniform(0.001, current_volatility / 12)
+            high_price = max(open_price, close_price) * (1 + price_range)
+            low_price = min(open_price, close_price) * (1 - price_range * 0.7)  # Lows less extreme
+
+            # Volume generation with autocorrelation
+            if not data:
+                # Initialize volume
+                last_volume = profile["volume_base"] / 24  # Hourly volume
+            else:
+                last_volume = data[-1]["volume"]
+
+            # Volume correlated with volatility and price movement
+            volume_multiplier = 1 + abs(total_return) * 3 + current_volatility * 2
+            volume_noise = random.uniform(0.7, 1.3)
+            volume = last_volume * volume_multiplier * volume_noise
+
+            # Cap extreme volumes
+            volume = min(volume, profile["volume_base"] / 6)  # Max 4x average hourly volume
+
+            # VWAP calculation
+            typical_price = (high_price + low_price + close_price) / 3
+            vwap = (typical_price * volume) / volume if volume > 0 else typical_price
+
             data.append({
                 "timestamp": current_time.isoformat(),
-                "open": round(open_price, 2),
-                "high": round(high_price, 2),
-                "low": round(low_price, 2),
-                "close": round(close_price, 2),
+                "open": round(open_price, 6),
+                "high": round(high_price, 6),
+                "low": round(low_price, 6),
+                "close": round(close_price, 6),
                 "volume": round(volume, 2),
-                "vwap": round((high_price + low_price + close_price) / 3, 2),
+                "vwap": round(vwap, 6),
             })
-            
+
             current_price = close_price
             current_time += timedelta(minutes=timeframe_minutes)
-        
+
         return data
     
     def get_price_at_time(self, instrument: str, timestamp: datetime, data: List[Dict]) -> Optional[float]:

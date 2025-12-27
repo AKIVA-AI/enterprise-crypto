@@ -14,7 +14,7 @@ services:
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://postgres:password@db:5432/hedge_fund_db
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/hedge_fund_db
     depends_on:
       - redis
       - db
@@ -43,7 +43,7 @@ services:
     environment:
       POSTGRES_DB: hedge_fund_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
     ports:
       - "5432:5432"
     volumes:
@@ -103,7 +103,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme_in_production}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana

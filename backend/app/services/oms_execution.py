@@ -12,7 +12,7 @@ from app.models.domain import (
     RiskCheckResult, RiskDecision, VenueHealth
 )
 from app.config import settings
-from app.database import get_supabase, audit_log, create_alert
+from app.database import get_supabase, audit_log, create_alert, check_kill_switch_for_trading
 from app.services.risk_engine import risk_engine
 from app.services.portfolio_engine import portfolio_engine
 
@@ -48,14 +48,29 @@ class OMSExecutionService:
     ) -> Optional[Order]:
         """
         Execute a trade intent through risk checks and venue execution.
-        
+
         Flow:
-        1. Get book and positions
-        2. Run risk checks
-        3. Size the position
-        4. Create and submit order
-        5. Track and return result
+        1. Check kill switch
+        2. Get book and positions
+        3. Run risk checks
+        4. Size the position
+        5. Create and submit order
+        6. Track and return result
         """
+        # Check kill switch first
+        allowed, reason = await check_kill_switch_for_trading()
+        if not allowed:
+            logger.warning("trade_blocked_kill_switch", intent_id=str(intent.id), reason=reason)
+            await audit_log(
+                action="trade_blocked",
+                resource_type="trade_intent",
+                resource_id=str(intent.id),
+                book_id=str(intent.book_id),
+                severity="warning",
+                after_state={"reason": reason}
+            )
+            return None
+
         # Get book
         book = await portfolio_engine.get_book(intent.book_id)
         if not book:
