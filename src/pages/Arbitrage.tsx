@@ -32,7 +32,9 @@ import {
   RotateCcw,
   BarChart3,
   Percent,
+  Flag,
 } from 'lucide-react';
+import { useTradingMode } from '@/contexts/TradingModeContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { 
@@ -50,14 +52,18 @@ import { useArbitrageHistory, useArbitrageStats, useRecordArbitrageExecution } f
 import { VENUES } from '@/lib/tradingModes';
 import { PnLAnalyticsDashboard } from '@/components/arbitrage/PnLAnalyticsDashboard';
 import { FundingArbitragePanel } from '@/components/arbitrage/FundingArbitragePanel';
+import { ModeAwareArbitrageInfo } from '@/components/arbitrage/ModeAwareArbitrageInfo';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // All supported pairs
 const SUPPORTED_PAIRS = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'AVAX/USD', 'LINK/USD'];
 
 export default function Arbitrage() {
+  const { mode } = useTradingMode();
+  const isUSMode = mode === 'us';
+  
   const [isScanning, setIsScanning] = useState(true);
-  const [minSpreadPercent, setMinSpreadPercent] = useState([0.1]);
+  const [minSpreadPercent, setMinSpreadPercent] = useState([0.05]);
   const [pnlLimitInput, setPnlLimitInput] = useState(-500);
   
   // Auto-execute settings state
@@ -143,17 +149,37 @@ export default function Arbitrage() {
           <TabsList>
             <TabsTrigger value="scanner" className="gap-2">
               <Activity className="h-4 w-4" />
-              CEX Scanner
+              <span>CEX Spot Arb</span>
+              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-success/50 text-success">
+                US
+              </Badge>
             </TabsTrigger>
             <TabsTrigger value="funding" className="gap-2">
               <Percent className="h-4 w-4" />
-              Funding Rate
+              <span>Funding Rate</span>
+              {isUSMode && (
+                <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-muted-foreground text-muted-foreground">
+                  INTL
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
             </TabsTrigger>
           </TabsList>
+          
+          {/* Mode indicator */}
+          <Badge 
+            variant="outline" 
+            className={cn(
+              'gap-1',
+              isUSMode ? 'border-blue-500/50 text-blue-500' : 'border-green-500/50 text-green-500'
+            )}
+          >
+            <Flag className="h-3 w-3" />
+            {isUSMode ? 'US Mode' : 'International'}
+          </Badge>
         </div>
         
         <TabsContent value="scanner" className="space-y-6">
@@ -187,10 +213,12 @@ export default function Arbitrage() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <ArrowLeftRight className="h-7 w-7 text-primary" />
-              Cross-Exchange Arbitrage
+              {isUSMode ? 'US Spot Arbitrage' : 'Cross-Exchange Arbitrage'}
             </h1>
             <p className="text-muted-foreground">
-              Real-time opportunity scanning across Coinbase, Kraken, and Binance.US
+              {isUSMode 
+                ? 'US-compliant spot arbitrage across Coinbase, Kraken, and Binance.US'
+                : 'Real-time opportunity scanning across all integrated exchanges'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -544,6 +572,9 @@ export default function Arbitrage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Mode-Aware Feature Info */}
+            <ModeAwareArbitrageInfo />
           </div>
 
           {/* Opportunities List */}
