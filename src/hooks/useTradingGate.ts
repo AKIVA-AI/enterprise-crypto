@@ -1,7 +1,9 @@
 /**
  * useTradingGate - React hook for trading permission checks
  * 
- * Provides real-time trading state and validation utilities
+ * Provides real-time trading state and validation utilities.
+ * All checks here are ADVISORY - server-side checks in Edge Functions
+ * are the actual enforcers. See docs/SECURITY_ENFORCEMENT_PROOF.md
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -17,6 +19,11 @@ import {
   validateTrade,
   isReducingOrder,
 } from '@/lib/tradingGate';
+import { 
+  TradingStateSchema, 
+  BookStatusSchema,
+  OrderSideSchema,
+} from '@/lib/schemas';
 
 export interface UseTradingGateResult {
   // Current state

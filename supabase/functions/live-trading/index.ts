@@ -43,6 +43,28 @@ async function runSafetyChecks(
 ): Promise<SafetyCheck> {
   const checks: { name: string; check: () => Promise<SafetyCheck> }[] = [];
 
+  // Check 0: System Health (must be ready to trade)
+  checks.push({
+    name: 'system_health',
+    check: async () => {
+      const { data: health } = await supabase
+        .from('system_health')
+        .select('component, status')
+        .in('component', ['OMS', 'Risk Engine', 'Database']);
+      
+      const unhealthyComponents = health?.filter((h: { status: string }) => 
+        h.status === 'unhealthy'
+      ) || [];
+      
+      if (unhealthyComponents.length > 0) {
+        const names = unhealthyComponents.map((c: { component: string }) => c.component).join(', ');
+        return { passed: false, reason: `System not ready: ${names} unhealthy` };
+      }
+      
+      return { passed: true };
+    },
+  });
+
   // Check 1: Kill switch and trading modes
   checks.push({
     name: 'kill_switch',
@@ -72,6 +94,51 @@ async function runSafetyChecks(
         if (!isReducing) {
           return { passed: false, reason: 'System is in reduce-only mode - only position-closing trades allowed' };
         }
+      }
+      
+      return { passed: true };
+    },
+  });
+  
+  // Check 1.5: Strategy lifecycle state (server-side enforcement)
+  checks.push({
+    name: 'strategy_lifecycle',
+    check: async () => {
+      if (!order.strategyId) return { passed: true }; // Manual trades allowed
+      
+      const { data: strategy } = await supabase
+        .from('strategies')
+        .select('lifecycle_state, quarantine_expires_at, lifecycle_reason')
+        .eq('id', order.strategyId)
+        .single();
+      
+      if (!strategy) return { passed: true }; // Strategy not found, allow manual
+      
+      const { lifecycle_state, quarantine_expires_at, lifecycle_reason } = strategy;
+      
+      // DISABLED strategies cannot trade
+      if (lifecycle_state === 'disabled') {
+        return { passed: false, reason: `Strategy is disabled: ${lifecycle_reason || 'manual disable'}` };
+      }
+      
+      // QUARANTINED strategies cannot trade live
+      if (lifecycle_state === 'quarantined') {
+        const expiresAt = quarantine_expires_at ? new Date(quarantine_expires_at) : null;
+        const stillQuarantined = !expiresAt || expiresAt > new Date();
+        
+        if (stillQuarantined) {
+          return { passed: false, reason: `Strategy is quarantined: ${lifecycle_reason || 'risk breach'}` };
+        }
+      }
+      
+      // PAPER_ONLY strategies blocked from live execution
+      if (lifecycle_state === 'paper_only') {
+        return { passed: false, reason: 'Strategy is in paper-only mode' };
+      }
+      
+      // COOLDOWN strategies blocked
+      if (lifecycle_state === 'cooldown') {
+        return { passed: false, reason: 'Strategy is in cooldown period' };
       }
       
       return { passed: true };
