@@ -353,27 +353,44 @@ tsc --noEmit    # TypeScript types
 
 ## 📚 Documentation
 
+### Architecture & Design
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and component relationships
+- **[Manifesto](docs/MANIFESTO.md)** - Our core values: safety, transparency, profitability
+- **[Agent Responsibility Matrix](docs/AGENT_RESPONSIBILITY_MATRIX.md)** - Multi-agent system authority boundaries
+- **[Why We Don't Always Trade](docs/WHY_WE_DONT_ALWAYS_TRADE.md)** - Philosophy of trade selectivity
+
+### Production & Operations
+- **[Production Checklist](docs/PRODUCTION_CHECKLIST.md)** - Go-live verification process
+- **[Incident Response Runbook](docs/INCIDENT_RESPONSE_RUNBOOK.md)** - Emergency procedures
+- **[Security Enforcement Proof](docs/SECURITY_ENFORCEMENT_PROOF.md)** - Server-side safety guarantees
+- **[Audit Findings Report](docs/AUDIT_FINDINGS_REPORT.md)** - Full system audit results
+
+### Development
+- **[Contributing Guidelines](docs/CONTRIBUTING.md)** - How to contribute safely
+- **[Code of Ethics](CODE_OF_ETHICS.md)** - Ethical commitments
 - **API Docs**: http://localhost:8000/docs (Swagger UI)
-- **Architecture**: `docs/architecture.md`
-- **Security**: `docs/security.md`
-- **Deployment**: `docs/deployment.md`
-- **Risk Models**: `docs/risk-models.md`
-- **Trading Strategies**: `docs/strategies.md`
+
+### Strategy Development
+- **[Signal Sources Architecture](docs/SIGNAL_SOURCES_ARCHITECTURE.md)** - How signals are generated
+- **[Python Engine Architecture](docs/PYTHON_ENGINE_ARCHITECTURE.md)** - Backend strategy engine
+
+### Deployment
+- **[Northflank Deployment](docs/NORTHFLANK_DEPLOYMENT.md)** - Cloud deployment guide
+- **[Python Agent Deployment](docs/PYTHON_AGENT_DEPLOYMENT.md)** - Agent deployment
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+We welcome contributions that strengthen safety, improve transparency, and enhance reliability.
 
-### Development Guidelines
-- Follow PEP 8 for Python code
-- Use TypeScript strict mode
-- Write comprehensive tests
-- Update documentation
-- Security review required for production features
+**Before contributing:**
+1. Read the **[Manifesto](docs/MANIFESTO.md)** to understand our values
+2. Review the **[Contributing Guidelines](docs/CONTRIBUTING.md)**
+3. Check the **[Code of Ethics](CODE_OF_ETHICS.md)**
+
+**What we accept:** Bug fixes, docs, tests, observability, UI improvements  
+**What we reject:** Anything that weakens risk controls, bypasses safety gates, or adds hidden risks
+
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for full guidelines.
 
 ## 📄 License
 
