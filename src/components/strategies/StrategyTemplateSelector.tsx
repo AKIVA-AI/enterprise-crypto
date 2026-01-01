@@ -15,7 +15,10 @@ import {
   TrendingUp,
   ChevronRight,
   Settings2,
+  AlertTriangle,
 } from 'lucide-react';
+import { PerformanceDisclaimer, PerformanceFootnote } from '@/components/compliance/PerformanceDisclaimer';
+import { RiskDisclosureModal } from '@/components/compliance/RiskDisclosureModal';
 
 interface StrategyTemplateSelectorProps {
   open: boolean;
@@ -23,7 +26,7 @@ interface StrategyTemplateSelectorProps {
   onSelectTemplate: (template: StrategyTemplate) => void;
 }
 
-export function StrategyTemplateSelector({ 
+export function StrategyTemplateSelector({
   open, 
   onOpenChange,
   onSelectTemplate,
@@ -31,6 +34,8 @@ export function StrategyTemplateSelector({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [previewTemplate, setPreviewTemplate] = useState<StrategyTemplate | null>(null);
+  const [showRiskDisclosure, setShowRiskDisclosure] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState<StrategyTemplate | null>(null);
 
   const categories = [
     { id: 'all', label: 'All Templates' },
@@ -49,8 +54,23 @@ export function StrategyTemplateSelector({
   });
 
   const handleUseTemplate = (template: StrategyTemplate) => {
-    onSelectTemplate(template);
-    onOpenChange(false);
+    // Show risk disclosure before activating strategy
+    setPendingTemplate(template);
+    setShowRiskDisclosure(true);
+  };
+
+  const handleRiskAccepted = () => {
+    if (pendingTemplate) {
+      onSelectTemplate(pendingTemplate);
+      onOpenChange(false);
+    }
+    setShowRiskDisclosure(false);
+    setPendingTemplate(null);
+  };
+
+  const handleRiskDeclined = () => {
+    setShowRiskDisclosure(false);
+    setPendingTemplate(null);
   };
 
   return (
@@ -134,7 +154,7 @@ export function StrategyTemplateSelector({
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <TrendingUp className="h-3 w-3" />
-                        {template.expectedReturn}
+                        <PerformanceDisclaimer value={template.expectedReturn} variant="tooltip" />
                       </div>
                     </div>
                   </Card>
@@ -213,12 +233,19 @@ export function StrategyTemplateSelector({
 
                 <div className="flex items-center justify-between text-sm">
                   <div>
-                    <span className="text-muted-foreground">Expected Return: </span>
-                    <span className="font-medium text-success">{previewTemplate.expectedReturn}</span>
+                    <span className="text-muted-foreground">Historical Return: </span>
+                    <PerformanceDisclaimer value={previewTemplate.expectedReturn} variant="inline" className="font-medium text-success" />
                   </div>
                   <Badge className={getDifficultyColor(previewTemplate.difficulty)}>
                     {previewTemplate.difficulty}
                   </Badge>
+                </div>
+
+                <div className="p-2 bg-warning/10 rounded border border-warning/20 flex items-start gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5 text-warning mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-muted-foreground">
+                    Past performance does not guarantee future results. All trading involves risk of loss.
+                  </p>
                 </div>
 
                 <p className="text-xs text-muted-foreground italic">
@@ -239,6 +266,14 @@ export function StrategyTemplateSelector({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Risk Disclosure Modal */}
+      <RiskDisclosureModal
+        open={showRiskDisclosure}
+        onAccept={handleRiskAccepted}
+        onDecline={handleRiskDeclined}
+        context="strategy"
+      />
     </>
   );
 }
