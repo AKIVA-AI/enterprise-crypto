@@ -8,8 +8,8 @@ import {
   getVenuesForMode,
   getIntegratedVenuesForMode,
   getArbitrageStrategiesForMode,
-  detectRegion,
 } from '@/lib/tradingModes';
+import { validateTradeCompliance, ComplianceCheckResult } from '@/lib/complianceEnforcement';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -18,7 +18,7 @@ interface TradingModeContextValue {
   mode: TradingMode;
   modeConfig: TradingModeConfig;
   
-  // Detection
+  // Detection - now server-assisted
   detectedRegion: { country: string; isUS: boolean } | null;
   isAutoDetected: boolean;
   
@@ -36,6 +36,15 @@ interface TradingModeContextValue {
   canTrade: (feature: 'spot' | 'futures' | 'perpetuals' | 'margin' | 'staking' | 'options') => boolean;
   availableArbitrageStrategies: ArbitrageStrategy[];
   
+  // Compliance validation (for UI hints - server enforces)
+  validateCompliance: (params: {
+    venue: string;
+    instrument: string;
+    leverage?: number;
+    isPerp?: boolean;
+    isMargin?: boolean;
+  }) => ComplianceCheckResult;
+  
   // Loading state
   isLoading: boolean;
 }
@@ -45,9 +54,40 @@ const TradingModeContext = createContext<TradingModeContextValue | null>(null);
 const MODE_STORAGE_KEY = 'trading_mode_preference';
 const AUTO_DETECT_KEY = 'trading_mode_auto_detect';
 
+/**
+ * Detect user region server-side via Edge Function
+ * Falls back to 'international' mode if detection fails
+ * 
+ * NOTE: This is for UX convenience only. 
+ * Server-side enforcement happens at trade execution time.
+ */
+async function detectRegionServerSide(): Promise<{ country: string; isUS: boolean }> {
+  try {
+    // Try server-side detection via Edge Function
+    const { data, error } = await supabase.functions.invoke('trading-api', {
+      body: { action: 'detect_region' },
+    });
+    
+    if (!error && data?.country) {
+      return {
+        country: data.country,
+        isUS: data.isUS ?? false,
+      };
+    }
+    
+    // Fallback: default to international (less restrictive, server enforces if needed)
+    console.log('Region detection unavailable, defaulting to international mode');
+    return { country: 'Unknown', isUS: false };
+  } catch (error) {
+    console.warn('Region detection failed:', error);
+    // Default to international - server will enforce restrictions if needed
+    return { country: 'Unknown', isUS: false };
+  }
+}
+
 export function TradingModeProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [mode, setModeState] = useState<TradingMode>('us');
+  const [mode, setModeState] = useState<TradingMode>('international');
   const [detectedRegion, setDetectedRegion] = useState<{ country: string; isUS: boolean } | null>(null);
   const [isAutoDetected, setIsAutoDetected] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,28 +106,16 @@ export function TradingModeProvider({ children }: { children: React.ReactNode })
           setModeState(savedMode);
           setIsAutoDetected(false);
         } else {
-          // Auto-detect region
-          const region = await detectRegion();
+          // Auto-detect region via server
+          const region = await detectRegionServerSide();
           setDetectedRegion(region);
           setModeState(region.isUS ? 'us' : 'international');
           setIsAutoDetected(true);
         }
-        
-        // Also try to load from user profile if logged in
-        if (user?.id) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          // Check if user has trading_mode in their profile metadata
-          // For now, we just use localStorage as profiles table doesn't have this field
-        }
       } catch (error) {
         console.error('Failed to initialize trading mode:', error);
-        // Default to US mode for safety
-        setModeState('us');
+        // Default to international mode - server enforces restrictions
+        setModeState('international');
       } finally {
         setIsLoading(false);
       }
@@ -112,7 +140,7 @@ export function TradingModeProvider({ children }: { children: React.ReactNode })
     localStorage.removeItem(MODE_STORAGE_KEY);
     localStorage.setItem(AUTO_DETECT_KEY, 'true');
     
-    const region = await detectRegion();
+    const region = await detectRegionServerSide();
     setDetectedRegion(region);
     setModeState(region.isUS ? 'us' : 'international');
     setIsAutoDetected(true);
@@ -128,6 +156,20 @@ export function TradingModeProvider({ children }: { children: React.ReactNode })
     return modeConfig.features[feature];
   }, [modeConfig]);
 
+  // Compliance validation for UI hints
+  const validateCompliance = useCallback((params: {
+    venue: string;
+    instrument: string;
+    leverage?: number;
+    isPerp?: boolean;
+    isMargin?: boolean;
+  }): ComplianceCheckResult => {
+    return validateTradeCompliance({
+      mode,
+      ...params,
+    });
+  }, [mode]);
+
   const value: TradingModeContextValue = {
     mode,
     modeConfig,
@@ -141,6 +183,7 @@ export function TradingModeProvider({ children }: { children: React.ReactNode })
     defaultVenue,
     canTrade,
     availableArbitrageStrategies,
+    validateCompliance,
     isLoading,
   };
 

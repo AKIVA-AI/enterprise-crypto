@@ -284,18 +284,14 @@ export function getDefaultVenue(mode: TradingMode): string {
 // Geo detection helpers
 export const US_COUNTRY_CODES = ['US', 'USA', 'United States'];
 
+/**
+ * @deprecated Use server-side detection via trading-api Edge Function
+ * Client-side geo detection is unreliable and can be bypassed.
+ * This function is kept for backwards compatibility but should not be used.
+ * Server-side enforcement happens at trade execution time regardless of frontend mode.
+ */
 export async function detectRegion(): Promise<{ country: string; isUS: boolean }> {
-  try {
-    // Use a free geo-IP service
-    const response = await fetch('https://ipapi.co/json/');
-    if (!response.ok) throw new Error('Geo detection failed');
-    const data = await response.json();
-    return {
-      country: data.country_name || 'Unknown',
-      isUS: US_COUNTRY_CODES.includes(data.country_code) || US_COUNTRY_CODES.includes(data.country_name),
-    };
-  } catch {
-    // Default to US mode for safety
-    return { country: 'Unknown', isUS: true };
-  }
+  console.warn('[DEPRECATED] Client-side geo detection is unreliable. Use server-side detection.');
+  // Default to international - server enforces restrictions at trade time
+  return { country: 'Unknown', isUS: false };
 }

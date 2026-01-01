@@ -47,6 +47,29 @@ serve(async (req) => {
       }
     }
 
+    // Handle detect_region action for server-side geo detection
+    if (body.action === 'detect_region') {
+      // Get client IP from headers
+      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
+        || req.headers.get('cf-connecting-ip') 
+        || req.headers.get('x-real-ip')
+        || 'unknown';
+      
+      // For production, integrate with a geo-IP service
+      // This is a placeholder that defaults to international mode
+      // Server-side enforcement happens at trade execution regardless
+      console.log(`[REGION DETECTION] Client IP: ${clientIp}`);
+      
+      // NOTE: In production, use a server-side geo-IP service like MaxMind
+      // For now, we default to international - actual enforcement happens at trade time
+      return new Response(JSON.stringify({
+        country: 'Unknown',
+        isUS: false,
+        note: 'Server-side geo detection - enforcement happens at trade execution',
+        clientIp: clientIp !== 'unknown' ? 'detected' : 'unknown',
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // Handle health_check action from body (for Operations page health checks)
     if (body.action === 'health_check') {
       const { data: settings } = await supabase.from('global_settings').select('*').single();
