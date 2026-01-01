@@ -45,20 +45,28 @@ function base64UrlEncode(data: Uint8Array | string): string {
 function detectKeyType(secret: string): 'eddsa' | 'es256' | 'legacy' {
   const normalized = secret.replace(/\\n/g, '\n').trim();
   
+  console.log('[Coinbase] Key detection - length:', normalized.length, 'first 20 chars:', normalized.substring(0, 20));
+  
   // Check for PEM format (EC keys)
-  if (normalized.includes('-----BEGIN') && normalized.includes('PRIVATE KEY-----')) {
+  if (normalized.includes('-----BEGIN') || normalized.includes('PRIVATE KEY')) {
+    console.log('[Coinbase] Detected PEM/EC format');
     return 'es256';
   }
   
   // Check for EdDSA (base64 encoded, ~88 chars for 64 bytes)
   try {
     const decoded = atob(normalized);
+    console.log('[Coinbase] Base64 decoded length:', decoded.length);
     if (decoded.length === 64) {
       console.log('[Coinbase] Detected Ed25519 key (64 bytes)');
       return 'eddsa';
+    } else if (decoded.length === 32) {
+      // Some CDP keys might be just 32-byte seeds
+      console.log('[Coinbase] Detected Ed25519 seed (32 bytes)');
+      return 'eddsa';
     }
-  } catch {
-    // Not valid base64, likely legacy
+  } catch (e) {
+    console.log('[Coinbase] Base64 decode failed:', e);
   }
   
   return 'legacy';
