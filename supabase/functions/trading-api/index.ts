@@ -315,7 +315,7 @@ serve(async (req) => {
         if (!resolvedPrice || resolvedPrice <= 0) {
           // Try to fetch live price from Binance
           try {
-            const binanceSymbol = instrument.replace(/[\/\-]/g, '').toUpperCase();
+            const binanceSymbol = instrument.replace(/[/-]/g, '').toUpperCase();
             const priceResponse = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
             if (priceResponse.ok) {
               const priceData = await priceResponse.json();

@@ -419,7 +419,7 @@ interface PositionSizingRules {
   scaleDownAt70Percent: boolean;
   scaleDownAt90Percent: boolean;
 }
-let positionSizingRules: PositionSizingRules = {
+const positionSizingRules: PositionSizingRules = {
   baseSize: 0.1,
   minSize: 0.01,
   maxSize: 0.5,
@@ -790,7 +790,7 @@ serve(async (req) => {
           opp => opp.costs.netProfit >= minProfitThreshold
         );
         
-        let executedTrades = [];
+        const executedTrades = [];
         
         if (executableOpps.length > 0) {
           // Sort by profit and take best opportunity

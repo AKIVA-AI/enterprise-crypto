@@ -87,7 +87,7 @@ serve(async (req) => {
     }
 
     // Build prompt based on analysis type
-    let systemPrompt = `You are an expert quantitative trading analyst. Analyze trading signals, strategies, and market data to provide actionable insights. Be concise but thorough. Format responses with clear sections using markdown.`;
+    const systemPrompt = `You are an expert quantitative trading analyst. Analyze trading signals, strategies, and market data to provide actionable insights. Be concise but thorough. Format responses with clear sections using markdown.`;
     
     let userPrompt = '';
 

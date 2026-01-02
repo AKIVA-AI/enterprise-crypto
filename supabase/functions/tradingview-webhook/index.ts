@@ -297,8 +297,8 @@ function normalizeInstrument(ticker: string): string {
   if (!ticker) return '';
   
   // Clean up common ticker formats
-  let normalized = ticker.toUpperCase()
-    .replace(/[\/\-_]/g, '') // Remove separators first for processing
+  const normalized = ticker.toUpperCase()
+    .replace(/[/_-]/g, '') // Remove separators first for processing
     .replace('PERP', '')
     .replace('PERPETUAL', '')
     .replace('.P', '')
@@ -317,7 +317,7 @@ function normalizeInstrument(ticker: string): string {
 
   // If already formatted with separator, just normalize
   if (ticker.includes('/') || ticker.includes('-')) {
-    const [base, quote] = ticker.toUpperCase().split(/[\/\-]/);
+    const [base, quote] = ticker.toUpperCase().split(/[/-]/);
     if (base && quote) {
       return `${base}-${quote === 'BUSD' ? 'USDT' : quote}`;
     }

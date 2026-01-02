@@ -101,7 +101,7 @@ function detectKeyType(secret: string): 'es256' | 'legacy' {
 // Parse SEC1 EC private key and extract d, x, y for JWK
 function parseEC256PrivateKeyJWK(keyData: string): { d: Uint8Array; x: Uint8Array; y: Uint8Array } {
   // Normalize the key data - handle various escape sequences and newlines
-  let normalizedKey = keyData
+  const normalizedKey = keyData
     .replace(/\\n/g, '')  // Remove escaped newlines
     .replace(/\n/g, '')   // Remove actual newlines
     .replace(/\r/g, '')   // Remove carriage returns
@@ -342,7 +342,7 @@ async function coinbaseRequest(
 ): Promise<any> {
   const bodyString = body ? JSON.stringify(body) : '';
   
-  let headers: Record<string, string> = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
   

@@ -8,7 +8,7 @@ import { TrendingUp, TrendingDown, Activity, Wifi, WifiOff } from 'lucide-react'
 // Convert position instrument to price feed symbol format
 const toFeedSymbol = (instrument: string): string => {
   // Handle formats like "BTC/USD", "BTC-USD", "BTCUSD"
-  const cleaned = instrument.replace(/[\/\-]/g, '');
+  const cleaned = instrument.replace(/[/-]/g, '');
   // Map USD to USDT for Binance
   if (cleaned.endsWith('USD') && !cleaned.endsWith('USDT')) {
     return cleaned.replace('USD', '-USDT');

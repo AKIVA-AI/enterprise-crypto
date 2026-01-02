@@ -75,7 +75,7 @@ async function probeCriticalComponents(supabase: any): Promise<{ ok: boolean; re
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function runSafetyChecks(
   supabase: any,
   order: TradeOrder
