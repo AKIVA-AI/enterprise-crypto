@@ -41,6 +41,51 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock useLivePriceFeed hook
+vi.mock('@/hooks/useLivePriceFeed', () => ({
+  useLivePriceFeed: () => ({
+    prices: new Map([
+      ['BTC-USDT', {
+        symbol: 'BTC-USDT',
+        price: 50000,
+        change24h: 2.5,
+        volume24h: 1000000,
+        high24h: 51000,
+        low24h: 49000,
+        bid: 49999,
+        ask: 50001,
+        timestamp: Date.now()
+      }],
+      ['ETH-USDT', {
+        symbol: 'ETH-USDT',
+        price: 3000,
+        change24h: 1.5,
+        volume24h: 500000,
+        high24h: 3100,
+        low24h: 2900,
+        bid: 2999,
+        ask: 3001,
+        timestamp: Date.now()
+      }]
+    ]),
+    isConnected: true,
+    isConnecting: false,
+    connectionError: null,
+    reconnectAttempts: 0,
+    latencyMs: 50,
+    lastConnectedAt: Date.now(),
+    usingFallback: false,
+    dataSource: 'mock',
+    apiLatency: 0,
+    getPrice: (symbol: string) => 50000,
+    getAllPrices: () => new Map(),
+    connect: vi.fn(),
+    forceRefresh: vi.fn(),
+    disconnect: vi.fn(),
+    resetReconnect: vi.fn()
+  })
+}));
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();

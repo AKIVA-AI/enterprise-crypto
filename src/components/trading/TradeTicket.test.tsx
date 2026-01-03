@@ -52,34 +52,38 @@ describe('TradeTicket', () => {
   describe('Order Entry Validation', () => {
     it('should render trade ticket with default values', () => {
       renderTradeTicket();
-      expect(screen.getByText(/BUY/i)).toBeInTheDocument();
+      // Check for side selector button (just "BUY")
+      const sideButtons = screen.getAllByRole('button', { name: /BUY/i });
+      expect(sideButtons.length).toBeGreaterThan(0);
       expect(screen.getByText(/Market/i)).toBeInTheDocument();
     });
 
     it('should require book selection before submitting', async () => {
       renderTradeTicket();
-      
-      const submitButton = screen.getByRole('button', { name: /BUY/i });
+
+      // Submit button should have size in text (e.g., "BUY 0.1 BTC")
+      const submitButton = screen.getByRole('button', { name: /BUY.*BTC/i });
       expect(submitButton).toBeDisabled();
     });
 
     it('should require positive size', async () => {
       renderTradeTicket({ defaultBookId: 'book-123' });
-      
+
       const sizeInput = screen.getByLabelText(/Size/i);
       fireEvent.change(sizeInput, { target: { value: '0' } });
-      
-      const submitButton = screen.getByRole('button', { name: /BUY/i });
+
+      // Submit button should have size in text
+      const submitButton = screen.getByRole('button', { name: /BUY.*BTC/i });
       expect(submitButton).toBeDisabled();
     });
 
     it('should require price for limit orders', async () => {
       renderTradeTicket({ defaultBookId: 'book-123' });
-      
-      // Switch to limit order
-      const limitButton = screen.getByText(/Limit/i);
+
+      // Switch to limit order - use getByRole to be more specific
+      const limitButton = screen.getByRole('button', { name: /^Limit$/i });
       fireEvent.click(limitButton);
-      
+
       // Price field should be visible
       expect(screen.getByLabelText(/Price/i)).toBeInTheDocument();
     });
