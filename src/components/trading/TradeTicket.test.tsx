@@ -26,7 +26,10 @@ vi.mock('@/integrations/supabase/client', () => ({
       return {
         insert: vi.fn(() => ({
           select: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ data: { id: '123' }, error: null }))
+            single: vi.fn(() => Promise.resolve({ 
+              data: { id: 'order-123', status: 'submitted' }, 
+              error: null 
+            }))
           }))
         })),
         select: vi.fn(() => ({
@@ -194,4 +197,3 @@ describe('TradeTicket', () => {
     });
   });
 });
-

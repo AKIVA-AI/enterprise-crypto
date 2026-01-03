@@ -3,6 +3,64 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AdvancedRiskDashboard from './AdvancedRiskDashboard';
 
+// Mock layout components to avoid nested dependencies
+vi.mock('@/components/layout/MainLayout', () => ({
+  MainLayout: ({ children }: any) => <div data-testid="main-layout">{children}</div>
+}));
+
+vi.mock('@/components/layout/Sidebar', () => ({
+  Sidebar: () => <div data-testid="sidebar">Sidebar</div>
+}));
+
+vi.mock('@/components/layout/TopBar', () => ({
+  TopBar: () => <div data-testid="topbar">TopBar</div>
+}));
+
+// Mock react-router-dom
+vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ pathname: '/risk' }),
+  useNavigate: () => vi.fn(),
+  Link: ({ children, to }: any) => <a href={to}>{children}</a>
+}));
+
+// Mock useAuth
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'user-1',
+      email: 'test@example.com',
+      user_metadata: { full_name: 'Test User' }
+    },
+    signOut: vi.fn()
+  })
+}));
+
+// Mock useTradingMode
+vi.mock('@/hooks/useTradingMode', () => ({
+  useTradingMode: () => ({
+    mode: 'live',
+    modeConfig: { label: 'Live Trading', icon: 'Globe' },
+    detectedRegion: 'US',
+    isAutoDetected: true,
+    setMode: vi.fn(),
+    toggleMode: vi.fn(),
+    resetToAutoDetect: vi.fn(),
+    availableVenues: [],
+    canTrade: () => true,
+    isLoading: false
+  })
+}));
+
+// Mock Wagmi
+vi.mock('wagmi', () => ({
+  createConfig: vi.fn(() => ({})),
+  http: vi.fn(),
+  useConfig: () => ({}),
+  useAccount: () => ({ address: undefined, isConnected: false }),
+  useConnect: () => ({ connect: vi.fn(), connectors: [] }),
+  useDisconnect: () => ({ disconnect: vi.fn() })
+}));
+
 // Mock hooks
 vi.mock('@/hooks/useBooks', () => ({
   useBooks: () => ({
@@ -10,6 +68,14 @@ vi.mock('@/hooks/useBooks', () => ({
       { id: 'book-1', name: 'Main Book', is_active: true },
       { id: 'book-2', name: 'Test Book', is_active: true }
     ],
+    isLoading: false
+  })
+}));
+
+vi.mock('@/contexts/AICopilotContext', () => ({
+  useAICopilot: () => ({
+    isEnabled: false,
+    suggestions: [],
     isLoading: false
   })
 }));
