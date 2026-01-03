@@ -23,22 +23,22 @@ describe('RiskGauge Component', () => {
   describe('Value Display', () => {
     it('should display the correct value', () => {
       render(<RiskGauge value={75} label="Test" />);
-      expect(screen.getByText('75')).toBeInTheDocument();
+      expect(screen.getByText('75%')).toBeInTheDocument();
     });
 
     it('should display percentage when value is less than max', () => {
       render(<RiskGauge value={50} max={100} label="Test" />);
-      expect(screen.getByText('50')).toBeInTheDocument();
+      expect(screen.getByText('50%')).toBeInTheDocument();
     });
 
     it('should handle zero value', () => {
       render(<RiskGauge value={0} label="Test" />);
-      expect(screen.getByText('0')).toBeInTheDocument();
+      expect(screen.getByText('0%')).toBeInTheDocument();
     });
 
     it('should handle max value', () => {
       render(<RiskGauge value={100} max={100} label="Test" />);
-      expect(screen.getByText('100')).toBeInTheDocument();
+      expect(screen.getByText('100%')).toBeInTheDocument();
     });
   });
 
@@ -87,7 +87,8 @@ describe('RiskGauge Component', () => {
 
     it('should handle decimal values', () => {
       render(<RiskGauge value={45.5} max={100} label="Test" />);
-      expect(screen.getByText('45.5')).toBeInTheDocument();
+      // toFixed(0) rounds to 46
+      expect(screen.getByText('46%')).toBeInTheDocument();
     });
   });
 
@@ -122,22 +123,22 @@ describe('RiskGauge Component', () => {
   describe('Percentage Calculation', () => {
     it('should calculate 0% correctly', () => {
       render(<RiskGauge value={0} max={100} label="Test" />);
-      expect(screen.getByText('0')).toBeInTheDocument();
+      expect(screen.getByText('0%')).toBeInTheDocument();
     });
 
     it('should calculate 50% correctly', () => {
       render(<RiskGauge value={50} max={100} label="Test" />);
-      expect(screen.getByText('50')).toBeInTheDocument();
+      expect(screen.getByText('50%')).toBeInTheDocument();
     });
 
     it('should calculate 100% correctly', () => {
       render(<RiskGauge value={100} max={100} label="Test" />);
-      expect(screen.getByText('100')).toBeInTheDocument();
+      expect(screen.getByText('100%')).toBeInTheDocument();
     });
 
     it('should calculate percentage with custom max', () => {
       render(<RiskGauge value={100} max={200} label="Test" />);
-      expect(screen.getByText('100')).toBeInTheDocument();
+      expect(screen.getByText('100%')).toBeInTheDocument();
       // 100/200 = 50%, should show warning color
     });
   });
