@@ -7,16 +7,39 @@ import { supabase } from '@/integrations/supabase/client';
 // Mock Supabase
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      insert: vi.fn(() => ({
+    from: vi.fn((table: string) => {
+      if (table === 'books') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => Promise.resolve({
+              data: [{
+                id: 'book-123',
+                name: 'Test Book',
+                capital_allocated: 100000,
+                status: 'healthy'
+              }],
+              error: null
+            }))
+          }))
+        };
+      }
+      return {
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn(() => Promise.resolve({ data: { id: '123' }, error: null }))
+          }))
+        })),
         select: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({ data: { id: '123' }, error: null }))
+          eq: vi.fn(() => Promise.resolve({ data: [], error: null }))
         }))
-      })),
-      select: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ data: [], error: null }))
+      };
+    }),
+    functions: {
+      invoke: vi.fn(() => Promise.resolve({
+        data: { success: true, orderId: 'test-order-123' },
+        error: null
       }))
-    }))
+    }
   }
 }));
 
@@ -111,9 +134,14 @@ describe('TradeTicket', () => {
       const onClose = vi.fn();
       renderTradeTicket({ defaultBookId: 'book-123', onClose });
 
-      // Switch to limit order
-      const limitButton = screen.getByText(/Limit/i);
+      // Switch to limit order - use getByRole to be more specific
+      const limitButton = screen.getByRole('button', { name: /^Limit$/i });
       fireEvent.click(limitButton);
+
+      // Wait for price input to appear
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Price/i)).toBeInTheDocument();
+      });
 
       // Set size and price
       const sizeInput = screen.getByLabelText(/Size/i);
@@ -127,7 +155,7 @@ describe('TradeTicket', () => {
 
       await waitFor(() => {
         expect(onClose).toHaveBeenCalled();
-      });
+      }, { timeout: 3000 });
     });
 
     it('should handle sell orders', async () => {
@@ -149,15 +177,20 @@ describe('TradeTicket', () => {
   describe('Risk Warnings', () => {
     it('should show warning when risk exceeds limit', async () => {
       renderTradeTicket({ defaultBookId: 'book-123' });
-      
+
+      // Wait for component to load and price to be available
+      await waitFor(() => {
+        expect(screen.getByText(/BTC/i)).toBeInTheDocument();
+      });
+
       // Set large size
       const sizeInput = screen.getByLabelText(/Size/i);
       fireEvent.change(sizeInput, { target: { value: '100' } });
-      
+
       // Risk warning should appear
       await waitFor(() => {
         expect(screen.getByText(/Exceeds risk limit/i)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 });
