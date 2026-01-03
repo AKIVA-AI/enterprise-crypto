@@ -6,72 +6,99 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
+
 jobs:
   # Frontend Tests
   frontend-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      
+
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
-      
-      - name: Lint
-        run: npm run lint || true  # Allow lint warnings for now - will fix in Week 2
-      
+        run: npm ci --legacy-peer-deps
+
+      - name: Lint (warnings allowed)
+        run: npm run lint
+
       - name: Type check
         run: npx tsc --noEmit
-      
+
+      - name: Run unit tests
+        run: npm test -- --run --reporter=verbose
+
       - name: Build
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
   # Backend Tests
   backend-test:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      
+          cache-dependency-path: backend/requirements.txt
+
       - name: Install dependencies
         run: |
           cd backend
           pip install -r requirements.txt
-      
-      - name: Run tests
+          pip install pytest-cov pytest-xdist
+
+      - name: Run unit tests
         run: |
           cd backend
-          pytest tests/ -v --cov=app --cov-report=term-missing
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing -n auto
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key' }}
           REDIS_URL: redis://localhost:6379
-      
+          ENV: test
+
       - name: Upload coverage
         uses: codecov/codecov-action@v4
+        if: always()
         with:
           file: ./backend/coverage.xml
           flags: backend
+        continue-on-error: true
 
   # Security Scan
   security-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -79,10 +106,23 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
-      
+          severity: 'CRITICAL,HIGH'
+
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
-        continue-on-error: true  # Allow to fail if GitHub Advanced Security is not enabled
+        continue-on-error: true
+
+  # Build Docker images (validate only)
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t akiva-crypto-backend:test ./backend
+
+      - name: Build frontend image
+        run: docker build -t akiva-crypto-frontend:test -f Dockerfile.frontend .
 

@@ -4,6 +4,7 @@ import { TopBar } from './TopBar';
 import { AICopilotSidebar } from '@/components/chat/AICopilotSidebar';
 import { useAICopilot } from '@/contexts/AICopilotContext';
 import { ComplianceBanner, ComplianceDisclaimer } from '@/components/compliance/ComplianceBanner';
+import { RiskAlertBanner } from '@/components/risk/RiskAlertBanner';
 import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
@@ -26,6 +27,8 @@ export function MainLayout({ children, showComplianceBanner = false }: MainLayou
         <TopBar />
         {showComplianceBanner && <ComplianceBanner compact dismissible />}
         <main className="p-6 flex-1 overflow-auto">
+          {/* Risk Alerts Banner - Shows critical risk warnings */}
+          <RiskAlertBanner />
           {children}
         </main>
         <ComplianceDisclaimer />

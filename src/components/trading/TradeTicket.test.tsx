@@ -130,6 +130,13 @@ describe('TradeTicket', () => {
       const submitButton = screen.getByRole('button', { name: /BUY 0\.5/i });
       fireEvent.click(submitButton);
 
+      // Confirmation dialog should appear - click confirm button
+      await waitFor(() => {
+        const confirmButton = screen.getByRole('button', { name: /Confirm BUY/i });
+        expect(confirmButton).toBeInTheDocument();
+        fireEvent.click(confirmButton);
+      });
+
       await waitFor(() => {
         expect(onClose).toHaveBeenCalled();
       });

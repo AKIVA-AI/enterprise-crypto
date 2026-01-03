@@ -13,6 +13,8 @@ export default defineConfig({
     },
     testTimeout: 10000, // 10 second timeout per test
     hookTimeout: 10000, // 10 second timeout for hooks
+    // Exclude e2e tests - they should be run with Playwright
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -23,6 +25,7 @@ export default defineConfig({
         '**/*.config.*',
         '**/mockData',
         'dist/',
+        'e2e/',
       ],
     },
   },

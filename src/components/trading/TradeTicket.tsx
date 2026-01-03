@@ -9,10 +9,20 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
   Zap,
   Shield,
   Loader2,
@@ -49,7 +59,7 @@ const INSTRUMENTS = [
 
 export function TradeTicket({ onClose, defaultInstrument = 'BTC/USDT', defaultBookId }: TradeTicketProps) {
   const queryClient = useQueryClient();
-  
+
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop_loss' | 'take_profit'>('market');
   const [instrument, setInstrument] = useState(defaultInstrument);
@@ -60,6 +70,7 @@ export function TradeTicket({ onClose, defaultInstrument = 'BTC/USDT', defaultBo
   const [strategyId, setStrategyId] = useState('');
   const [reduceOnly, setReduceOnly] = useState(false);
   const [riskPercent, setRiskPercent] = useState([1]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Get live price feed for the current instrument
   const feedSymbols = useMemo(() => [toFeedSymbol(instrument)], [instrument]);
@@ -178,6 +189,12 @@ export function TradeTicket({ onClose, defaultInstrument = 'BTC/USDT', defaultBo
       });
       return;
     }
+    // Show confirmation dialog before submitting
+    setShowConfirmDialog(true);
+  };
+
+  const confirmOrder = () => {
+    setShowConfirmDialog(false);
     submitOrder.mutate();
   };
 
@@ -487,6 +504,66 @@ export function TradeTicket({ onClose, defaultInstrument = 'BTC/USDT', defaultBo
           )}
         </Button>
       </CardFooter>
+
+      {/* Order Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className={cn(
+                "h-5 w-5",
+                side === 'buy' ? 'text-success' : 'text-destructive'
+              )} />
+              Confirm {side.toUpperCase()} Order
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>Please review your order details:</p>
+                <div className="rounded-lg bg-muted/30 p-3 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Instrument</span>
+                    <span className="font-mono font-medium">{instrument}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Side</span>
+                    <span className={cn(
+                      "font-medium",
+                      side === 'buy' ? 'text-success' : 'text-destructive'
+                    )}>{side.toUpperCase()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Size</span>
+                    <span className="font-mono">{sizeNum} {instrument.split('/')[0]}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Type</span>
+                    <span>{orderType.toUpperCase()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Est. Notional</span>
+                    <span className="font-mono font-semibold">${notional.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                <p className="text-warning text-xs flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  This action cannot be undone once executed.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmOrder}
+              className={cn(
+                side === 'buy' ? 'bg-success hover:bg-success/90' : 'bg-destructive hover:bg-destructive/90'
+              )}
+            >
+              Confirm {side.toUpperCase()}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

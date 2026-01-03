@@ -20,7 +20,7 @@ from uuid import UUID
 from app.config import settings
 from app.database import get_supabase, create_alert, audit_log
 from app.models.domain import Book, TradeIntent, RiskDecision, Position, Order, OrderSide
-from app.services.strategy_engine import strategy_engine
+from app.services.freqtrade_integration import FreqTradeIntegrationHub
 from app.services.risk_engine import risk_engine
 from app.services.oms_execution import oms_service
 from app.services.reconciliation import recon_service
@@ -43,16 +43,22 @@ class EngineRunner:
         self._cycle_count = 0
         self._last_cycle_time: Optional[datetime] = None
         self._cycle_interval_seconds = 60  # 1 minute cycles
+        self._freqtrade_hub: Optional[FreqTradeIntegrationHub] = None
     
     async def start(self):
         """Start the engine loop."""
         self._running = True
         logger.info("engine_starting", paper_mode=settings.is_paper_mode)
-        
-        # Initialize services
+
+        # Initialize FreqTrade integration hub
+        self._freqtrade_hub = FreqTradeIntegrationHub()
+        await self._freqtrade_hub.initialize()
+        await self._freqtrade_hub.start()
+        logger.info("freqtrade_hub_initialized")
+
+        # Initialize market data service (fallback)
         await market_data_service.initialize()
-        await strategy_engine.load_strategies()
-        
+
         # Start the main loop
         while self._running:
             try:
@@ -66,6 +72,11 @@ class EngineRunner:
         """Stop the engine loop gracefully."""
         self._running = False
         logger.info("engine_stopping")
+
+        # Shutdown FreqTrade hub
+        if self._freqtrade_hub:
+            await self._freqtrade_hub.shutdown()
+            logger.info("freqtrade_hub_shutdown")
     
     async def run_cycle(self) -> Dict:
         """Execute one complete trading cycle."""
@@ -87,9 +98,9 @@ class EngineRunner:
             
             # 2. Load books
             books = await self._load_books()
-            
-            # 3. Generate strategy intents
-            intents = await strategy_engine.run_cycle(books)
+
+            # 3. Generate strategy intents using FreqTrade
+            intents = await self._generate_freqtrade_intents(books)
             stats["intents_generated"] = len(intents)
             
             # 4. Risk check each intent
@@ -154,7 +165,109 @@ class EngineRunner:
         )
         
         return stats
-    
+
+    async def _generate_freqtrade_intents(self, books: List[Book]) -> List[TradeIntent]:
+        """Generate trade intents using FreqTrade strategies."""
+        intents = []
+
+        if not self._freqtrade_hub or not self._freqtrade_hub.is_running:
+            logger.warning("freqtrade_hub_not_available")
+            return intents
+
+        try:
+            # For each active book, generate signals for its instruments
+            for book in books:
+                # Get instruments for this book (simplified - would come from book config)
+                instruments = ["BTC-USD", "ETH-USD", "SOL-USD"]  # TODO: Get from book config
+
+                for instrument in instruments:
+                    try:
+                        # Get historical market data
+                        market_data = await market_data_service.get_historical_data(
+                            instrument=instrument,
+                            timeframe="1h",
+                            limit=100
+                        )
+
+                        if not market_data:
+                            continue
+
+                        # Generate signals using FreqTrade
+                        signals = await self._freqtrade_hub.generate_signals(
+                            market_data=market_data,
+                            pair=instrument
+                        )
+
+                        if signals and not signals.get('error'):
+                            # Convert FreqTrade signals to TradeIntent
+                            intent = self._convert_signal_to_intent(signals, book, instrument)
+                            if intent:
+                                intents.append(intent)
+
+                    except Exception as e:
+                        logger.error(
+                            "signal_generation_failed",
+                            instrument=instrument,
+                            book_id=str(book.id),
+                            error=str(e)
+                        )
+                        continue
+
+        except Exception as e:
+            logger.error("freqtrade_intent_generation_failed", error=str(e))
+
+        return intents
+
+    def _convert_signal_to_intent(
+        self,
+        signals: Dict,
+        book: Book,
+        instrument: str
+    ) -> Optional[TradeIntent]:
+        """Convert FreqTrade signal to TradeIntent."""
+        try:
+            # Extract signal data
+            direction = signals.get('direction', 'neutral')
+            confidence = signals.get('confidence', 0)
+            predicted_return = signals.get('predicted_return', 0)
+
+            # Skip neutral or low confidence signals
+            if direction == 'neutral' or confidence < 0.6:
+                return None
+
+            # Map direction to OrderSide
+            side = OrderSide.BUY if direction == 'long' else OrderSide.SELL
+
+            # Calculate target exposure (simplified)
+            target_exposure = min(
+                book.capital_allocated * 0.1,  # Max 10% per trade
+                confidence * 10000  # Scale by confidence
+            )
+
+            # Create TradeIntent
+            from uuid import uuid4
+            intent = TradeIntent(
+                id=uuid4(),
+                book_id=book.id,
+                instrument=instrument,
+                direction=side,
+                target_exposure=target_exposure,
+                max_loss=target_exposure * 0.02,  # 2% stop loss
+                confidence=confidence,
+                metadata={
+                    "source": "freqtrade",
+                    "predicted_return": predicted_return,
+                    "model_type": signals.get('model_type', 'freqai'),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            )
+
+            return intent
+
+        except Exception as e:
+            logger.error("signal_conversion_failed", error=str(e))
+            return None
+
     async def _load_books(self) -> List[Book]:
         """Load active books from database."""
         try:

@@ -25,7 +25,6 @@ from app.core.config import settings
 from app.core.security import verify_token, get_current_user
 from app.database import init_db, close_db
 from app.services.market_data_service import market_data_service
-from app.services.quantitative_strategy_engine import quantitative_strategy_engine
 from app.services.smart_order_router import smart_order_router
 from app.services.advanced_risk_engine import advanced_risk_engine
 from app.core.logging import setup_logging
@@ -37,6 +36,9 @@ from app.services.freqtrade_integration import (
     shutdown_freqtrade_integration,
     get_freqtrade_status
 )
+
+# Arbitrage Engine
+from app.arbitrage import get_arbitrage_engine
 
 # Setup structured logging
 logger = setup_logging()
@@ -62,10 +64,17 @@ async def lifespan(app: FastAPI):
         logger.info("FreqTrade integration initialized")
 
         # Initialize trading engines
-        await quantitative_strategy_engine.initialize()
         await smart_order_router.initialize()
         await advanced_risk_engine.initialize()
         logger.info("Trading engines initialized")
+
+        # Initialize arbitrage engine
+        try:
+            arbitrage_engine = get_arbitrage_engine()
+            await arbitrage_engine.start()
+            logger.info("Arbitrage engine started")
+        except Exception as e:
+            logger.warning(f"Arbitrage engine startup warning: {e}")
 
         logger.info("🎉 All systems operational - FreqTrade enhanced platform ready")
 
@@ -77,6 +86,14 @@ async def lifespan(app: FastAPI):
 
     finally:
         logger.info("Shutting down Hedge Fund Trading Platform")
+
+        # Stop arbitrage engine
+        try:
+            arbitrage_engine = get_arbitrage_engine()
+            await arbitrage_engine.stop()
+            logger.info("Arbitrage engine stopped")
+        except Exception as e:
+            logger.warning(f"Arbitrage engine shutdown warning: {e}")
 
         # Stop FreqTrade integration first
         await shutdown_freqtrade_integration()
@@ -141,20 +158,33 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Health check endpoint
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for load balancers and monitoring."""
-    freqtrade_status = get_freqtrade_status()
-
+    """Liveness probe - basic health check for load balancers."""
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0",
-        "services": {
-            "database": "connected",
-            "redis": "connected",
-            "market_data": "active",
-            "trading_engines": "ready",
-            "freqtrade_integration": freqtrade_status.get('freqtrade_integration', {}).get('status', 'unknown')
-        }
+        "version": "1.0.0"
+    }
+
+@app.get("/ready")
+async def readiness_check():
+    """Readiness probe - checks if service can handle requests."""
+    freqtrade_status = get_freqtrade_status()
+
+    checks = {
+        "database": "connected",
+        "redis": "connected",
+        "market_data": "active",
+        "trading_engines": "ready",
+        "freqtrade": freqtrade_status.get('freqtrade_integration', {}).get('status', 'unknown')
+    }
+
+    # Service is ready if all checks pass
+    all_ready = all(v in ["connected", "active", "ready", "operational"] for v in checks.values())
+
+    return {
+        "status": "ready" if all_ready else "not_ready",
+        "timestamp": datetime.utcnow().isoformat(),
+        "checks": checks
     }
 
 # FreqTrade health check endpoint
@@ -174,8 +204,8 @@ async def freqtrade_components_health():
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     """Authentication middleware for protected routes."""
-    # Skip auth for health checks and docs
-    if request.url.path in ["/health", "/docs", "/redoc", "/openapi.json"]:
+    # Skip auth for health checks, readiness probes, and docs
+    if request.url.path in ["/health", "/ready", "/docs", "/redoc", "/openapi.json"] or request.url.path.startswith("/health/"):
         return await call_next(request)
 
     # Skip auth for OPTIONS requests
@@ -247,7 +277,7 @@ async def system_info(request: Request):
         "services_status": {
             "market_data": "active",
             "risk_engine": "ready",
-            "strategy_engine": "ready",
+            "strategy_engine": "freqtrade",  # Now using FreqTrade
             "order_router": "ready",
             "freqtrade_integration": freqtrade_status.get('freqtrade_integration', {}).get('status', 'unknown')
         },

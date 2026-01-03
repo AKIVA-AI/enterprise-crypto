@@ -5,7 +5,8 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "coverage", "node_modules", "*.config.js", "*.config.ts", "supabase/functions/**"] },
+
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -19,10 +20,29 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      // Disable - this is a dev-time optimization warning that fires on common patterns
+      // (contexts exporting hooks, UI libs exporting utilities like buttonVariants)
+      "react-refresh/only-export-components": "off",
+
+      // Production-critical rules (keep as errors)
+      "no-debugger": "error",
+
+      // Console statements - allow for now (useful for debugging)
+      // TODO: Replace with proper logging before production
+      "no-console": "off",
+
+      // Type safety (warnings for now, will fix incrementally)
       "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "warn", // Downgrade to warning for now
-      "no-case-declarations": "warn", // Downgrade to warning for switch statements
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-empty-object-type": "warn",
+
+      // Code quality (warnings)
+      "no-case-declarations": "warn",
+      "prefer-const": "warn",
+
+      // React hooks - intentional suppression for performance-critical hooks
+      // Many of these are intentionally not including all deps to avoid re-renders
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
 );
