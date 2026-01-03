@@ -1,43 +1,54 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { PositionManagementPanel } from './PositionManagementPanel';
 import { supabase } from '@/integrations/supabase/client';
 
 // Mock Supabase
+const mockPositions = [
+  {
+    id: 'pos-1',
+    instrument: 'BTC/USDT',
+    side: 'buy',
+    size: 0.5,
+    entry_price: 50000,
+    mark_price: 51000,
+    unrealized_pnl: 500,
+    realized_pnl: 0,
+    leverage: 1,
+    liquidation_price: null,
+    is_open: true,
+    book_id: 'book-1',
+    strategy_id: null,
+    venue_id: 'venue-1',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    venues: { name: 'Binance' }
+  }
+];
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ 
-          data: [
-            {
-              id: 'pos-1',
-              instrument: 'BTC/USDT',
-              side: 'buy',
-              size: 0.5,
-              entry_price: 50000,
-              mark_price: 51000,
-              unrealized_pnl: 500,
-              realized_pnl: 0,
-              leverage: 1,
-              liquidation_price: null,
-              is_open: true,
-              book_id: 'book-1',
-              strategy_id: null,
-              venue_id: 'venue-1',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              venues: { name: 'Binance' }
-            }
-          ], 
-          error: null 
+        eq: vi.fn(() => ({
+          order: vi.fn(() => Promise.resolve({
+            data: mockPositions,
+            error: null
+          }))
         }))
       })),
       update: vi.fn(() => ({
         eq: vi.fn(() => Promise.resolve({ data: null, error: null }))
       }))
-    }))
+    })),
+    channel: vi.fn(() => ({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+      unsubscribe: vi.fn()
+    })),
+    removeChannel: vi.fn()
   }
 }));
 
@@ -47,6 +58,15 @@ vi.mock('sonner', () => ({
     success: vi.fn(),
     error: vi.fn()
   }
+}));
+
+// Mock useLivePriceFeed
+vi.mock('@/hooks/useLivePriceFeed', () => ({
+  useLivePriceFeed: () => ({
+    prices: { 'BTC-USDT': 51000 },
+    isConnected: true,
+    getPrice: (symbol: string) => symbol === 'BTC-USDT' ? 51000 : null
+  })
 }));
 
 describe('PositionManagementPanel', () => {
@@ -65,7 +85,9 @@ describe('PositionManagementPanel', () => {
   const renderPanel = () => {
     return render(
       <QueryClientProvider client={queryClient}>
-        <PositionManagementPanel />
+        <TooltipProvider>
+          <PositionManagementPanel />
+        </TooltipProvider>
       </QueryClientProvider>
     );
   };
