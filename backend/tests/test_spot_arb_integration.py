@@ -41,7 +41,11 @@ async def test_spot_arb_unwind_on_failure(monkeypatch):
 
     monkeypatch.setattr("app.services.spot_arb_scanner.spot_quote_service.get_quotes", fake_quotes)
     monkeypatch.setattr(spot_arb_scanner, "_get_inventory", lambda *args, **kwargs: 0.0)
-    monkeypatch.setattr(spot_arb_scanner, "_store_spread", lambda *args, **kwargs: None)
+    
+    async def fake_store_spread(*args, **kwargs):
+        return None
+    
+    monkeypatch.setattr(spot_arb_scanner, "_store_spread", fake_store_spread)
 
     book = Book(
         id=uuid4(),
@@ -91,10 +95,19 @@ async def test_spot_arb_unwind_on_failure(monkeypatch):
     async def noop_async(*args, **kwargs):
         return None
 
+    # Mock venue health to avoid Supabase dependency
+    async def fake_venue_health(*args, **kwargs):
+        return None
+    
+    async def fake_book_positions(*args, **kwargs):
+        return []
+
     monkeypatch.setattr("app.services.oms_execution.check_kill_switch_for_trading", allow_kill_switch)
     monkeypatch.setattr("app.services.oms_execution.portfolio_engine.get_book", fake_get_book)
     monkeypatch.setattr("app.services.oms_execution.risk_engine.check_intent", fake_check_intent)
     monkeypatch.setattr(oms_service, "_resolve_venue_id", lambda venue: str(uuid4()))
+    monkeypatch.setattr(oms_service, "_get_venue_health", fake_venue_health)
+    monkeypatch.setattr(oms_service, "_get_book_positions", fake_book_positions)
     monkeypatch.setattr(oms_service, "_record_multi_leg_intent", noop_async)
     monkeypatch.setattr(oms_service, "_record_leg_event", noop_async)
     monkeypatch.setattr(oms_service, "_update_basis_strategy_positions", noop_async)
@@ -102,4 +115,4 @@ async def test_spot_arb_unwind_on_failure(monkeypatch):
     order = await oms_service.execute_intent(intents[0], uuid4(), "coinbase")
 
     assert order is None
-    assert oms_service._adapters["kraken"].orders
+    assert len(oms_service._adapters["kraken"].orders) > 0
