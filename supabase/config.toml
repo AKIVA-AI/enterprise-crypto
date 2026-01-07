@@ -52,7 +52,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.coinbase-trading]
-verify_jwt = true
+verify_jwt = false
 
 [functions.kraken-trading]
 verify_jwt = false
