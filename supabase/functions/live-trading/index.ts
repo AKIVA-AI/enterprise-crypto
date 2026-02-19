@@ -714,8 +714,7 @@ async function executeKrakenOrder(order: TradeOrder): Promise<{
     return null;
   }
 }
-
-
+serve(async (req) => {
   const corsHeaders = getSecureCorsHeaders(req.headers.get('Origin'));
 
   if (req.method === 'OPTIONS') {
@@ -772,7 +771,8 @@ async function executeKrakenOrder(order: TradeOrder): Promise<{
       });
     }
     
-    const { action, order, orderId } = await req.json();
+    const body = await req.json();
+    const { action, order, orderId, positionId, percentage } = body;
     
     console.log(`Live trading request: ${action} by user ${user.email}`);
     
@@ -1005,9 +1005,10 @@ async function executeKrakenOrder(order: TradeOrder): Promise<{
       }
 
       case 'close_position': {
-        const { positionId, percentage = 100 } = await req.json();
+        const closePositionId = positionId || body.positionId;
+        const closePercentage = percentage || body.percentage || 100;
         
-        if (!positionId) {
+        if (!closePositionId) {
           return new Response(JSON.stringify({ 
             success: false, 
             error: 'Position ID required' 
@@ -1020,7 +1021,7 @@ async function executeKrakenOrder(order: TradeOrder): Promise<{
         const { data: position } = await supabase
           .from('positions')
           .select('*')
-          .eq('id', positionId)
+          .eq('id', closePositionId)
           .single();
 
         if (!position) {
@@ -1034,7 +1035,7 @@ async function executeKrakenOrder(order: TradeOrder): Promise<{
         }
 
         // Create closing order
-        const closeSize = position.size * (percentage / 100);
+        const closeSize = position.size * (closePercentage / 100);
         const closeSide = position.side === 'buy' ? 'sell' : 'buy';
 
         const closeOrder: TradeOrder = {
@@ -1066,12 +1067,12 @@ async function executeKrakenOrder(order: TradeOrder): Promise<{
               size: 0,
               realized_pnl: position.realized_pnl + (fill.filledPrice - position.entry_price) * closeSize * (position.side === 'buy' ? 1 : -1)
             })
-            .eq('id', positionId);
+            .eq('id', closePositionId);
         } else {
           await supabase
             .from('positions')
             .update({ size: newSize })
-            .eq('id', positionId);
+            .eq('id', closePositionId);
         }
 
         return new Response(JSON.stringify({ 
