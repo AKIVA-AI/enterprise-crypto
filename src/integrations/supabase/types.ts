@@ -217,6 +217,27 @@ export type Database = {
         }
         Relationships: []
       }
+      arbitrage_state: {
+        Row: {
+          id: string
+          state_key: string
+          state_value: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          state_key: string
+          state_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          state_key?: string
+          state_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_events: {
         Row: {
           action: string
@@ -2923,6 +2944,7 @@ export type Database = {
         Args: { _book_id: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_old_market_snapshots: { Args: never; Returns: undefined }
       cleanup_old_metrics: { Args: never; Returns: undefined }
       current_tenant_id: { Args: never; Returns: string }
       decrypt_api_key: {
