@@ -1,6 +1,6 @@
 # Enterprise Crypto
 
-> **Open-source, institutional-grade crypto trading platform** — enterprise risk management, multi-exchange execution, and real-time monitoring built on Supabase + React.
+> **Open-source, multi-agent crypto trading system** — autonomous agents coordinate risk management, strategy execution, capital allocation, and market intelligence across multiple exchanges.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen.svg)](.github/workflows/ci.yml)
@@ -15,23 +15,97 @@ Most crypto trading tools are either:
 - **Too expensive** — institutional platforms cost $50k+/year
 - **Black boxes** — you can't see why trades were blocked or executed
 
-Enterprise Crypto bridges this gap: **institutional-grade controls, open-source transparency, zero cost.**
+Enterprise Crypto bridges this gap: **a coordinated multi-agent system with institutional-grade controls, open-source transparency, and zero cost.**
 
-## Architecture
+## Multi-Agent Architecture
+
+The system is built around **10 specialized agents** that collaborate through a strict hierarchy. No single agent can act alone — every trade requires consensus across multiple agents with independent mandates.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    React Frontend                        │
-│  Dashboard · Trade · Risk · Arbitrage · Analytics        │
-├─────────────────────────────────────────────────────────┤
-│                 Supabase Edge Functions                   │
-│  live-trading · market-data · kill-switch · alerts        │
-│  binance-us · coinbase · kraken · cross-exchange-arb     │
-├─────────────────────────────────────────────────────────┤
-│                   Supabase (Postgres)                     │
-│  RLS Policies · Circuit Breakers · Audit Triggers         │
-│  pg_cron Scheduling · pgcrypto Key Encryption            │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                         TRADING GATE                                │
+│                  (The Constitution — Cannot Be Bypassed)            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  👑 Meta-Decision Agent          SUPREME AUTHORITY                  │
+│  │  Decides WHETHER trading is allowed at all.                      │
+│  │  Has VETO POWER over all strategy agents.                        │
+│  │                                                                  │
+│  ├──▶ 💰 Capital Allocation Agent                                   │
+│  │    Manages HOW MUCH capital each strategy receives.              │
+│  │                                                                  │
+│  ├──▶ 🧠 Strategy Agents (multiple)                                 │
+│  │    Propose trade intents ONLY — never execute directly.          │
+│  │    Must include edge estimate, confidence, worst-case loss.      │
+│  │                                                                  │
+│  ├──▶ 🛡️ Risk Agent                                                 │
+│  │    Pre-trade and real-time risk checks. CANNOT be overridden.    │
+│  │                                                                  │
+│  ├──▶ ⚡ Execution Agent                                             │
+│  │    Smart order routing, TWAP/VWAP algos, fill quality tracking.  │
+│  │                                                                  │
+│  ├──▶ 📊 Market Data Agent                                           │
+│  │    Aggregates and normalizes real-time data from all venues.     │
+│  │                                                                  │
+│  ├──▶ 🔮 Intelligence Agent                                          │
+│  │    On-chain analytics, sentiment, whale tracking, alpha signals. │
+│  │                                                                  │
+│  ├──▶ 🏦 Treasury Agent                                              │
+│  │    Multi-venue balance management, rebalancing, NAV reporting.   │
+│  │                                                                  │
+│  ├──▶ 📋 Reconciliation Agent                                        │
+│  │    Ensures consistency between internal records and venue data.  │
+│  │                                                                  │
+│  └──▶ 🔧 Operations Agent                                            │
+│       System health, deployments, alerting, disaster recovery.      │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Agent Hierarchy
+
+| Agent | Role | Authority |
+|-------|------|-----------|
+| **Meta-Decision** 👑 | Decides if trading is allowed at all | Supreme — veto power over everything |
+| **Risk** 🛡️ | Validates all trades against hard limits | Cannot be overridden by any agent |
+| **Capital Allocation** 💰 | Assigns risk budget per strategy | Binding on all strategy agents |
+| **Strategy** 🧠 | Proposes trade intents with edge estimates | Advisory only — cannot execute |
+| **Execution** ⚡ | Routes and executes approved orders | Executes precisely, or not at all |
+| **Market Data** 📊 | Real-time data aggregation and normalization | Feeds all downstream agents |
+| **Intelligence** 🔮 | Alpha signals from on-chain, sentiment, news | Feeds strategy agents |
+| **Treasury** 🏦 | Capital rebalancing across venues | Reports to Risk Agent |
+| **Reconciliation** 📋 | Position and fill verification | Can trigger protective actions |
+| **Operations** 🔧 | System health and infrastructure | Monitors all agents |
+
+### Trade Intent Lifecycle
+
+```
+1. Intelligence Agent detects opportunity signals
+   └─▶ Feeds alpha to Strategy Agents
+
+2. Strategy Agent generates trade intent
+   └─▶ Includes edge estimate, confidence, max loss
+
+3. Meta-Decision Agent evaluates regime
+   └─▶ Approves/rejects based on market conditions
+
+4. Capital Allocation Agent assigns budget
+   └─▶ Adjusts size based on strategy allocation
+
+5. Risk Agent validates hard limits
+   └─▶ Kill switch, position limits, exposure, daily loss
+
+6. Execution Cost Gate checks profitability
+   └─▶ Expected Edge > (Spread + Slippage + Fees + Buffer)
+
+7. Execution Agent routes to optimal venue
+   └─▶ TWAP/VWAP/iceberg execution
+
+8. Reconciliation Agent verifies fills
+   └─▶ Cross-checks internal vs. venue records
+
+9. Decision Trace recorded
+   └─▶ Full audit trail with human-readable explanation
 ```
 
 ### Key Design Decisions
@@ -39,10 +113,11 @@ Enterprise Crypto bridges this gap: **institutional-grade controls, open-source 
 | Decision | Rationale |
 |----------|-----------|
 | **Fail-closed** | If any safety check fails, trading halts — never fails open |
+| **Agents propose, gates decide** | Strategy agents cannot execute — only propose intents |
 | **Paper mode default** | `paper_trading_mode = true` on fresh install |
 | **Database-level risk** | Circuit breakers are Postgres triggers — can't be bypassed by app bugs |
 | **RLS everywhere** | Every table has Row-Level Security; roles enforced at DB layer |
-| **Edge function auth** | JWT validation + rate limiting on all trading endpoints |
+| **Inter-agent communication** | Redis pub/sub for low-latency agent coordination |
 
 ## Features
 
@@ -71,7 +146,7 @@ Enterprise Crypto bridges this gap: **institutional-grade controls, open-source 
 - **Full Audit Trail** — every state change logged with before/after
 - **RBAC** — admin, CIO, trader, ops, research, auditor, viewer roles
 - **Telegram Alerts** — real-time notifications for critical events
-- **CRON Monitoring** — automated health checks every 2 minutes
+- **Agent Health Monitoring** — heartbeat, CPU, memory per agent
 - **Decision Traces** — see exactly why each trade was blocked or executed
 
 ## Quick Start
@@ -157,65 +232,32 @@ enterprise-crypto/
 │   │   ├── intelligence/         # Market signals, scanners
 │   │   ├── risk/                 # Risk management panels
 │   │   ├── arbitrage/            # Cross-exchange arbitrage
+│   │   ├── agents/               # Agent monitoring and control
 │   │   └── layout/               # Navigation, sidebars
 │   ├── hooks/                    # React hooks (metrics, realtime, shortcuts)
+│   ├── lib/                      # Agent roles, trading gate, decision trace
 │   ├── pages/                    # Route pages
 │   └── integrations/supabase/    # Generated Supabase types & client
+├── backend/
+│   └── app/
+│       ├── agents/               # Multi-agent system (Python)
+│       │   ├── base_agent.py     # Base agent with Redis pub/sub
+│       │   ├── meta_decision_agent.py
+│       │   ├── capital_allocation_agent.py
+│       │   ├── signal_agent.py   # Strategy agent
+│       │   ├── risk_agent.py
+│       │   ├── execution_agent.py
+│       │   ├── arbitrage_agent.py
+│       │   └── agent_orchestrator.py
+│       ├── enterprise/           # RBAC, audit, compliance, risk limits
+│       └── services/             # OMS, risk engine, portfolio engine
 ├── supabase/
 │   ├── functions/                # Edge functions (Deno)
-│   │   ├── live-trading/         # Order execution with safety checks
-│   │   ├── binance-us-trading/   # Binance.US API integration
-│   │   ├── coinbase-trading/     # Coinbase Advanced Trade
-│   │   ├── kraken-trading/       # Kraken API
-│   │   ├── cross-exchange-arbitrage/
-│   │   ├── market-data/          # Price feeds
-│   │   ├── kill-switch/          # Emergency halt
-│   │   ├── scheduled-monitor/    # CRON health checks
-│   │   └── _shared/              # Security middleware, CORS, validation
 │   ├── migrations/               # Database schema migrations
 │   └── config.toml               # Function configuration
-├── backend/                      # Python FastAPI (optional, for advanced strategies)
 ├── docs/                         # Architecture, guides, runbooks
-├── .github/workflows/            # CI pipeline
 └── .env.example                  # Environment template
 ```
-
-## Database Schema (Key Tables)
-
-| Table | Purpose |
-|-------|---------|
-| `books` | Trading books with capital allocation and status |
-| `orders` | Order lifecycle (open → filled/cancelled) |
-| `positions` | Open/closed positions with P&L tracking |
-| `fills` | Execution records with fees and slippage |
-| `strategies` | Strategy definitions with lifecycle states |
-| `risk_limits` | Per-book risk constraints |
-| `circuit_breaker_events` | Automated halt records |
-| `audit_events` | Full state-change audit trail |
-| `global_settings` | Kill switch, paper mode, system toggles |
-| `user_roles` | RBAC role assignments |
-| `alerts` | System and trading alerts |
-
-All tables are protected by Row-Level Security policies.
-
-## Edge Functions
-
-| Function | Auth | Purpose |
-|----------|------|---------|
-| `live-trading` | JWT + Role | Order placement with safety checks, retry logic |
-| `kill-switch` | JWT + Admin | Emergency trading halt |
-| `market-data` | Public | Price feeds and market snapshots |
-| `binance-us-trading` | Public | Binance.US API proxy |
-| `coinbase-trading` | Public | Coinbase Advanced Trade proxy |
-| `kraken-trading` | Public | Kraken API proxy |
-| `cross-exchange-arbitrage` | Public | Spread detection across venues |
-| `scheduled-monitor` | CRON | Automated health checks |
-| `send-alert-notification` | Public | Telegram alert delivery |
-| `signal-scoring` | Public | Multi-factor signal analysis |
-| `funding-arbitrage` | Public | Funding rate arbitrage detection |
-| `macro-indicators` | Public | FRED economic data integration |
-| `whale-alerts` | Public | Large transaction monitoring |
-| `exchange-keys` | JWT | Encrypted API key management |
 
 ## Contributing
 
@@ -223,12 +265,13 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
 **We welcome:**
 - Bug fixes (especially safety-related)
+- New agent implementations
 - Documentation improvements
 - New exchange integrations (must follow adapter pattern)
 - Test coverage improvements
 - UI/UX enhancements
 
-**We reject anything that weakens risk controls.**
+**We reject anything that weakens risk controls or bypasses agent hierarchy.**
 
 ## Security
 
@@ -244,4 +287,4 @@ See [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporti
 
 ---
 
-*Enterprise Crypto — Institutional trading, open source.*
+*Enterprise Crypto — Multi-agent trading infrastructure, open source.*

@@ -1,4 +1,4 @@
-Institutional Grade Overview
+# Multi-Agent Trading System — Institutional Grade Overview
 
 Intent lifecycle
 - OpportunityScanner evaluates multi-timeframe signals and arbitrage edges.
