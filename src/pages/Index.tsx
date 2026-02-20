@@ -124,6 +124,12 @@ export default function Index() {
             {/* Opportunity Scanner */}
             <OpportunityScannerPanel compact />
 
+            {/* Unified Portfolio */}
+            <UnifiedPortfolioPanel />
+
+            {/* Real-time P&L Tracker */}
+            <RealtimePnLTracker />
+
             <RecentEvents />
           </div>
         </div>
