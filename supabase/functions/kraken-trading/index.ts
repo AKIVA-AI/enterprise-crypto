@@ -75,8 +75,8 @@ async function krakenPrivateRequest(
   endpoint: string,
   params: Record<string, string> = {}
 ): Promise<any> {
-  // Kraken requires strictly increasing nonces — use microsecond precision to avoid EAPI:Invalid nonce
-  const nonce = (Date.now() * 1000 + Math.floor(performance.now() * 1000) % 1000).toString();
+  // Kraken requires strictly increasing nonces — use microsecond timestamp
+  const nonce = (Date.now() * 1000).toString();
   const postData = new URLSearchParams({ nonce, ...params }).toString();
   const path = `/0/private/${endpoint}`;
   
