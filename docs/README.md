@@ -1,5 +1,7 @@
 # Enterprise Crypto Documentation
 
+> Multi-agent crypto trading system — autonomous agents coordinate risk, execution, capital allocation, and market intelligence.
+
 ## Start Here
 
 | Document | Description |
