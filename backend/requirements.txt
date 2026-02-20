@@ -5,14 +5,14 @@ python-multipart==0.0.9
 
 # Database
 asyncpg==0.29.0
-supabase==2.3.4
+supabase>=2.10.0
 python-dotenv==1.0.1
 
 # Redis (for agent pub/sub)
 redis==5.0.1
 hiredis==2.3.2
 
-# HTTP client - Fixed version compatibility with supabase
+# HTTP client - Fixed version compatibility
 httpx>=0.27.0
 aiohttp>=3.11.18
 websockets==14.1
