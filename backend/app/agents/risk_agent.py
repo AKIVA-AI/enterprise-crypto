@@ -185,8 +185,14 @@ class RiskAgent(BaseAgent):
                 await self._trigger_kill_switch("Daily loss limit exceeded")
         
         # Check 8: Concentration check
-        if self._total_exposure > 0:
-            concentration = (new_total / (self._total_exposure + adjusted_size)) * 100
+        # Recalculate new_total with the (possibly reduced) adjusted_size
+        new_total = existing_size + adjusted_size
+        # Only check concentration when portfolio holds more than one instrument,
+        # since a single-instrument portfolio is trivially 100% concentrated.
+        other_instruments = [k for k in self._positions if k != instrument]
+        if self._total_exposure > 0 and len(other_instruments) > 0:
+            total_after = self._total_exposure + adjusted_size
+            concentration = (new_total / total_after) * 100
             if concentration > self._risk_limits["max_concentration_pct"]:
                 rejection_reasons.append(
                     f"Concentration too high: {concentration:.1f}%"
