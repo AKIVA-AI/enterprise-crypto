@@ -39,8 +39,9 @@ class SignalAgent(BaseAgent):
         self._cycle_interval = 0.1  # 100ms cycle
         self._paused = False
         
-        # Strategy parameters
-        self._strategy_params = {
+        # Load strategy parameters from config
+        from app.core.trading_config import trading_config
+        self._strategy_params = trading_config.signal_strategies or {
             "trend_following": {
                 "lookback_periods": 20,
                 "momentum_threshold": 0.02,
@@ -131,8 +132,8 @@ class SignalAgent(BaseAgent):
         confidence = min(abs(momentum) * params["confidence_multiplier"] * 100, 95)
         
         # Size based on confidence and volume
-        target_exposure = min(volume * 0.001, 10000)  # Max $10k per signal
-        
+        target_exposure = min(volume * 0.001, params.get("max_exposure_per_signal", 10000))
+
         return {
             "id": str(uuid4()),
             "strategy": "trend_following",
@@ -141,9 +142,9 @@ class SignalAgent(BaseAgent):
             "confidence": round(confidence, 2),
             "target_exposure_usd": round(target_exposure, 2),
             "entry_price": price,
-            "stop_loss_pct": 0.02,
-            "take_profit_pct": 0.04,
-            "horizon_minutes": 60,
+            "stop_loss_pct": params.get("stop_loss_pct", 0.02),
+            "take_profit_pct": params.get("take_profit_pct", 0.04),
+            "horizon_minutes": params.get("horizon_minutes", 60),
             "metadata": {
                 "momentum": round(momentum, 4),
                 "volume_24h": volume,
@@ -182,11 +183,11 @@ class SignalAgent(BaseAgent):
             "instrument": instrument,
             "direction": direction,
             "confidence": round(confidence, 2),
-            "target_exposure_usd": 5000,  # Fixed size for mean reversion
+            "target_exposure_usd": params.get("fixed_exposure_usd", 5000),
             "entry_price": price,
-            "stop_loss_pct": 0.015,
+            "stop_loss_pct": params.get("stop_loss_pct", 0.015),
             "take_profit_pct": abs(deviation) * params["reversion_target"],
-            "horizon_minutes": 30,
+            "horizon_minutes": params.get("horizon_minutes", 30),
             "metadata": {
                 "deviation": round(deviation, 4),
                 "vwap": vwap,
@@ -216,12 +217,12 @@ class SignalAgent(BaseAgent):
             "strategy": "funding_arbitrage",
             "instrument": instrument,
             "direction": direction,
-            "confidence": 75.0,  # Funding arb is relatively certain
+            "confidence": params.get("confidence", 75.0),
             "target_exposure_usd": min(abs(funding_rate) * 1000000, params["max_exposure"]),
             "entry_price": market_data.get("price", 0),
-            "stop_loss_pct": 0.01,
+            "stop_loss_pct": params.get("stop_loss_pct", 0.01),
             "take_profit_pct": abs(funding_rate),
-            "horizon_minutes": 480,  # 8 hours (funding period)
+            "horizon_minutes": params.get("horizon_minutes", 480),
             "metadata": {
                 "funding_rate": funding_rate,
                 "generated_at": datetime.utcnow().isoformat()

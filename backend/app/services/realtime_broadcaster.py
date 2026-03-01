@@ -97,6 +97,11 @@ class RealtimeBroadcaster:
                 if message:
                     await self._process_message(message)
                     
+            except (redis.ConnectionError, redis.TimeoutError) as e:
+                logger.warning(f"Broadcaster Redis connection lost: {e}. Reconnecting...")
+                self._metrics["errors"] += 1
+                await self._reconnect()
+                await asyncio.sleep(2)
             except Exception as e:
                 logger.error(f"Broadcaster error: {e}")
                 self._metrics["errors"] += 1
@@ -124,6 +129,31 @@ class RealtimeBroadcaster:
             logger.error(f"Error processing message: {e}")
             self._metrics["errors"] += 1
     
+    async def _reconnect(self):
+        """Attempt to reconnect to Redis."""
+        try:
+            if self._pubsub:
+                await self._pubsub.close()
+            if self._redis:
+                await self._redis.close()
+        except Exception:
+            pass
+
+        for attempt in range(5):
+            try:
+                self._redis = redis.from_url(self.redis_url)
+                await self._redis.ping()
+                self._pubsub = self._redis.pubsub()
+                await self._pubsub.subscribe(*self.CHANNELS.values())
+                logger.info(f"Broadcaster reconnected to Redis (attempt {attempt + 1})")
+                return
+            except Exception as e:
+                delay = min(2 ** attempt, 16)
+                logger.warning(f"Broadcaster reconnect attempt {attempt + 1} failed: {e}. Retry in {delay}s")
+                await asyncio.sleep(delay)
+
+        logger.error("Broadcaster failed to reconnect after 5 attempts")
+
     async def publish(self, channel: str, data: Dict[str, Any]):
         """Publish data to a channel."""
         if not self._redis:
@@ -136,6 +166,9 @@ class RealtimeBroadcaster:
                 "data": data
             })
             await self._redis.publish(redis_channel, message)
+        except (redis.ConnectionError, redis.TimeoutError) as e:
+            logger.warning(f"Failed to publish to {channel} (connection lost): {e}")
+            await self._reconnect()
         except Exception as e:
             logger.error(f"Failed to publish to {channel}: {e}")
     

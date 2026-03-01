@@ -55,6 +55,11 @@ class DEXAdapter(VenueAdapter):
     """
     Adapter for DEX aggregator (0x/1inch style).
     Supports multiple DEX aggregator backends.
+
+    IMPLEMENTATION STATUS:
+    - Paper trading: COMPLETE (quote simulation, swap simulation, gas estimation)
+    - Live trading: PARTIAL (quote fetching works, swap execution requires wallet integration)
+    - Required for live: Web3 wallet connection, private key signing, transaction submission
     """
     
     # Supported aggregators

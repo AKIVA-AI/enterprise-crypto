@@ -1,0 +1,59 @@
+{
+  "signal_strategies": {
+    "trend_following": {
+      "lookback_periods": 20,
+      "momentum_threshold": 0.02,
+      "confidence_multiplier": 1.5,
+      "max_exposure_per_signal": 10000,
+      "stop_loss_pct": 0.02,
+      "take_profit_pct": 0.04,
+      "horizon_minutes": 60
+    },
+    "mean_reversion": {
+      "lookback_periods": 50,
+      "std_threshold": 2.0,
+      "reversion_target": 0.5,
+      "fixed_exposure_usd": 5000,
+      "stop_loss_pct": 0.015,
+      "horizon_minutes": 30
+    },
+    "funding_arbitrage": {
+      "min_spread": 0.001,
+      "max_exposure": 50000,
+      "confidence": 75.0,
+      "stop_loss_pct": 0.01,
+      "horizon_minutes": 480
+    }
+  },
+  "risk_limits": {
+    "max_position_size_usd": 50000,
+    "max_portfolio_exposure_usd": 500000,
+    "max_single_trade_usd": 25000,
+    "max_leverage": 3.0,
+    "max_concentration_pct": 25.0,
+    "max_daily_loss_usd": 10000,
+    "max_drawdown_pct": 5.0,
+    "min_confidence_threshold": 50.0,
+    "max_correlation_exposure": 0.7,
+    "kill_switch_multiplier": 1.5
+  },
+  "capital_allocation": {
+    "strategy_weights": {
+      "trend_following": 0.30,
+      "mean_reversion": 0.25,
+      "funding_arbitrage": 0.20,
+      "momentum": 0.15,
+      "breakout": 0.10
+    },
+    "rebalance_interval_seconds": 60,
+    "quarantine_thresholds": {
+      "edge_decay_pct": 30,
+      "performance_ratio": 70,
+      "max_drawdown_pct": 10,
+      "min_execution_quality": 90
+    },
+    "quarantine_min_hours": 4,
+    "max_quarantines_before_disable": 3,
+    "quarantine_lookback_days": 30
+  }
+}

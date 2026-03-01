@@ -48,3 +48,5 @@ test-output.log
 test-detailed.log
 test-final.log
 lint-output.txt
+
+.git_disabled/

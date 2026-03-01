@@ -32,17 +32,19 @@ class RiskAgent(BaseAgent):
             subscribed_channels=[AgentChannel.RISK_CHECK, AgentChannel.FILLS]
         )
         
-        # Risk limits (would be loaded from DB in production)
+        # Load risk limits from config (with hardcoded fallbacks)
+        from app.core.trading_config import trading_config
+        self._config_limits = trading_config.risk_limits
         self._risk_limits = {
-            "max_position_size_usd": 50000,
-            "max_portfolio_exposure_usd": 500000,
-            "max_single_trade_usd": 25000,
-            "max_leverage": 3.0,
-            "max_concentration_pct": 25.0,
-            "max_daily_loss_usd": 10000,
-            "max_drawdown_pct": 5.0,
-            "min_confidence_threshold": 50.0,
-            "max_correlation_exposure": 0.7
+            "max_position_size_usd": self._config_limits.get("max_position_size_usd", 50000),
+            "max_portfolio_exposure_usd": self._config_limits.get("max_portfolio_exposure_usd", 500000),
+            "max_single_trade_usd": self._config_limits.get("max_single_trade_usd", 25000),
+            "max_leverage": self._config_limits.get("max_leverage", 3.0),
+            "max_concentration_pct": self._config_limits.get("max_concentration_pct", 25.0),
+            "max_daily_loss_usd": self._config_limits.get("max_daily_loss_usd", 10000),
+            "max_drawdown_pct": self._config_limits.get("max_drawdown_pct", 5.0),
+            "min_confidence_threshold": self._config_limits.get("min_confidence_threshold", 50.0),
+            "max_correlation_exposure": self._config_limits.get("max_correlation_exposure", 0.7)
         }
         
         # Portfolio state
@@ -178,7 +180,8 @@ class RiskAgent(BaseAgent):
                 f"Daily loss limit breached: ${self._daily_pnl}"
             )
             # Trigger kill switch on severe loss
-            if self._daily_pnl < -self._risk_limits["max_daily_loss_usd"] * 1.5:
+            kill_multiplier = self._config_limits.get("kill_switch_multiplier", 1.5)
+            if self._daily_pnl < -self._risk_limits["max_daily_loss_usd"] * kill_multiplier:
                 await self._trigger_kill_switch("Daily loss limit exceeded")
         
         # Check 8: Concentration check

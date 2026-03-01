@@ -1,6 +1,7 @@
 """
 Tests for Risk Engine rules and intent validation.
 """
+import asyncio
 import pytest
 from unittest.mock import patch, AsyncMock
 from uuid import uuid4
@@ -11,6 +12,7 @@ from app.models.domain import (
     Position, VenueHealth, VenueStatus, RiskDecision
 )
 from app.services.risk_engine import RiskEngine
+from app.agents.risk_agent import RiskAgent
 from app.config import settings
 
 
@@ -337,6 +339,240 @@ class TestConcentrationLimits:
         )
 
         assert "concentration" in result.checks_failed
+
+
+class TestKillSwitch:
+    """Tests for the kill switch mechanism."""
+
+    def test_kill_switch_blocks_all_trades(self):
+        """Once kill switch is triggered, all trades should be rejected."""
+        agent = RiskAgent()
+        agent._risk_metrics["kill_switch_triggered"] = True
+
+        signal = {
+            "instrument": "BTC-USD",
+            "direction": "buy",
+            "confidence": 90.0,
+            "target_exposure_usd": 1000
+        }
+
+        result = asyncio.get_event_loop().run_until_complete(
+            agent._evaluate_risk(signal)
+        )
+        assert not result["approved"]
+        assert "Kill switch is active" in result["rejection_reasons"]
+
+    def test_kill_switch_triggers_on_severe_loss(self):
+        """Kill switch should trigger when daily loss exceeds 1.5x limit."""
+        agent = RiskAgent()
+        # Set daily P&L to exceed 1.5x the daily loss limit ($10k * 1.5 = $15k)
+        agent._daily_pnl = -16000
+
+        signal = {
+            "instrument": "BTC-USD",
+            "direction": "buy",
+            "confidence": 80.0,
+            "target_exposure_usd": 1000
+        }
+
+        with patch.object(agent, 'publish', new_callable=AsyncMock):
+            with patch.object(agent, 'send_alert', new_callable=AsyncMock):
+                result = asyncio.get_event_loop().run_until_complete(
+                    agent._evaluate_risk(signal)
+                )
+
+        assert agent._risk_metrics["kill_switch_triggered"]
+
+    def test_kill_switch_reset(self):
+        """Admin should be able to reset kill switch."""
+        agent = RiskAgent()
+        agent._risk_metrics["kill_switch_triggered"] = True
+        agent.reset_kill_switch()
+        assert not agent._risk_metrics["kill_switch_triggered"]
+
+
+class TestDailyLossLimit:
+    """Tests for daily loss limit enforcement."""
+
+    def test_daily_loss_within_limit_allows_trade(self):
+        """Trades should be allowed when daily loss is within limit."""
+        agent = RiskAgent()
+        agent._daily_pnl = -5000  # Under $10k limit
+
+        signal = {
+            "instrument": "ETH-USD",
+            "direction": "buy",
+            "confidence": 70.0,
+            "target_exposure_usd": 5000
+        }
+
+        with patch.object(agent, '_trigger_kill_switch', new_callable=AsyncMock):
+            result = asyncio.get_event_loop().run_until_complete(
+                agent._evaluate_risk(signal)
+            )
+        assert result["approved"]
+
+    def test_daily_loss_breached_rejects_trade(self):
+        """Trades should be rejected when daily loss limit is breached."""
+        agent = RiskAgent()
+        agent._daily_pnl = -11000  # Over $10k limit
+
+        signal = {
+            "instrument": "ETH-USD",
+            "direction": "buy",
+            "confidence": 70.0,
+            "target_exposure_usd": 5000
+        }
+
+        with patch.object(agent, '_trigger_kill_switch', new_callable=AsyncMock):
+            result = asyncio.get_event_loop().run_until_complete(
+                agent._evaluate_risk(signal)
+            )
+        assert not result["approved"]
+        assert any("Daily loss limit" in r for r in result["rejection_reasons"])
+
+
+class TestPositionSizing:
+    """Tests for position sizing and adjustment."""
+
+    def test_oversized_trade_gets_scaled_down(self):
+        """Trade exceeding single trade limit should be scaled to max."""
+        agent = RiskAgent()
+
+        signal = {
+            "instrument": "BTC-USD",
+            "direction": "buy",
+            "confidence": 80.0,
+            "target_exposure_usd": 50000  # Over $25k single trade limit
+        }
+
+        result = asyncio.get_event_loop().run_until_complete(
+            agent._evaluate_risk(signal)
+        )
+        assert result["approved"]
+        assert result["adjusted_size"] == 25000
+
+    def test_position_at_capacity_rejects(self):
+        """Trade should be rejected if position is already at max."""
+        agent = RiskAgent()
+        agent._positions["BTC-USD"] = {"size_usd": 50000, "side": "buy"}
+        agent._total_exposure = 50000
+
+        signal = {
+            "instrument": "BTC-USD",
+            "direction": "buy",
+            "confidence": 80.0,
+            "target_exposure_usd": 5000
+        }
+
+        result = asyncio.get_event_loop().run_until_complete(
+            agent._evaluate_risk(signal)
+        )
+        assert not result["approved"]
+        assert any("Position limit" in r for r in result["rejection_reasons"])
+
+    def test_remaining_capacity_used(self):
+        """Trade should be sized to remaining position capacity."""
+        agent = RiskAgent()
+        agent._positions["BTC-USD"] = {"size_usd": 40000, "side": "buy"}
+        agent._total_exposure = 40000
+
+        signal = {
+            "instrument": "BTC-USD",
+            "direction": "buy",
+            "confidence": 80.0,
+            "target_exposure_usd": 20000
+        }
+
+        result = asyncio.get_event_loop().run_until_complete(
+            agent._evaluate_risk(signal)
+        )
+        assert result["approved"]
+        assert result["adjusted_size"] == 10000  # Only 10k remaining capacity
+
+
+class TestFillProcessing:
+    """Tests for fill processing and portfolio state updates."""
+
+    def test_buy_fill_creates_position(self):
+        """Buy fill should create a new position."""
+        agent = RiskAgent()
+
+        fill = {
+            "instrument": "BTC-USD",
+            "side": "buy",
+            "size_usd": 10000,
+            "pnl": 0
+        }
+
+        asyncio.get_event_loop().run_until_complete(
+            agent._process_fill(fill)
+        )
+
+        assert "BTC-USD" in agent._positions
+        assert agent._positions["BTC-USD"]["size_usd"] == 10000
+        assert agent._total_exposure == 10000
+
+    def test_sell_fill_reduces_position(self):
+        """Sell fill should reduce existing position."""
+        agent = RiskAgent()
+        agent._positions["BTC-USD"] = {"size_usd": 10000, "side": "buy"}
+        agent._total_exposure = 10000
+
+        fill = {
+            "instrument": "BTC-USD",
+            "side": "sell",
+            "size_usd": 10000,
+            "pnl": 500
+        }
+
+        asyncio.get_event_loop().run_until_complete(
+            agent._process_fill(fill)
+        )
+
+        # Position should be closed (removed)
+        assert "BTC-USD" not in agent._positions
+        assert agent._total_exposure == 0
+        assert agent._daily_pnl == 500
+
+    def test_pnl_accumulates(self):
+        """Daily P&L should accumulate across fills."""
+        agent = RiskAgent()
+
+        fills = [
+            {"instrument": "BTC-USD", "side": "buy", "size_usd": 5000, "pnl": 200},
+            {"instrument": "ETH-USD", "side": "buy", "size_usd": 3000, "pnl": -100},
+            {"instrument": "SOL-USD", "side": "buy", "size_usd": 2000, "pnl": 50},
+        ]
+
+        for fill in fills:
+            asyncio.get_event_loop().run_until_complete(
+                agent._process_fill(fill)
+            )
+
+        assert agent._daily_pnl == 150  # 200 - 100 + 50
+
+
+class TestPausedState:
+    """Tests for agent paused state behavior."""
+
+    def test_paused_agent_rejects_all(self):
+        """Paused risk agent should reject all trade intents."""
+        agent = RiskAgent()
+        agent._paused = True
+
+        signal = {
+            "instrument": "BTC-USD",
+            "direction": "buy",
+            "confidence": 95.0,
+            "target_exposure_usd": 1000
+        }
+
+        result = asyncio.get_event_loop().run_until_complete(
+            agent._evaluate_risk(signal)
+        )
+        assert not result["approved"]
+        assert "Risk agent is paused" in result["rejection_reasons"]
 
 
 if __name__ == "__main__":

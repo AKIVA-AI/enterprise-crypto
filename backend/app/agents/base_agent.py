@@ -110,35 +110,55 @@ class BaseAgent(ABC):
             "last_heartbeat": None
         }
         
+        # Redis resilience
+        self._max_reconnect_attempts = 10
+        self._reconnect_delay = 1.0  # seconds, doubles each attempt
+        self._message_queue: list = []  # Buffer messages during disconnect
+        self._max_queue_size = 1000
+
         # Supabase configuration for heartbeats
         self._supabase_url = os.getenv("SUPABASE_URL", "")
         self._supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
         self._http_client: Optional[httpx.AsyncClient] = None
         
     async def connect(self):
-        """Establish Redis connection and HTTP client"""
-        try:
-            self._redis = redis.from_url(self.redis_url)
-            self._pubsub = self._redis.pubsub()
-            self._http_client = httpx.AsyncClient(timeout=10.0)
-            
-            # Subscribe to channels
-            if self.subscribed_channels:
-                channels = [ch.value for ch in self.subscribed_channels]
-                await self._pubsub.subscribe(*channels)
-                logger.info(f"[{self.agent_id}] Subscribed to channels: {channels}")
-            
-            # Always subscribe to control and heartbeat
-            await self._pubsub.subscribe(
-                AgentChannel.CONTROL.value,
-                AgentChannel.HEARTBEAT.value
-            )
-            
-            logger.info(f"[{self.agent_id}] Connected to Redis")
-            
-        except Exception as e:
-            logger.error(f"[{self.agent_id}] Failed to connect to Redis: {e}")
-            raise
+        """Establish Redis connection with retry logic."""
+        attempt = 0
+        delay = self._reconnect_delay
+
+        while attempt < self._max_reconnect_attempts:
+            try:
+                self._redis = redis.from_url(self.redis_url)
+                await self._redis.ping()  # Verify connection
+                self._pubsub = self._redis.pubsub()
+                self._http_client = httpx.AsyncClient(timeout=10.0)
+
+                # Subscribe to channels
+                if self.subscribed_channels:
+                    channels = [ch.value for ch in self.subscribed_channels]
+                    await self._pubsub.subscribe(*channels)
+                    logger.info(f"[{self.agent_id}] Subscribed to channels: {channels}")
+
+                # Always subscribe to control and heartbeat
+                await self._pubsub.subscribe(
+                    AgentChannel.CONTROL.value,
+                    AgentChannel.HEARTBEAT.value
+                )
+
+                logger.info(f"[{self.agent_id}] Connected to Redis")
+
+                # Flush queued messages
+                await self._flush_message_queue()
+                return
+
+            except Exception as e:
+                attempt += 1
+                if attempt >= self._max_reconnect_attempts:
+                    logger.error(f"[{self.agent_id}] Failed to connect to Redis after {attempt} attempts: {e}")
+                    raise
+                logger.warning(f"[{self.agent_id}] Redis connection attempt {attempt} failed: {e}. Retrying in {delay}s...")
+                await asyncio.sleep(delay)
+                delay = min(delay * 2, 30)  # Exponential backoff, max 30s
     
     async def disconnect(self):
         """Clean up Redis connection"""
@@ -152,22 +172,85 @@ class BaseAgent(ABC):
             await self._http_client.aclose()
         logger.info(f"[{self.agent_id}] Disconnected from Redis")
     
+    async def _flush_message_queue(self):
+        """Publish any messages that were queued during disconnect."""
+        if not self._message_queue:
+            return
+
+        flushed = 0
+        while self._message_queue:
+            channel, payload, correlation_id = self._message_queue.pop(0)
+            try:
+                await self.publish(channel, payload, correlation_id)
+                flushed += 1
+            except Exception as e:
+                logger.error(f"[{self.agent_id}] Failed to flush queued message: {e}")
+                break
+
+        if flushed:
+            logger.info(f"[{self.agent_id}] Flushed {flushed} queued messages")
+
     async def publish(self, channel: AgentChannel, payload: Dict[str, Any], correlation_id: Optional[str] = None):
-        """Publish a message to a channel"""
+        """Publish a message to a channel, with queue fallback."""
         if not self._redis:
-            raise RuntimeError("Not connected to Redis")
-        
+            # Queue message for later delivery
+            if len(self._message_queue) < self._max_queue_size:
+                self._message_queue.append((channel, payload, correlation_id))
+                logger.warning(f"[{self.agent_id}] Redis unavailable, message queued ({len(self._message_queue)} in queue)")
+            else:
+                logger.error(f"[{self.agent_id}] Message queue full, dropping message")
+            return
+
         message = AgentMessage.create(
             source=self.agent_id,
             channel=channel,
             payload=payload,
             correlation_id=correlation_id
         )
-        
-        await self._redis.publish(channel.value, message.to_json())
-        self._metrics["messages_sent"] += 1
-        logger.debug(f"[{self.agent_id}] Published to {channel.value}: {message.id}")
-    
+
+        try:
+            await self._redis.publish(channel.value, message.to_json())
+            self._metrics["messages_sent"] += 1
+            logger.debug(f"[{self.agent_id}] Published to {channel.value}: {message.id}")
+        except redis.ConnectionError:
+            # Queue and attempt reconnect
+            if len(self._message_queue) < self._max_queue_size:
+                self._message_queue.append((channel, payload, correlation_id))
+            logger.warning(f"[{self.agent_id}] Redis connection lost during publish, queued message")
+            await self._attempt_reconnect()
+
+    async def _attempt_reconnect(self):
+        """Attempt to reconnect to Redis."""
+        logger.info(f"[{self.agent_id}] Attempting Redis reconnection...")
+        try:
+            if self._pubsub:
+                await self._pubsub.close()
+            if self._redis:
+                await self._redis.close()
+        except Exception:
+            pass
+
+        try:
+            self._redis = redis.from_url(self.redis_url)
+            await self._redis.ping()
+            self._pubsub = self._redis.pubsub()
+
+            if self.subscribed_channels:
+                channels = [ch.value for ch in self.subscribed_channels]
+                await self._pubsub.subscribe(*channels)
+
+            await self._pubsub.subscribe(
+                AgentChannel.CONTROL.value,
+                AgentChannel.HEARTBEAT.value
+            )
+
+            logger.info(f"[{self.agent_id}] Reconnected to Redis")
+            await self._flush_message_queue()
+
+        except Exception as e:
+            logger.error(f"[{self.agent_id}] Reconnection failed: {e}")
+            self._redis = None
+
     async def _write_heartbeat_to_supabase(self):
         """Write heartbeat directly to Supabase agents table"""
         if not self._supabase_url or not self._supabase_key or not self._http_client:
@@ -382,13 +465,18 @@ class BaseAgent(ABC):
             await self.on_start()
             
             while self._running:
-                message = await self._pubsub.get_message(
-                    ignore_subscribe_messages=True,
-                    timeout=0.1
-                )
-                if message:
-                    await self._process_message(message)
-                
+                try:
+                    message = await self._pubsub.get_message(
+                        ignore_subscribe_messages=True,
+                        timeout=0.1
+                    )
+                    if message:
+                        await self._process_message(message)
+                except (redis.ConnectionError, redis.TimeoutError):
+                    logger.warning(f"[{self.agent_id}] Redis connection lost, attempting reconnect...")
+                    await self._attempt_reconnect()
+                    await asyncio.sleep(1)
+
                 # Run agent-specific cycle if not paused
                 if not self._paused:
                     await self.cycle()
