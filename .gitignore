@@ -50,3 +50,8 @@ test-final.log
 lint-output.txt
 
 .git_disabled/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
