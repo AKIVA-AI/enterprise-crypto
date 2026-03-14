@@ -58,9 +58,10 @@ ta==0.11.0
 lightgbm>=4.0.0
 xgboost>=2.0.0
 
-# Technical Analysis - TA-Lib installed separately in CI
-ta-lib>=0.4.28
-pandas-ta>=0.3.14b
+# Technical Analysis
+# ta-lib and pandas-ta excluded from CI: ta-lib needs system C library,
+# pandas-ta 0.4.71b0 requires Python >=3.12 (breaks 3.11 matrix).
+# Neither is imported in backend/app/ — used only by FreqTrade strategies.
 
 # Async utilities
 aiocache>=0.12.0
