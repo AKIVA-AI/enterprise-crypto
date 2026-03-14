@@ -13,7 +13,7 @@ from app.database import (
     get_kill_switch_status,
     create_alert,
 )
-from app.auth import get_current_user  # Assuming you have auth
+from app.core.security import get_current_user
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/system", tags=["system"])
@@ -23,7 +23,7 @@ class KillSwitchRequest(BaseModel):
     """Kill switch activation request."""
 
     reason: str
-    user_id: str = "api_user"
+    user_id: str | None = None
 
 
 class KillSwitchResponse(BaseModel):
@@ -64,6 +64,8 @@ async def activate_kill_switch_endpoint(
                 status_code=500, detail="Failed to activate kill switch"
             )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("kill_switch_activation_api_error", error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -95,6 +97,8 @@ async def deactivate_kill_switch_endpoint(
                 status_code=500, detail="Failed to deactivate kill switch"
             )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("kill_switch_deactivation_api_error", error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -116,6 +120,8 @@ async def get_kill_switch_status_endpoint(
             "system_status": "operational" if not status["active"] else "halted",
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("kill_switch_status_api_error", error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -144,6 +150,8 @@ async def create_system_alert(
 
         return {"message": "Alert created successfully"}
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("create_alert_api_error", error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")

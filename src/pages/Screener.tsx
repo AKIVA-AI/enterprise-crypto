@@ -63,15 +63,15 @@ export default function Screener() {
   }, []);
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return 'text-green-500';
-    if (score >= 70) return 'text-yellow-500';
-    return 'text-red-500';
+    if (score >= 85) return 'text-success';
+    if (score >= 70) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getScoreBg = (score: number) => {
-    if (score >= 85) return 'bg-green-500/10';
-    if (score >= 70) return 'bg-yellow-500/10';
-    return 'bg-red-500/10';
+    if (score >= 85) return 'bg-success/10';
+    if (score >= 70) return 'bg-warning/10';
+    return 'bg-destructive/10';
   };
 
   return (
@@ -115,7 +115,7 @@ export default function Screener() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
+              <TrendingUp className="h-5 w-5 text-success" />
               <span className="text-2xl font-bold">
                 {data?.opportunities?.[0]?.score?.toFixed(1) || '-'}
               </span>
@@ -126,7 +126,7 @@ export default function Screener() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-yellow-500" />
+              <Zap className="h-5 w-5 text-warning" />
               <span className="text-2xl font-bold">
                 {data?.opportunities?.[0]?.win_rate?.toFixed(1) || '-'}%
               </span>
@@ -137,7 +137,7 @@ export default function Screener() {
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              <AlertTriangle className="h-5 w-5 text-warning" />
               <span className="text-2xl font-bold">
                 {data?.opportunities?.[0]?.max_drawdown?.toFixed(1) || '-'}%
               </span>
@@ -192,7 +192,7 @@ export default function Screener() {
                       </td>
                       <td className="py-3 px-2 text-right">{opp.win_rate.toFixed(1)}%</td>
                       <td className="py-3 px-2 text-right">{opp.sharpe_ratio.toFixed(2)}</td>
-                      <td className="py-3 px-2 text-right text-orange-500">{opp.max_drawdown.toFixed(1)}%</td>
+                      <td className="py-3 px-2 text-right text-warning">{opp.max_drawdown.toFixed(1)}%</td>
                       <td className="py-3 px-2 text-right">{opp.total_trades}</td>
                     </tr>
                   ))}

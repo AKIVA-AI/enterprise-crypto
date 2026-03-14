@@ -32,56 +32,56 @@ const EXCHANGE_CONFIGS: Record<ExchangeType, ExchangeConfig> = {
     name: 'Coinbase',
     icon: '🔵',
     color: '#0052FF',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/30',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/30',
     usCompliant: true,
   },
   kraken: {
     name: 'Kraken',
     icon: '🟣',
     color: '#5741D9',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/30',
+    bgColor: 'bg-accent/10',
+    borderColor: 'border-accent/30',
     usCompliant: true,
   },
   binance: {
     name: 'Binance',
     icon: '🟡',
     color: '#F3BA2F',
-    bgColor: 'bg-yellow-500/10',
-    borderColor: 'border-yellow-500/30',
+    bgColor: 'bg-warning/10',
+    borderColor: 'border-warning/30',
     usCompliant: false,
   },
   bybit: {
     name: 'Bybit',
     icon: '🟠',
     color: '#F7A600',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/30',
+    bgColor: 'bg-warning/10',
+    borderColor: 'border-warning/30',
     usCompliant: false,
   },
   okx: {
     name: 'OKX',
     icon: '⚫',
     color: '#000000',
-    bgColor: 'bg-gray-500/10',
-    borderColor: 'border-gray-500/30',
+    bgColor: 'bg-muted/10',
+    borderColor: 'border-muted/30',
     usCompliant: false,
   },
   hyperliquid: {
     name: 'Hyperliquid',
     icon: '🔷',
     color: '#00D4FF',
-    bgColor: 'bg-cyan-500/10',
-    borderColor: 'border-cyan-500/30',
+    bgColor: 'bg-secondary/10',
+    borderColor: 'border-secondary/30',
     usCompliant: true,
   },
   mexc: {
     name: 'MEXC',
     icon: '🟢',
     color: '#00C087',
-    bgColor: 'bg-green-500/10',
-    borderColor: 'border-green-500/30',
+    bgColor: 'bg-success/10',
+    borderColor: 'border-success/30',
     usCompliant: false,
   },
 };
@@ -175,7 +175,7 @@ export function RegulatoryWarningBadge({
     return (
       <Badge
         variant="outline"
-        className={cn('bg-green-500/10 text-green-600 border-green-500/30', className)}
+        className={cn('bg-success/10 text-success border-success/30', className)}
       >
         ✅ US Compliant
       </Badge>
@@ -185,7 +185,7 @@ export function RegulatoryWarningBadge({
   return (
     <Badge
       variant="outline"
-      className={cn('bg-yellow-500/10 text-yellow-600 border-yellow-500/30', className)}
+      className={cn('bg-warning/10 text-warning border-warning/30', className)}
     >
       ⚠️ Not available in US
     </Badge>

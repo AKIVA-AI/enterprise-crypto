@@ -17,6 +17,13 @@ import {
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const asTooltipNumber = (value: unknown) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Number(value);
+  if (Array.isArray(value) && typeof value[0] === 'number') return value[0];
+  return 0;
+};
+
 interface EquityCurveDataPoint {
   date: string;
   equity: number;
@@ -169,10 +176,11 @@ export function BacktestEquityCurve({
                   borderRadius: '8px',
                   fontSize: '12px',
                 }}
-                formatter={(value: number, name: string) => {
-                  if (name === 'equity') return [`$${value.toLocaleString()}`, 'Strategy'];
-                  if (name === 'benchmark') return [`$${value.toLocaleString()}`, 'Benchmark'];
-                  return [value, name];
+                formatter={(value, name) => {
+                  const numericValue = asTooltipNumber(value);
+                  if (name === 'equity') return [`$${numericValue.toLocaleString()}`, 'Strategy'];
+                  if (name === 'benchmark') return [`$${numericValue.toLocaleString()}`, 'Benchmark'];
+                  return [numericValue, name ?? ''];
                 }}
               />
               <ReferenceLine y={initialCapital} stroke="hsl(var(--border))" strokeDasharray="3 3" />
@@ -239,7 +247,7 @@ export function BacktestEquityCurve({
                   borderRadius: '8px',
                   fontSize: '12px',
                 }}
-                formatter={(value: number) => [`${value.toFixed(2)}%`, 'Drawdown']}
+                formatter={(value) => [`${asTooltipNumber(value).toFixed(2)}%`, 'Drawdown']}
               />
               <ReferenceLine y={0} stroke="hsl(var(--border))" />
               <Area
@@ -307,10 +315,11 @@ export function BacktestEquityCurve({
                   borderRadius: '8px',
                   fontSize: '12px',
                 }}
-                formatter={(value: number, name: string) => {
-                  if (name === 'pnl') return [`$${value.toLocaleString()}`, 'Trade P&L'];
-                  if (name === 'cumulative') return [`$${value.toLocaleString()}`, 'Cumulative'];
-                  return [value, name];
+                formatter={(value, name) => {
+                  const numericValue = asTooltipNumber(value);
+                  if (name === 'pnl') return [`$${numericValue.toLocaleString()}`, 'Trade P&L'];
+                  if (name === 'cumulative') return [`$${numericValue.toLocaleString()}`, 'Cumulative'];
+                  return [numericValue, name ?? ''];
                 }}
               />
               <ReferenceLine yAxisId="pnl" y={0} stroke="hsl(var(--border))" />

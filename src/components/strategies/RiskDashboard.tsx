@@ -106,10 +106,10 @@ export function RiskDashboard({
 
   // Get risk level
   const getRiskLevel = (score: number): { level: string; color: string; bg: string } => {
-    if (score >= 80) return { level: 'HIGH', color: 'text-red-600', bg: 'bg-red-100' };
-    if (score >= 60) return { level: 'MEDIUM', color: 'text-yellow-600', bg: 'bg-yellow-100' };
-    if (score >= 40) return { level: 'MODERATE', color: 'text-blue-600', bg: 'bg-blue-100' };
-    return { level: 'LOW', color: 'text-green-600', bg: 'bg-green-100' };
+    if (score >= 80) return { level: 'HIGH', color: 'text-destructive', bg: 'bg-destructive/10' };
+    if (score >= 60) return { level: 'MEDIUM', color: 'text-warning', bg: 'bg-warning/10' };
+    if (score >= 40) return { level: 'MODERATE', color: 'text-primary', bg: 'bg-primary/10' };
+    return { level: 'LOW', color: 'text-success', bg: 'bg-success/10' };
   };
 
   // Format percentage
@@ -126,11 +126,11 @@ export function RiskDashboard({
   const getAlertIcon = (type: RiskAlert['type']) => {
     switch (type) {
       case 'CRITICAL':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+        return <AlertTriangle className="h-4 w-4 text-destructive" />;
       case 'WARNING':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+        return <AlertCircle className="h-4 w-4 text-warning" />;
       case 'INFO':
-        return <CheckCircle className="h-4 w-4 text-blue-500" />;
+        return <CheckCircle className="h-4 w-4 text-primary" />;
     }
   };
 
@@ -138,11 +138,11 @@ export function RiskDashboard({
   const getAlertColor = (type: RiskAlert['type']) => {
     switch (type) {
       case 'CRITICAL':
-        return 'border-red-200 bg-red-50';
+        return 'border-destructive/30 bg-destructive/10';
       case 'WARNING':
-        return 'border-yellow-200 bg-yellow-50';
+        return 'border-warning/30 bg-warning/10';
       case 'INFO':
-        return 'border-blue-200 bg-blue-50';
+        return 'border-primary/30 bg-primary/10';
     }
   };
 
@@ -184,13 +184,13 @@ export function RiskDashboard({
         <div className="space-y-3">
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">VaR 95%</span>
-            <span className="font-mono text-red-600">
+            <span className="font-mono text-destructive">
               {formatPercent(riskMetrics.var95)}
             </span>
           </div>
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">VaR 99%</span>
-            <span className="font-mono text-red-600">
+            <span className="font-mono text-destructive">
               {formatPercent(riskMetrics.var99)}
             </span>
           </div>
@@ -205,13 +205,13 @@ export function RiskDashboard({
         <div className="space-y-3">
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">CVaR 95%</span>
-            <span className="font-mono text-red-600">
+            <span className="font-mono text-destructive">
               {formatPercent(riskMetrics.cvar95)}
             </span>
           </div>
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">CVaR 99%</span>
-            <span className="font-mono text-red-600">
+            <span className="font-mono text-destructive">
               {formatPercent(riskMetrics.cvar99)}
             </span>
           </div>
@@ -324,7 +324,7 @@ export function RiskDashboard({
         <div className="space-y-3">
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">Max Drawdown</span>
-            <span className="font-mono text-red-600">
+            <span className="font-mono text-destructive">
               {formatPercent(riskMetrics.maxDrawdown)}
             </span>
           </div>
@@ -336,7 +336,7 @@ export function RiskDashboard({
           </div>
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">Current Drawdown</span>
-            <span className="font-mono text-orange-600">
+            <span className="font-mono text-warning">
               {formatPercent(riskMetrics.maxDrawdown * 0.3)} {/* Simulated current */}
             </span>
           </div>
@@ -351,13 +351,13 @@ export function RiskDashboard({
         <div className="space-y-3">
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">Annual Volatility</span>
-            <span className="font-mono text-blue-600">
+            <span className="font-mono text-primary">
               {formatPercent(riskMetrics.volatility)}
             </span>
           </div>
           <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
             <span className="font-medium">Downside Deviation</span>
-            <span className="font-mono text-red-600">
+            <span className="font-mono text-destructive">
               {formatPercent(riskMetrics.downsideDeviation)}
             </span>
           </div>

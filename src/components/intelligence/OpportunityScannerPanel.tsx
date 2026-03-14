@@ -62,23 +62,23 @@ export function OpportunityScannerPanel({ compact = false }: OpportunityScannerP
 
   const getDirectionIcon = (direction: string) => {
     switch (direction) {
-      case 'bullish': return <TrendingUp className="h-4 w-4 text-green-500" />;
-      case 'bearish': return <TrendingDown className="h-4 w-4 text-red-500" />;
+      case 'bullish': return <TrendingUp className="h-4 w-4 text-success" />;
+      case 'bearish': return <TrendingDown className="h-4 w-4 text-destructive" />;
       default: return <Minus className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   const getDirectionColor = (direction: string) => {
     switch (direction) {
-      case 'bullish': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'bearish': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'bullish': return 'bg-success/10 text-success border-success/20';
+      case 'bearish': return 'bg-destructive/10 text-destructive border-destructive/20';
       default: return 'bg-muted text-muted-foreground border-muted';
     }
   };
 
   const getTierBadge = (tier: number) => {
     switch (tier) {
-      case 1: return <Badge variant="default" className="bg-yellow-500/20 text-yellow-500 text-xs">Tier 1</Badge>;
+      case 1: return <Badge variant="default" className="bg-warning/20 text-warning text-xs">Tier 1</Badge>;
       case 2: return <Badge variant="secondary" className="text-xs">Tier 2</Badge>;
       default: return <Badge variant="outline" className="text-xs">Tier 3</Badge>;
     }
@@ -97,7 +97,7 @@ export function OpportunityScannerPanel({ compact = false }: OpportunityScannerP
         </div>
         <div className="flex items-center gap-2">
           {signal.is_high_probability && (
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <Star className="h-4 w-4 text-warning fill-warning" />
           )}
           {getDirectionIcon(signal.direction)}
           <Badge className={getDirectionColor(signal.direction)}>
@@ -109,7 +109,7 @@ export function OpportunityScannerPanel({ compact = false }: OpportunityScannerP
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1">
           <span className="text-sm text-muted-foreground">Composite Score</span>
-          <span className={`font-bold ${signal.composite_score >= 0.8 ? 'text-green-500' : signal.composite_score >= 0.5 ? 'text-yellow-500' : 'text-red-500'}`}>
+          <span className={`font-bold ${signal.composite_score >= 0.8 ? 'text-success' : signal.composite_score >= 0.5 ? 'text-warning' : 'text-destructive'}`}>
             {Math.round(signal.composite_score * 100)}%
           </span>
         </div>
@@ -125,7 +125,7 @@ export function OpportunityScannerPanel({ compact = false }: OpportunityScannerP
             <div key={factor} className="text-center">
               <div className="text-lg">{FACTOR_LABELS[factor].icon}</div>
               <div className="text-xs text-muted-foreground">{FACTOR_LABELS[factor].label}</div>
-              <div className={`text-sm font-medium ${score >= 0.7 ? 'text-green-500' : score >= 0.4 ? 'text-yellow-500' : 'text-red-500'}`}>
+              <div className={`text-sm font-medium ${score >= 0.7 ? 'text-success' : score >= 0.4 ? 'text-warning' : 'text-destructive'}`}>
                 {Math.round(score * 100)}%
               </div>
             </div>

@@ -36,7 +36,7 @@ export function PositionsTable() {
         <div className={cn(
           'flex items-center gap-1 text-sm font-mono font-medium',
           totalPnl >= 0 ? 'text-success' : 'text-destructive'
-        )}>
+        )} aria-live="polite" aria-atomic="true">
           {totalPnl >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
           ${Math.abs(totalPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>

@@ -338,15 +338,15 @@ export function TradeJournal({
                   <TableCell>{trade.quantity.toLocaleString()}</TableCell>
                   <TableCell className={cn(
                     'font-mono font-medium',
-                    trade.pnl && trade.pnl > 0 ? 'text-green-600' : 
-                    trade.pnl && trade.pnl < 0 ? 'text-red-600' : ''
+                    trade.pnl && trade.pnl > 0 ? 'text-success' :
+                    trade.pnl && trade.pnl < 0 ? 'text-destructive' : ''
                   )}>
                     {formatPnL(trade.pnl)}
                   </TableCell>
                   <TableCell className={cn(
                     'font-mono',
-                    trade.pnlPercent && trade.pnlPercent > 0 ? 'text-green-600' : 
-                    trade.pnlPercent && trade.pnlPercent < 0 ? 'text-red-600' : ''
+                    trade.pnlPercent && trade.pnlPercent > 0 ? 'text-success' :
+                    trade.pnlPercent && trade.pnlPercent < 0 ? 'text-destructive' : ''
                   )}>
                     {trade.pnlPercent ? `${trade.pnlPercent.toFixed(2)}%` : '-'}
                   </TableCell>
@@ -374,7 +374,7 @@ export function TradeJournal({
         </div>
         <div className={cn(
           'text-2xl font-bold',
-          stats.totalPnL >= 0 ? 'text-green-600' : 'text-red-600'
+          stats.totalPnL >= 0 ? 'text-success' : 'text-destructive'
         )}>
           {formatPnL(stats.totalPnL)}
         </div>
@@ -527,19 +527,19 @@ export function TradeJournal({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Winning Trades:</span>
-                    <span className="font-medium text-green-600">{stats.winningTrades}</span>
+                    <span className="font-medium text-success">{stats.winningTrades}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Losing Trades:</span>
-                    <span className="font-medium text-red-600">{stats.losingTrades}</span>
+                    <span className="font-medium text-destructive">{stats.losingTrades}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Average Win:</span>
-                    <span className="font-medium text-green-600">{formatPnL(stats.avgWin)}</span>
+                    <span className="font-medium text-success">{formatPnL(stats.avgWin)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Average Loss:</span>
-                    <span className="font-medium text-red-600">{formatPnL(-stats.avgLoss)}</span>
+                    <span className="font-medium text-destructive">{formatPnL(-stats.avgLoss)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Total Fees:</span>

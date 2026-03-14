@@ -122,6 +122,9 @@ export function useRunBacktest() {
       // Invalidate backtest list
       queryClient.invalidateQueries({ queryKey: ['backtests'] });
     },
+    onError: (error: Error) => {
+      console.error('Backtest execution failed:', error);
+    },
   });
 }
 

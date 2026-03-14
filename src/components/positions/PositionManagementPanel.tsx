@@ -350,7 +350,7 @@ export function PositionManagementPanel() {
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4" aria-live="polite">
         <div className="glass-panel rounded-xl p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Activity className="h-4 w-4" />

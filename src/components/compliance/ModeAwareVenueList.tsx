@@ -63,7 +63,7 @@ export function ModeAwareVenueList({
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-sm">{venue.name}</span>
                               {venue.usCompliant && (
-                                <Badge variant="outline" className="text-[10px] h-4 border-blue-500/30 text-blue-500">
+                                <Badge variant="outline" className="text-[10px] h-4 border-primary/30 text-primary">
                                   US OK
                                 </Badge>
                               )}
@@ -103,9 +103,9 @@ export function ModeAwareVenueList({
       </div>
       
       {mode === 'international' && (
-        <div className="flex items-start gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs">
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
-          <p className="text-amber-500/90">
+        <div className="flex items-start gap-2 p-2 rounded-lg bg-warning/10 border border-warning/20 text-xs">
+          <AlertTriangle className="h-3.5 w-3.5 text-warning mt-0.5 shrink-0" />
+          <p className="text-warning/90">
             Some international venues are not available to US persons. 
             Ensure you comply with your local regulations before trading.
           </p>

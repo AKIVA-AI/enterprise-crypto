@@ -66,9 +66,9 @@ export function ModeAwareArbitrageInfo() {
         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isUSMode ? (
-              <Flag className="h-4 w-4 text-blue-500" />
+              <Flag className="h-4 w-4 text-primary" />
             ) : (
-              <Globe className="h-4 w-4 text-green-500" />
+              <Globe className="h-4 w-4 text-success" />
             )}
             Trading Mode
           </div>
@@ -76,7 +76,7 @@ export function ModeAwareArbitrageInfo() {
             variant="outline" 
             className={cn(
               'text-xs',
-              isUSMode ? 'border-blue-500/50 text-blue-500' : 'border-green-500/50 text-green-500'
+              isUSMode ? 'border-primary/50 text-primary' : 'border-success/50 text-success'
             )}
           >
             {modeConfig.label}
@@ -146,11 +146,11 @@ export function ModeAwareArbitrageInfo() {
 
         {/* US Mode Notice */}
         {isUSMode && (
-          <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/30">
+          <div className="p-2 rounded-lg bg-primary/10 border border-primary/30">
             <div className="flex items-start gap-2">
-              <Shield className="h-4 w-4 text-blue-500 mt-0.5" />
+              <Shield className="h-4 w-4 text-primary mt-0.5" />
               <div className="text-xs">
-                <p className="font-medium text-blue-500">US Compliant Mode</p>
+                <p className="font-medium text-primary">US Compliant Mode</p>
                 <p className="text-muted-foreground">
                   Using only SEC/CFTC compliant exchanges. Perpetuals and margin trading disabled.
                 </p>
@@ -161,11 +161,11 @@ export function ModeAwareArbitrageInfo() {
 
         {/* International Mode Notice */}
         {!isUSMode && (
-          <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/30">
+          <div className="p-2 rounded-lg bg-success/10 border border-success/30">
             <div className="flex items-start gap-2">
-              <Info className="h-4 w-4 text-green-500 mt-0.5" />
+              <Info className="h-4 w-4 text-success mt-0.5" />
               <div className="text-xs">
-                <p className="font-medium text-green-500">International Mode</p>
+                <p className="font-medium text-success">International Mode</p>
                 <p className="text-muted-foreground">
                   All strategies available including perpetuals and funding rate arbitrage.
                 </p>

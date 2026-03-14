@@ -8,6 +8,13 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 import { TrendingUp, TrendingDown, Loader2, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const toTooltipNumber = (value: unknown) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Number(value);
+  if (Array.isArray(value) && typeof value[0] === 'number') return value[0];
+  return 0;
+};
+
 interface PnLDataPoint {
   time: string;
   pnl: number;
@@ -204,10 +211,11 @@ export function PnLChart() {
                 borderRadius: '8px',
                 fontSize: '12px',
               }}
-              formatter={(value: number, name: string) => {
-                if (name === 'cumulative') return [`$${value.toLocaleString()}`, 'Cumulative P&L'];
-                if (name === 'volatility') return [`${value}%`, 'Volatility'];
-                return [value, name];
+              formatter={(value, name) => {
+                const numericValue = toTooltipNumber(value);
+                if (name === 'cumulative') return [`$${numericValue.toLocaleString()}`, 'Cumulative P&L'];
+                if (name === 'volatility') return [`${numericValue}%`, 'Volatility'];
+                return [numericValue, name ?? ''];
               }}
               labelFormatter={(label) => `Time: ${label}`}
             />

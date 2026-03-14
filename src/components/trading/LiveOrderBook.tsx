@@ -92,7 +92,7 @@ export function LiveOrderBook({ symbol, depth = 10, className }: LiveOrderBookPr
         <h3 className="font-semibold text-sm text-muted-foreground">Order Book</h3>
         <div className="flex items-center gap-2">
           {isSimulated && (
-            <Badge variant="outline" className="text-amber-500 border-amber-500/50 text-xs">
+            <Badge variant="outline" className="text-warning border-warning/50 text-xs">
               Derived
             </Badge>
           )}

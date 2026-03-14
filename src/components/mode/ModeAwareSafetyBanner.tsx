@@ -25,7 +25,7 @@ export function ModeAwareSafetyBanner() {
   
   const bannerColors = {
     observer: 'bg-muted/50 border-muted',
-    paper: 'bg-blue-500/10 border-blue-500/30',
+    paper: 'bg-primary/10 border-primary/30',
     guarded: 'bg-success/10 border-success/30',
     advanced: 'bg-primary/10 border-primary/30',
   };

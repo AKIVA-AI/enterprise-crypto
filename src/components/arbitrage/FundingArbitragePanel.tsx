@@ -47,11 +47,11 @@ export function FundingArbitragePanel({ compact = false }: FundingArbitragePanel
   const getRiskBadge = (risk: string) => {
     switch (risk) {
       case 'low':
-        return <Badge className="bg-green-500/20 text-green-500">Low Risk</Badge>;
+        return <Badge className="bg-success/20 text-success">Low Risk</Badge>;
       case 'medium':
-        return <Badge className="bg-yellow-500/20 text-yellow-500">Medium Risk</Badge>;
+        return <Badge className="bg-warning/20 text-warning">Medium Risk</Badge>;
       case 'high':
-        return <Badge className="bg-red-500/20 text-red-500">High Risk</Badge>;
+        return <Badge className="bg-destructive/20 text-destructive">High Risk</Badge>;
       default:
         return null;
     }
@@ -69,11 +69,11 @@ export function FundingArbitragePanel({ compact = false }: FundingArbitragePanel
         </div>
         <div className="flex items-center gap-2">
           {opp.fundingRate > 0 ? (
-            <TrendingUp className="h-4 w-4 text-green-500" />
+            <TrendingUp className="h-4 w-4 text-success" />
           ) : (
-            <TrendingDown className="h-4 w-4 text-red-500" />
+            <TrendingDown className="h-4 w-4 text-destructive" />
           )}
-          <span className={`font-mono font-bold ${opp.fundingRate > 0 ? 'text-green-500' : 'text-red-500'}`}>
+          <span className={`font-mono font-bold ${opp.fundingRate > 0 ? 'text-success' : 'text-destructive'}`}>
             {(opp.fundingRate * 100).toFixed(4)}%
           </span>
         </div>
@@ -82,7 +82,7 @@ export function FundingArbitragePanel({ compact = false }: FundingArbitragePanel
       <div className="grid grid-cols-2 gap-4 mb-3">
         <div>
           <p className="text-xs text-muted-foreground">Est. APY</p>
-          <p className={`font-bold ${opp.estimatedApy > 0 ? 'text-green-500' : 'text-red-500'}`}>
+          <p className={`font-bold ${opp.estimatedApy > 0 ? 'text-success' : 'text-destructive'}`}>
             {opp.estimatedApy.toFixed(1)}%
           </p>
         </div>
@@ -131,7 +131,7 @@ export function FundingArbitragePanel({ compact = false }: FundingArbitragePanel
         </div>
         <div>
           <p className="text-xs text-muted-foreground">Net P&L</p>
-          <p className={`font-mono ${pos.net_profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+          <p className={`font-mono ${pos.net_profit >= 0 ? 'text-success' : 'text-destructive'}`}>
             ${pos.net_profit.toFixed(2)}
           </p>
         </div>
@@ -145,9 +145,9 @@ export function FundingArbitragePanel({ compact = false }: FundingArbitragePanel
   );
 
   const USRestrictionMessage = () => (
-    <Alert className="border-yellow-500/50 bg-yellow-500/10">
-      <ShieldAlert className="h-5 w-5 text-yellow-500" />
-      <AlertTitle className="text-yellow-500">US Trading Mode Active</AlertTitle>
+    <Alert className="border-warning/50 bg-warning/10">
+      <ShieldAlert className="h-5 w-5 text-warning" />
+      <AlertTitle className="text-warning">US Trading Mode Active</AlertTitle>
       <AlertDescription className="text-muted-foreground">
         Funding rate arbitrage requires perpetual futures, which are not available to US users due to regulatory restrictions.
         This feature is only available in <span className="font-medium text-foreground">International Mode</span>.
@@ -170,7 +170,7 @@ export function FundingArbitragePanel({ compact = false }: FundingArbitragePanel
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2 text-sm text-yellow-500">
+            <div className="flex items-center gap-2 text-sm text-warning">
               <ShieldAlert className="h-4 w-4" />
               <span>Not available in US Mode</span>
             </div>
@@ -203,7 +203,7 @@ export function FundingArbitragePanel({ compact = false }: FundingArbitragePanel
             <div key={opp.symbol} className="flex items-center justify-between p-2 border rounded mb-2">
               <div>
                 <span className="font-medium">{opp.symbol}</span>
-                <span className={`ml-2 text-sm ${opp.estimatedApy > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                <span className={`ml-2 text-sm ${opp.estimatedApy > 0 ? 'text-success' : 'text-destructive'}`}>
                   {opp.estimatedApy.toFixed(1)}% APY
                 </span>
               </div>

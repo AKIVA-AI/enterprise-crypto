@@ -322,18 +322,18 @@ export function ReportExporter({
         );
       case 'completed':
         return (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
+          <Alert className="border-success/30 bg-success/10">
+            <CheckCircle className="h-4 w-4 text-success" />
+            <AlertDescription className="text-success">
               Report generated successfully!
             </AlertDescription>
           </Alert>
         );
       case 'error':
         return (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
+          <Alert className="border-destructive/30 bg-destructive/10">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-destructive">
               {exportError}
             </AlertDescription>
           </Alert>

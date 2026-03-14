@@ -114,19 +114,19 @@ export function BacktestComparison({
 
   const getComparisonIcon = (value: number, metric: ComparisonMetric, bestValue: number) => {
     if (value === bestValue) {
-      return <Target className="h-4 w-4 text-green-500" />;
+      return <Target className="h-4 w-4 text-success" />;
     }
     if (metric.higherIsBetter) {
       return value > bestValue * 0.8 ? (
-        <TrendingUp className="h-4 w-4 text-green-500" />
+        <TrendingUp className="h-4 w-4 text-success" />
       ) : (
-        <TrendingDown className="h-4 w-4 text-red-500" />
+        <TrendingDown className="h-4 w-4 text-destructive" />
       );
     } else {
       return value < bestValue * 1.2 ? (
-        <TrendingUp className="h-4 w-4 text-green-500" />
+        <TrendingUp className="h-4 w-4 text-success" />
       ) : (
-        <TrendingDown className="h-4 w-4 text-red-500" />
+        <TrendingDown className="h-4 w-4 text-destructive" />
       );
     }
   };
@@ -183,15 +183,15 @@ export function BacktestComparison({
     const bestValue = getBestValue(field);
 
     if (value === bestValue) {
-      return 'font-bold text-green-600 dark:text-green-400';
+      return 'font-bold text-success';
     }
 
     if (metric.higherIsBetter) {
       const avgValue = backtests.reduce((sum, bt) => sum + getMetricValue(bt, field), 0) / backtests.length;
-      return value > avgValue ? 'text-green-600' : 'text-red-600';
+      return value > avgValue ? 'text-success' : 'text-destructive';
     } else {
       const avgValue = backtests.reduce((sum, bt) => sum + getMetricValue(bt, field), 0) / backtests.length;
-      return value < avgValue ? 'text-green-600' : 'text-red-600';
+      return value < avgValue ? 'text-success' : 'text-destructive';
     }
   };
 
@@ -311,8 +311,8 @@ export function BacktestComparison({
                   </div>
                   <span className={cn(
                     'font-mono text-sm',
-                    item.isBest && 'text-green-600',
-                    isPositive ? 'text-green-600' : 'text-red-600'
+                    item.isBest && 'text-success',
+                    isPositive ? 'text-success' : 'text-destructive'
                   )}>
                     {metric.format(item.value)}
                   </span>
@@ -321,7 +321,7 @@ export function BacktestComparison({
                   <div
                     className={cn(
                       'h-2 rounded-full transition-all duration-300',
-                      item.isBest ? 'bg-green-500' : isPositive ? 'bg-blue-500' : 'bg-red-500'
+                      item.isBest ? 'bg-success' : isPositive ? 'bg-primary' : 'bg-destructive'
                     )}
                     style={{ width: `${percentage}%` }}
                   />
@@ -376,19 +376,19 @@ export function BacktestComparison({
               </div>
               <div>
                 <span className="text-muted-foreground">Best Return:</span>
-                <div className="font-medium text-green-600">
+                <div className="font-medium text-success">
                   {(Math.max(...backtests.map(bt => getMetricValue(bt, 'totalReturn'))) * 100).toFixed(2)}%
                 </div>
               </div>
               <div>
                 <span className="text-muted-foreground">Best Sharpe:</span>
-                <div className="font-medium text-green-600">
+                <div className="font-medium text-success">
                   {Math.max(...backtests.map(bt => getMetricValue(bt, 'sharpeRatio'))).toFixed(2)}
                 </div>
               </div>
               <div>
                 <span className="text-muted-foreground">Lowest Drawdown:</span>
-                <div className="font-medium text-green-600">
+                <div className="font-medium text-success">
                   {(Math.min(...backtests.map(bt => getMetricValue(bt, 'maxDrawdown'))) * 100).toFixed(2)}%
                 </div>
               </div>

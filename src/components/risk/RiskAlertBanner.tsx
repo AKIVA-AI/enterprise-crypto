@@ -78,7 +78,7 @@ export function RiskAlertBanner() {
       case 'warning':
         return 'bg-warning/20 border-warning text-warning';
       default:
-        return 'bg-blue-500/20 border-blue-500 text-blue-500';
+        return 'bg-primary/20 border-primary text-primary';
     }
   };
 
@@ -115,6 +115,7 @@ export function RiskAlertBanner() {
               size="sm"
               className="absolute top-2 right-2 h-6 w-6 p-0 opacity-70 hover:opacity-100"
               onClick={() => dismissAlert(alert.id)}
+              aria-label="Dismiss alert"
             >
               <X className="h-4 w-4" />
             </Button>

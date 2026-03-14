@@ -83,13 +83,13 @@ class Settings:
 
         # ========== Supabase ==========
         self.supabase_url = os.getenv("SUPABASE_URL", "")
-        self.supabase_service_role_key = os.getenv(
+        self.supabase_service_role_key = self._get_secret(
             "SUPABASE_SERVICE_ROLE_KEY",
-            os.getenv("SUPABASE_SERVICE_KEY", ""),
+            self._get_secret("SUPABASE_SERVICE_KEY", ""),
         )
-        self.supabase_anon_key = os.getenv(
+        self.supabase_anon_key = self._get_secret(
             "SUPABASE_ANON_KEY",
-            os.getenv("SUPABASE_KEY", ""),
+            self._get_secret("SUPABASE_KEY", ""),
         )
         self.tenant_id = os.getenv("TENANT_ID")
 
@@ -116,30 +116,36 @@ class Settings:
 
         # ========== Venue Configurations ==========
         self.coinbase = VenueConfig(
-            api_key=os.getenv("COINBASE_API_KEY"),
-            api_secret=os.getenv("COINBASE_API_SECRET"),
-            passphrase=os.getenv("COINBASE_PASSPHRASE"),
-            enabled=bool(os.getenv("COINBASE_API_KEY")),
+            api_key=self._get_secret("COINBASE_API_KEY"),
+            api_secret=self._get_secret("COINBASE_API_SECRET"),
+            passphrase=self._get_secret("COINBASE_PASSPHRASE"),
+            enabled=bool(self._get_secret("COINBASE_API_KEY")),
         )
 
         self.binance_us = VenueConfig(
-            api_key=os.getenv("BINANCE_US_API_KEY"),
-            api_secret=os.getenv("BINANCE_US_API_SECRET"),
-            enabled=bool(os.getenv("BINANCE_US_API_KEY")),
+            api_key=self._get_secret("BINANCE_US_API_KEY"),
+            api_secret=self._get_secret("BINANCE_US_API_SECRET"),
+            enabled=bool(self._get_secret("BINANCE_US_API_KEY")),
         )
 
         self.mexc = VenueConfig(
-            api_key=os.getenv("MEXC_API_KEY"),
-            api_secret=os.getenv("MEXC_API_SECRET"),
-            enabled=bool(os.getenv("MEXC_API_KEY")),
+            api_key=self._get_secret("MEXC_API_KEY"),
+            api_secret=self._get_secret("MEXC_API_SECRET"),
+            enabled=bool(self._get_secret("MEXC_API_KEY")),
         )
 
         self.dex = VenueConfig(
-            api_key=os.getenv("DEX_WALLET_PRIVATE_KEY"),
-            enabled=bool(os.getenv("DEX_WALLET_PRIVATE_KEY")),
+            api_key=self._get_secret("DEX_WALLET_PRIVATE_KEY"),
+            enabled=bool(self._get_secret("DEX_WALLET_PRIVATE_KEY")),
         )
         self.dex_rpc_url = os.getenv("DEX_RPC_URL", "")
-        self.dex_wallet_address = os.getenv("DEX_WALLET_ADDRESS", "")
+        self.dex_wallet_address = self._get_secret("DEX_WALLET_ADDRESS", "")
+
+        # Additional venue aliases used by older enhanced modules.
+        self.KRAKEN_API_KEY = self._get_secret("KRAKEN_API_KEY", "")
+        self.KRAKEN_SECRET_KEY = self._get_secret("KRAKEN_SECRET_KEY", "")
+        self.BYBIT_API_KEY = self._get_secret("BYBIT_API_KEY", "")
+        self.BYBIT_SECRET_KEY = self._get_secret("BYBIT_SECRET_KEY", "")
 
         # ========== Risk Configuration ==========
         self.risk = RiskConfig(
@@ -164,10 +170,27 @@ class Settings:
         )
 
         # ========== External API Keys ==========
-        self.coingecko_api_key = os.getenv("COINGECKO_API_KEY", "")
-        self.cryptocompare_api_key = os.getenv("CRYPTOCOMPARE_API_KEY", "")
-        self.lunarcrush_api_key = os.getenv("LUNARCRUSH_API_KEY", "")
-        self.whale_alert_api_key = os.getenv("WHALE_ALERT_API_KEY", "")
+        self.coingecko_api_key = self._get_secret("COINGECKO_API_KEY", "")
+        self.cryptocompare_api_key = self._get_secret("CRYPTOCOMPARE_API_KEY", "")
+        self.lunarcrush_api_key = self._get_secret("LUNARCRUSH_API_KEY", "")
+        self.whale_alert_api_key = self._get_secret("WHALE_ALERT_API_KEY", "")
+
+        # Legacy compatibility aliases used by FreqTrade-oriented modules.
+        self.DRY_RUN = self.is_paper_mode
+        self.BINANCE_API_KEY = self.binance_us.api_key or ""
+        self.BINANCE_SECRET_KEY = self.binance_us.api_secret or ""
+        self.COINBASE_API_KEY = self.coinbase.api_key or ""
+        self.COINBASE_SECRET_KEY = self.coinbase.api_secret or ""
+        self.MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "3"))
+        self.STAKE_AMOUNT = float(os.getenv("STAKE_AMOUNT", "1000"))
+
+    def _get_secret(self, name: str, default: Optional[str] = None) -> Optional[str]:
+        """Load a secret from env or a mounted secret file via NAME_FILE."""
+        file_path = os.getenv(f"{name}_FILE")
+        if file_path:
+            with open(file_path, "r", encoding="utf-8") as secret_file:
+                return secret_file.read().strip()
+        return os.getenv(name, default)
 
     def _parse_list(self, value: Optional[str]) -> Optional[List[str]]:
         """Parse comma-separated environment variable to list."""

@@ -140,6 +140,9 @@ export function KillSwitchPanel() {
       toast.info(enabled ? 'Reduce-only mode enabled' : 'Reduce-only mode disabled');
       queryClient.invalidateQueries({ queryKey: ['global-settings'] });
     },
+    onError: (error: Error) => {
+      toast.error('Failed to update reduce-only mode', { description: error.message });
+    },
   });
 
   // Toggle paper trading
@@ -156,6 +159,9 @@ export function KillSwitchPanel() {
       toast.info(enabled ? 'Paper trading enabled' : 'LIVE trading enabled - BE CAREFUL!');
       queryClient.invalidateQueries({ queryKey: ['global-settings'] });
     },
+    onError: (error: Error) => {
+      toast.error('Failed to update paper trading mode', { description: error.message });
+    },
   });
 
   // Freeze/unfreeze book
@@ -169,6 +175,10 @@ export function KillSwitchPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books-risk'] });
+      toast.success('Book status updated');
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to update book status', { description: error.message });
     },
   });
 
@@ -300,6 +310,7 @@ export function KillSwitchPanel() {
               </p>
             </div>
             <Switch
+              aria-label="Paper Trading Mode"
               checked={settings?.paper_trading_mode || false}
               onCheckedChange={(checked) => togglePaperTrading.mutate(checked)}
               disabled={isLoading || togglePaperTrading.isPending}
@@ -316,6 +327,7 @@ export function KillSwitchPanel() {
               </p>
             </div>
             <Switch
+              aria-label="Reduce-Only Mode"
               checked={settings?.reduce_only_mode || false}
               onCheckedChange={(checked) => toggleReduceOnly.mutate(checked)}
               disabled={isLoading || toggleReduceOnly.isPending}
@@ -332,6 +344,7 @@ export function KillSwitchPanel() {
               </p>
             </div>
             <Switch
+              aria-label="DEX Venues Enabled"
               checked={settings?.dex_venues_enabled || false}
               disabled={true}
             />

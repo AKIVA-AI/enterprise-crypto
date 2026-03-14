@@ -23,13 +23,8 @@ import logging
 import asyncio
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, UTC
+from importlib import import_module
 import signal
-
-# Local FreqTrade-integrated services
-from app.services.enhanced_quantitative_engine import FreqAIEnhancedEngine
-from app.services.enhanced_market_data_service import EnhancedMarketDataService
-from app.services.enhanced_backtesting_engine import EnhancedBacktestingEngine
-from app.core.enhanced_config import EnhancedConfigManager
 
 # Original services for fallback
 from app.services.market_data_service import MarketDataService
@@ -50,12 +45,13 @@ class FreqTradeIntegrationHub:
     def __init__(self):
         self.is_initialized = False
         self.is_running = False
+        self.initialization_errors: List[str] = []
 
         # FreqTrade-integrated services
-        self.freqai_engine: Optional[FreqAIEnhancedEngine] = None
-        self.market_data_service: Optional[EnhancedMarketDataService] = None
-        self.backtesting_engine: Optional[EnhancedBacktestingEngine] = None
-        self.config_manager: Optional[EnhancedConfigManager] = None
+        self.freqai_engine: Optional[Any] = None
+        self.market_data_service: Optional[Any] = None
+        self.backtesting_engine: Optional[Any] = None
+        self.config_manager: Optional[Any] = None
 
         # Fallback services (original implementations)
         self.fallback_market_data: Optional[MarketDataService] = None
@@ -87,70 +83,116 @@ class FreqTradeIntegrationHub:
         try:
             logger.info("Initializing FreqTrade Integration Hub...")
 
-            # Initialize configuration manager first
-            self.config_manager = EnhancedConfigManager()
-            logger.info("✓ Configuration Manager initialized")
-
-            # Load configuration
-            self.config_manager.load_configuration(self.config_name, self.environment)
-            logger.info("✓ Configuration loaded")
-
-            # Initialize market data service
-            self.market_data_service = EnhancedMarketDataService()
-            logger.info("✓ Enhanced Market Data Service initialized")
-
-            # Initialize FreqAI engine
-            self.freqai_engine = FreqAIEnhancedEngine(self.market_data_service)
-            logger.info("✓ FreqAI Enhanced Engine initialized")
-
-            # Initialize backtesting engine
-            self.backtesting_engine = EnhancedBacktestingEngine(
-                self.market_data_service
+            config_manager_cls = self._load_optional_class(
+                "app.core.enhanced_config", "EnhancedConfigManager"
             )
-            logger.info("✓ Enhanced Backtesting Engine initialized")
+            if config_manager_cls is not None:
+                self.config_manager = config_manager_cls()
+                logger.info("Configuration manager initialized")
+                self.config_manager.load_configuration(
+                    self.config_name, self.environment
+                )
+                logger.info("Configuration loaded")
 
-            # Initialize fallback services
             self.fallback_market_data = MarketDataService()
-            logger.info("✓ Fallback services initialized")
+            logger.info("Fallback market data service initialized")
 
-            # Set up component communication
+            await self._initialize_enhanced_components()
+
             self._setup_component_communication()
-
-            # Register signal handlers
             self._register_signal_handlers()
 
             self.is_initialized = True
-            logger.info("🎉 FreqTrade Integration Hub initialized successfully")
+            if self.initialization_errors:
+                logger.warning(
+                    "FreqTrade Integration Hub initialized in degraded mode: %s",
+                    "; ".join(self.initialization_errors),
+                )
+            else:
+                logger.info("FreqTrade Integration Hub initialized successfully")
 
-            # Run startup handlers
             await self._run_startup_handlers()
 
             return True
 
-        except Exception as e:
-            logger.error(f"Failed to initialize FreqTrade Integration Hub: {e}")
-            await self._run_error_handlers(e)
+        except Exception as exc:
+            logger.error("Failed to initialize FreqTrade Integration Hub: %s", exc)
+            await self._run_error_handlers(exc)
             return False
+
+    async def _initialize_enhanced_components(self):
+        """Initialize optional enhanced services without breaking backend startup."""
+        market_data_cls = self._load_optional_class(
+            "app.services.enhanced_market_data_service", "EnhancedMarketDataService"
+        )
+        if market_data_cls is not None:
+            try:
+                self.market_data_service = market_data_cls()
+                logger.info("Enhanced market data service initialized")
+            except Exception as exc:
+                self._record_initialization_error(
+                    f"Enhanced market data unavailable: {exc}"
+                )
+
+        freqai_cls = self._load_optional_class(
+            "app.services.enhanced_quantitative_engine", "FreqAIEnhancedEngine"
+        )
+        if freqai_cls is not None and self.market_data_service is not None:
+            try:
+                self.freqai_engine = freqai_cls(self.market_data_service)
+                logger.info("FreqAI enhanced engine initialized")
+            except Exception as exc:
+                self._record_initialization_error(
+                    f"FreqAI enhanced engine unavailable: {exc}"
+                )
+
+        backtesting_cls = self._load_optional_class(
+            "app.services.enhanced_backtesting_engine", "EnhancedBacktestingEngine"
+        )
+        if backtesting_cls is not None and self.market_data_service is not None:
+            try:
+                self.backtesting_engine = backtesting_cls(self.market_data_service)
+                logger.info("Enhanced backtesting engine initialized")
+            except Exception as exc:
+                self._record_initialization_error(
+                    f"Enhanced backtesting unavailable: {exc}"
+                )
+
+    def _load_optional_class(self, module_name: str, class_name: str):
+        """Import optional enhanced components lazily so app.main stays importable."""
+        try:
+            module = import_module(module_name)
+            return getattr(module, class_name)
+        except Exception as exc:
+            self._record_initialization_error(f"{class_name} import failed: {exc}")
+            return None
+
+    def _record_initialization_error(self, message: str):
+        """Store initialization warnings once and expose them through status APIs."""
+        if message not in self.initialization_errors:
+            self.initialization_errors.append(message)
+        logger.warning(message)
 
     def _setup_component_communication(self):
         """Set up communication channels between components."""
         try:
-            # Connect market data service to FreqAI engine
-            if self.market_data_service and self.freqai_engine:
-                # Set up real-time data callbacks
+            if (
+                self.market_data_service
+                and self.freqai_engine
+                and hasattr(self.market_data_service, "add_data_callback")
+                and hasattr(self.freqai_engine, "_handle_market_data_update")
+            ):
                 self.market_data_service.add_data_callback(
                     self.freqai_engine._handle_market_data_update
                 )
 
-            # Connect configuration manager to all services
             if self.config_manager:
-                # Notify services of configuration changes
                 self.config_manager.add_config_listener(self._handle_config_change)
 
             logger.info("Component communication channels established")
 
-        except Exception as e:
-            logger.error(f"Failed to setup component communication: {e}")
+        except Exception as exc:
+            logger.error("Failed to setup component communication: %s", exc)
 
     def _register_signal_handlers(self):
         """Register system signal handlers for graceful shutdown."""
@@ -287,12 +329,16 @@ class FreqTradeIntegrationHub:
         """Get comprehensive health status of all components."""
         return {
             "overall_status": "healthy"
-            if all(
-                status["status"] == "healthy"
-                for status in self.component_health.values()
+            if (
+                all(
+                    status["status"] == "healthy"
+                    for status in self.component_health.values()
+                )
+                and not self.initialization_errors
             )
             else "degraded",
             "components": self.component_health,
+            "degraded_features": self.initialization_errors,
             "integration_hub": {
                 "initialized": self.is_initialized,
                 "running": self.is_running,
@@ -546,6 +592,7 @@ class FreqTradeIntegrationHub:
                 "running": self.is_running,
                 "config_name": self.config_name,
                 "environment": self.environment,
+                "degraded_features": self.initialization_errors,
             },
             "component_health": self.get_health_status(),
             "timestamp": datetime.now(UTC).isoformat(),

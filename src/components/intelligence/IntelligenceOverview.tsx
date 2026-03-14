@@ -143,7 +143,7 @@ export function IntelligenceOverview({
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <MessageCircle className="h-3 w-3 text-blue-500" />
+                    <MessageCircle className="h-3 w-3 text-primary" />
                     <div>
                       <div className="text-muted-foreground">Sentiment</div>
                       <div className={cn(
@@ -155,7 +155,7 @@ export function IntelligenceOverview({
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <BarChart3 className="h-3 w-3 text-orange-500" />
+                    <BarChart3 className="h-3 w-3 text-warning" />
                     <div>
                       <div className="text-muted-foreground">Funding</div>
                       <div className={cn(
@@ -167,7 +167,7 @@ export function IntelligenceOverview({
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <MessageCircle className="h-3 w-3 text-purple-500" />
+                    <MessageCircle className="h-3 w-3 text-accent-foreground" />
                     <div>
                       <div className="text-muted-foreground">Mentions</div>
                       <div className="font-mono">{(data.totalMentions / 1000).toFixed(0)}K</div>

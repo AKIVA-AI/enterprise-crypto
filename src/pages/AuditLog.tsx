@@ -379,7 +379,7 @@ export default function AuditLog() {
                   </Popover>
 
                   {dateRange && (
-                    <Button variant="ghost" size="icon" onClick={clearDateFilter}>
+                    <Button variant="ghost" size="icon" onClick={clearDateFilter} aria-label="Clear date filter">
                       <X className="h-4 w-4" />
                     </Button>
                   )}

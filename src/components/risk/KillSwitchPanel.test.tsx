@@ -1,38 +1,62 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { KillSwitchPanel } from './KillSwitchPanel';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Mock Supabase
+const mockState = {
+  settings: {
+    id: 'settings-1',
+    global_kill_switch: false,
+    reduce_only_mode: false,
+    paper_trading_mode: false,
+    dex_venues_enabled: false,
+  },
+  books: [
+    {
+      id: 'book-1',
+      type: 'spot',
+      name: 'Primary Book',
+      status: 'active',
+      capital_allocated: 100000,
+    },
+  ],
+  updateResults: {
+    global_settings: { data: null, error: null as null | Error },
+    books: { data: null, error: null as null | Error },
+  },
+};
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn(() => ({
+    from: vi.fn((table: string) => ({
       select: vi.fn(() => ({
-        single: vi.fn(() => Promise.resolve({ 
-          data: {
-            id: 'settings-1',
-            global_kill_switch: false,
-            reduce_only_mode: false,
-            paper_trading_mode: false
-          }, 
-          error: null 
-        }))
+        data: table === 'books' ? mockState.books : [mockState.settings],
+        error: null,
+        single: vi.fn(async () => ({ data: mockState.settings, error: null })),
       })),
       update: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ data: null, error: null }))
+        eq: vi.fn(async () => mockState.updateResults[table as 'global_settings' | 'books']),
       })),
-      insert: vi.fn(() => Promise.resolve({ data: null, error: null }))
-    }))
-  }
+      insert: vi.fn(() => Promise.resolve({ data: null, error: null })),
+      eq: vi.fn(async () => ({ data: table === 'books' ? mockState.books : [], error: null })),
+    })),
+    functions: {
+      invoke: vi.fn(async () => ({ data: null, error: null })),
+    },
+  },
 }));
 
 // Mock toast
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
-    error: vi.fn()
-  }
+    error: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
+  },
 }));
 
 describe('KillSwitchPanel', () => {
@@ -46,6 +70,24 @@ describe('KillSwitchPanel', () => {
       }
     });
     vi.clearAllMocks();
+    mockState.settings = {
+      id: 'settings-1',
+      global_kill_switch: false,
+      reduce_only_mode: false,
+      paper_trading_mode: false,
+      dex_venues_enabled: false,
+    };
+    mockState.books = [
+      {
+        id: 'book-1',
+        type: 'spot',
+        name: 'Primary Book',
+        status: 'active',
+        capital_allocated: 100000,
+      },
+    ];
+    mockState.updateResults.global_settings = { data: null, error: null };
+    mockState.updateResults.books = { data: null, error: null };
   });
 
   const renderPanel = () => {
@@ -82,20 +124,7 @@ describe('KillSwitchPanel', () => {
     });
 
     it('should show TRADING HALTED when kill switch is on', async () => {
-      // Mock kill switch active
-      vi.mocked(supabase.from).mockReturnValue({
-        select: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({ 
-            data: {
-              id: 'settings-1',
-              global_kill_switch: true,
-              reduce_only_mode: false,
-              paper_trading_mode: false
-            }, 
-            error: null 
-          }))
-        }))
-      } as any);
+      mockState.settings.global_kill_switch = true;
       
       renderPanel();
       
@@ -203,6 +232,74 @@ describe('KillSwitchPanel', () => {
       
       await waitFor(() => {
         expect(screen.getByText(/Paper Trading Mode/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should update paper trading mode and show success feedback', async () => {
+      const user = userEvent.setup();
+      renderPanel();
+
+      const paperSwitch = await screen.findByRole('switch', { name: /paper trading mode/i });
+      await user.click(paperSwitch);
+
+      await waitFor(() => {
+        expect(toast.info).toHaveBeenCalledWith('Paper trading enabled');
+      });
+
+      expect(supabase.from).toHaveBeenCalledWith('global_settings');
+    });
+
+    it('should surface reduce-only mutation failures', async () => {
+      const user = userEvent.setup();
+      mockState.updateResults.global_settings = {
+        data: null,
+        error: new Error('database offline'),
+      };
+
+      renderPanel();
+
+      const reduceOnlySwitch = await screen.findByRole('switch', { name: /reduce-only mode/i });
+      await user.click(reduceOnlySwitch);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'Failed to update reduce-only mode',
+          { description: 'database offline' }
+        );
+      });
+    });
+  });
+
+  describe('Book Controls', () => {
+    it('should freeze a book and show success feedback', async () => {
+      renderPanel();
+
+      const freezeButton = await screen.findByRole('button', { name: /freeze/i });
+      fireEvent.click(freezeButton);
+
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Book status updated');
+      });
+
+      expect(supabase.from).toHaveBeenCalledWith('books');
+    });
+
+    it('should surface book status update failures', async () => {
+      mockState.updateResults.books = {
+        data: null,
+        error: new Error('write failed'),
+      };
+
+      renderPanel();
+
+      const freezeButton = await screen.findByRole('button', { name: /freeze/i });
+      fireEvent.click(freezeButton);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'Failed to update book status',
+          { description: 'write failed' }
+        );
       });
     });
   });

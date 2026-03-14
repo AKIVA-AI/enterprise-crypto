@@ -112,8 +112,8 @@ export function PositionHeatMap() {
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'critical': return 'bg-destructive/80';
-      case 'high': return 'bg-orange-500/70';
-      case 'medium': return 'bg-yellow-500/50';
+      case 'high': return 'bg-warning/70';
+      case 'medium': return 'bg-warning/50';
       case 'low': return 'bg-success/40';
       default: return 'bg-muted/30';
     }
@@ -142,11 +142,11 @@ export function PositionHeatMap() {
             <span className="text-xs text-muted-foreground">Low</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-yellow-500/50" />
+            <div className="w-3 h-3 rounded bg-warning/50" />
             <span className="text-xs text-muted-foreground">Med</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-orange-500/70" />
+            <div className="w-3 h-3 rounded bg-warning/70" />
             <span className="text-xs text-muted-foreground">High</span>
           </div>
           <div className="flex items-center gap-1.5">

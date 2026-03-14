@@ -81,8 +81,8 @@ export function MultiExchangeMarketData() {
                 className={cn(
                   'p-3 rounded-lg border transition-colors',
                   price.change24h >= 0
-                    ? 'bg-green-500/5 border-green-500/20'
-                    : 'bg-red-500/5 border-red-500/20'
+                    ? 'bg-success/5 border-success/20'
+                    : 'bg-destructive/5 border-destructive/20'
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -107,7 +107,7 @@ export function MultiExchangeMarketData() {
                       <span
                         className={cn(
                           'text-sm font-medium',
-                          price.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+                          price.change24h >= 0 ? 'text-success' : 'text-destructive'
                         )}
                       >
                         {price.change24h >= 0 ? '+' : ''}
@@ -116,16 +116,16 @@ export function MultiExchangeMarketData() {
                       <span
                         className={cn(
                           'text-sm',
-                          price.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+                          price.change24h >= 0 ? 'text-success' : 'text-destructive'
                         )}
                       >
                         ({price.change24h >= 0 ? '+' : ''}
                         {((price.change24h / (price.price - price.change24h)) * 100).toFixed(2)}%)
                       </span>
                       {price.change24h >= 0 ? (
-                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        <TrendingUp className="h-4 w-4 text-success" />
                       ) : (
-                        <TrendingDown className="h-4 w-4 text-red-500" />
+                        <TrendingDown className="h-4 w-4 text-destructive" />
                       )}
                     </div>
                   </div>
@@ -166,7 +166,7 @@ export function MultiExchangeMarketData() {
               </div>
               <div>
                 <div className="text-muted-foreground">Data Quality</div>
-                <div className="text-lg font-bold text-green-500">Real-time</div>
+                <div className="text-lg font-bold text-success">Real-time</div>
               </div>
             </div>
           </div>

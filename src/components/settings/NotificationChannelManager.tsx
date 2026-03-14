@@ -45,10 +45,10 @@ const channelIcons: Record<string, React.ReactNode> = {
 };
 
 const channelColors: Record<string, string> = {
-  telegram: 'bg-blue-500/20 text-blue-400',
-  discord: 'bg-indigo-500/20 text-indigo-400',
-  slack: 'bg-purple-500/20 text-purple-400',
-  webhook: 'bg-gray-500/20 text-gray-400',
+  telegram: 'bg-primary/20 text-primary',
+  discord: 'bg-primary/20 text-primary',
+  slack: 'bg-accent/20 text-accent-foreground',
+  webhook: 'bg-muted/20 text-muted-foreground',
 };
 
 export function NotificationChannelManager() {
@@ -113,6 +113,7 @@ export function NotificationChannelManager() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notification-channels'] }),
+    onError: (error: Error) => toast.error('Failed to toggle channel', { description: error.message }),
   });
 
   const deleteChannel = useMutation({
@@ -311,7 +312,7 @@ export function NotificationChannelManager() {
                   />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-destructive">
+                      <Button variant="ghost" size="icon" className="text-destructive" aria-label="Delete notification channel">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>

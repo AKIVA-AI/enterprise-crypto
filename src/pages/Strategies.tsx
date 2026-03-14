@@ -300,7 +300,7 @@ export default function Strategies() {
                       </Select>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive flex-shrink-0">
+                          <Button variant="ghost" size="icon" className="text-destructive flex-shrink-0" aria-label="Delete strategy">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>

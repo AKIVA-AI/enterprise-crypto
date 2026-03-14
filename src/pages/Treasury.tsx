@@ -181,7 +181,7 @@ export default function Treasury() {
                   <code className="text-xs font-mono text-muted-foreground flex-1 truncate">
                     {wallet.address}
                   </code>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyAddress(wallet.address)}>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyAddress(wallet.address)} aria-label="Copy wallet address">
                     <Copy className="h-3 w-3" />
                   </Button>
                   <Button 

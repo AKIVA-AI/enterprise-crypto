@@ -50,7 +50,7 @@ export function EngineStatusPanel() {
             </CardTitle>
             <CardDescription>Backend service status and controls</CardDescription>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => refetchHealth()}>
+          <Button variant="ghost" size="icon" onClick={() => refetchHealth()} aria-label="Refresh engine status">
             <RotateCw className="h-4 w-4" />
           </Button>
         </div>

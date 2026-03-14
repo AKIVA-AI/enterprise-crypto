@@ -459,14 +459,14 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
 
 export const getCategoryColor = (category: StrategyTemplate['category']) => {
   switch (category) {
-    case 'trend': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-    case 'mean-reversion': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-    case 'arbitrage': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-    case 'momentum': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-    case 'volatility': return 'bg-pink-500/20 text-pink-400 border-pink-500/30';
-    case 'statistical': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
-    case 'market-making': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-    case 'factor': return 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30';
+    case 'trend': return 'bg-primary/20 text-primary border-primary/30';
+    case 'mean-reversion': return 'bg-accent/20 text-accent-foreground border-accent/30';
+    case 'arbitrage': return 'bg-success/20 text-success border-success/30';
+    case 'momentum': return 'bg-warning/20 text-warning border-warning/30';
+    case 'volatility': return 'bg-destructive/20 text-destructive border-destructive/30';
+    case 'statistical': return 'bg-secondary/20 text-secondary-foreground border-secondary/30';
+    case 'market-making': return 'bg-warning/20 text-warning border-warning/30';
+    case 'factor': return 'bg-primary/20 text-primary border-primary/30';
     default: return 'bg-muted text-muted-foreground border-border';
   }
 };
@@ -474,7 +474,7 @@ export const getCategoryColor = (category: StrategyTemplate['category']) => {
 export const getDifficultyColor = (difficulty: StrategyTemplate['difficulty']) => {
   switch (difficulty) {
     case 'beginner': return 'text-success';
-    case 'intermediate': return 'text-yellow-500';
+    case 'intermediate': return 'text-warning';
     case 'advanced': return 'text-destructive';
     case 'quant': return 'text-primary';
     default: return 'text-muted-foreground';

@@ -116,10 +116,10 @@ export function BacktestRunnerPanel({
       case 'running':
         return <Loader2 className="h-4 w-4 animate-spin" />;
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-success" />;
       case 'error':
       case 'cancelled':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
+        return <AlertCircle className="h-4 w-4 text-destructive" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
@@ -143,14 +143,14 @@ export function BacktestRunnerPanel({
   const getStatusColor = () => {
     switch (status) {
       case 'running':
-        return 'bg-blue-500';
+        return 'bg-primary';
       case 'completed':
-        return 'bg-green-500';
+        return 'bg-success';
       case 'error':
       case 'cancelled':
-        return 'bg-red-500';
+        return 'bg-destructive';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted-foreground';
     }
   };
 
@@ -264,9 +264,9 @@ export function BacktestRunnerPanel({
 
         {/* Success Result */}
         {lastResult && status === 'completed' && (
-          <Alert className="border-green-500/20 bg-green-500/5">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <AlertDescription className="text-green-700 dark:text-green-300">
+          <Alert className="border-success/20 bg-success/5">
+            <CheckCircle className="h-4 w-4 text-success" />
+            <AlertDescription className="text-success">
               <div className="space-y-1">
                 <p className="font-medium">Backtest completed successfully!</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-2">
@@ -276,7 +276,7 @@ export function BacktestRunnerPanel({
                   </div>
                   <div>
                     <span className="text-muted-foreground">Total Return:</span>
-                    <div className="font-medium text-green-600">
+                    <div className="font-medium text-success">
                       {(lastResult.totalReturn * 100).toFixed(2)}%
                     </div>
                   </div>
@@ -311,7 +311,7 @@ export function BacktestRunnerPanel({
             <h4 className="text-sm font-medium">Execution Details</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                 <span>Processing market data</span>
               </div>
               <div className="flex items-center gap-2">

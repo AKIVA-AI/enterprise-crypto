@@ -32,31 +32,31 @@ export function ComplianceBanner({ dismissible = true, compact = false }: Compli
     return (
       <div className={cn(
         "flex items-center justify-between px-3 py-2 text-xs border-b",
-        isUS 
-          ? "bg-blue-500/5 border-blue-500/20" 
-          : "bg-amber-500/5 border-amber-500/20"
+        isUS
+          ? "bg-primary/5 border-primary/20"
+          : "bg-warning/5 border-warning/20"
       )}>
         <div className="flex items-center gap-2">
           {isUS ? (
             <>
-              <Flag className="h-3.5 w-3.5 text-blue-500" />
-              <span className="text-blue-500 font-medium">US Compliant Mode</span>
-              <Badge variant="outline" className="text-[10px] h-4 border-blue-500/30 text-blue-500">
+              <Flag className="h-3.5 w-3.5 text-primary" />
+              <span className="text-primary font-medium">US Compliant Mode</span>
+              <Badge variant="outline" className="text-[10px] h-4 border-primary/30 text-primary">
                 SEC/CFTC
               </Badge>
             </>
           ) : (
             <>
-              <Globe className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-amber-500 font-medium">International Mode</span>
-              <Badge variant="outline" className="text-[10px] h-4 border-amber-500/30 text-amber-500">
+              <Globe className="h-3.5 w-3.5 text-warning" />
+              <span className="text-warning font-medium">International Mode</span>
+              <Badge variant="outline" className="text-[10px] h-4 border-warning/30 text-warning">
                 Full Access
               </Badge>
             </>
           )}
         </div>
         {dismissible && (
-          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDismissed(true)}>
+          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setDismissed(true)} aria-label="Dismiss compliance banner">
             <X className="h-3 w-3" />
           </Button>
         )}
@@ -67,21 +67,21 @@ export function ComplianceBanner({ dismissible = true, compact = false }: Compli
   return (
     <Alert className={cn(
       "mb-4",
-      isUS 
-        ? "border-blue-500/30 bg-blue-500/5" 
-        : "border-amber-500/30 bg-amber-500/5"
+      isUS
+        ? "border-primary/30 bg-primary/5"
+        : "border-warning/30 bg-warning/5"
     )}>
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           {isUS ? (
-            <ShieldCheck className="h-5 w-5 text-blue-500 mt-0.5" />
+            <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
           ) : (
-            <Globe className="h-5 w-5 text-amber-500 mt-0.5" />
+            <Globe className="h-5 w-5 text-warning mt-0.5" />
           )}
           <div className="space-y-1">
             <AlertTitle className={cn(
               "flex items-center gap-2",
-              isUS ? "text-blue-500" : "text-amber-500"
+              isUS ? "text-primary" : "text-warning"
             )}>
               {modeConfig.label}
               {isAutoDetected && detectedRegion && (
@@ -99,7 +99,7 @@ export function ComplianceBanner({ dismissible = true, compact = false }: Compli
               ) : (
                 <>
                   Full access to global exchanges including derivatives and perpetuals. 
-                  <span className="text-amber-500 font-medium"> You are responsible for ensuring compliance with your local regulations.</span>
+                  <span className="text-warning font-medium"> You are responsible for ensuring compliance with your local regulations.</span>
                 </>
               )}
             </AlertDescription>
@@ -117,7 +117,7 @@ export function ComplianceBanner({ dismissible = true, compact = false }: Compli
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-1 text-amber-500">
+                  <div className="flex items-center gap-1 text-warning">
                     <AlertTriangle className="h-3 w-3" />
                     <span>Not available for US persons</span>
                   </div>
@@ -131,11 +131,12 @@ export function ComplianceBanner({ dismissible = true, compact = false }: Compli
           </div>
         </div>
         {dismissible && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 shrink-0" 
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0"
             onClick={() => setDismissed(true)}
+            aria-label="Dismiss compliance banner"
           >
             <X className="h-4 w-4" />
           </Button>

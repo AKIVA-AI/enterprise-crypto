@@ -64,7 +64,7 @@ export function RestrictedFeatureGate({
           <AlertTitle className="flex items-center gap-2">
             {FEATURE_LABELS[feature]} Restricted
             {mode === 'us' && (
-              <Flag className="h-3.5 w-3.5 text-blue-500" />
+              <Flag className="h-3.5 w-3.5 text-primary" />
             )}
           </AlertTitle>
           <AlertDescription className="space-y-3">

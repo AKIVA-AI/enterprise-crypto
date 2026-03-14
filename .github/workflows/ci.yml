@@ -17,10 +17,10 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
       - name: Type check
-        run: bun run tsc --noEmit
+        run: npm run typecheck
 
       - name: Lint
         run: bun run eslint . --ext .ts,.tsx --max-warnings=0
@@ -28,11 +28,22 @@ jobs:
       - name: Run tests with coverage
         run: bun run vitest run --reporter=verbose --coverage
 
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: coverage/
+
       - name: Security audit
-        run: npm audit --audit-level=high || true
+        run: npm audit --audit-level=high
 
   backend:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +57,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         working-directory: backend
@@ -65,12 +76,20 @@ jobs:
 
       - name: Dependency audit (pip-audit)
         working-directory: backend
-        run: pip-audit --strict --desc 2>/dev/null || echo "::warning::pip-audit found vulnerabilities - review required"
+        run: pip-audit -r requirements-ci.txt --strict --desc
 
       - name: Run tests with coverage
         working-directory: backend
-        run: pytest --cov=app --cov-report=term-missing --cov-fail-under=20 -x -q
+        run: pytest --cov=app --cov-report=term-missing --cov-report=xml --cov-fail-under=39 -x -q
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage-py${{ matrix.python-version }}
+          path: backend/coverage.xml
 
       - name: Build Docker image
+        if: matrix.python-version == '3.12'
         working-directory: backend
         run: docker build -t akiva-ai-crypto-backend .

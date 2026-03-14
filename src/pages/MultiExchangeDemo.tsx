@@ -108,7 +108,7 @@ export default function MultiExchangeDemo() {
             </div>
             <div className="p-4 rounded-lg border border-border bg-card">
               <div className="text-sm text-muted-foreground mb-1">US Compliant</div>
-              <div className="text-2xl font-bold text-green-500">
+              <div className="text-2xl font-bold text-success">
                 {configuredExchanges.filter(e => 
                   ['coinbase', 'kraken', 'hyperliquid'].includes(e)
                 ).length}
@@ -116,7 +116,7 @@ export default function MultiExchangeDemo() {
             </div>
             <div className="p-4 rounded-lg border border-border bg-card">
               <div className="text-sm text-muted-foreground mb-1">International</div>
-              <div className="text-2xl font-bold text-yellow-500">
+              <div className="text-2xl font-bold text-warning">
                 {configuredExchanges.filter(e => 
                   !['coinbase', 'kraken', 'hyperliquid'].includes(e)
                 ).length}

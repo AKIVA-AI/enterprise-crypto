@@ -102,6 +102,7 @@ export function Sidebar() {
               "p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground",
               collapsed && "mx-auto"
             )}
+            aria-label="Toggle sidebar"
           >
             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>

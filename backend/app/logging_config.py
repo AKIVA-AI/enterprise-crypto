@@ -43,13 +43,11 @@ def configure_logging() -> structlog.BoundLogger:
             structlog.processors.format_exc_info,
             structlog.processors.JSONRenderer(),
         ]
-        structlog.processors.JSONRenderer()
     else:
         # Console format for development (human readable)
         processors = shared_processors + [
             structlog.dev.ConsoleRenderer(colors=True),
         ]
-        structlog.dev.ConsoleRenderer(colors=True)
 
     # Configure structlog
     structlog.configure(
@@ -58,7 +56,7 @@ def configure_logging() -> structlog.BoundLogger:
             logging.INFO if is_production else logging.DEBUG
         ),
         context_class=dict,
-        logger_factory=structlog.PrintLoggerFactory(),
+        logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
 

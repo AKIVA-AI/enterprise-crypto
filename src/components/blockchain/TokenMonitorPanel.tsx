@@ -59,7 +59,7 @@ function TokenCard({ token }: { token: TokenMetrics }) {
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               {token.symbol}
-              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={openExplorer}>
+              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={openExplorer} aria-label="View on blockchain explorer">
                 <ExternalLink className="h-3 w-3" />
               </Button>
             </CardTitle>

@@ -28,6 +28,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const toTooltipNumber = (value: unknown) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Number(value);
+  if (Array.isArray(value) && typeof value[0] === 'number') return value[0];
+  return 0;
+};
+
 interface SimulationParams {
   winRate: number;
   avgWinPct: number;
@@ -377,7 +384,7 @@ export function RiskSimulator() {
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px',
                     }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+                    formatter={(value) => [`$${toTooltipNumber(value).toLocaleString()}`, '']}
                   />
                   <ReferenceLine 
                     y={params.startingCapital} 

@@ -106,8 +106,8 @@ export default function Arbitrage() {
               variant="outline"
               className={cn(
                 configuredCount >= 2
-                  ? 'border-green-500 text-green-500'
-                  : 'border-yellow-500 text-yellow-500'
+                  ? 'border-success text-success'
+                  : 'border-warning text-warning'
               )}
             >
               {configuredCount}/{exchangeCards.length} Exchanges Connected
@@ -130,13 +130,13 @@ export default function Arbitrage() {
               key={exchange.id}
               className={cn(
                 'relative overflow-hidden transition-all',
-                exchange.apiConfigured ? 'border-green-500/50' : 'border-border'
+                exchange.apiConfigured ? 'border-success/50' : 'border-border'
               )}
             >
               <div
                 className={cn(
                   'absolute top-3 right-3 w-3 h-3 rounded-full',
-                  exchange.apiConfigured ? 'bg-green-500' : 'bg-gray-400'
+                  exchange.apiConfigured ? 'bg-success' : 'bg-muted-foreground'
                 )}
               />
 
@@ -160,7 +160,7 @@ export default function Arbitrage() {
                   <div className="flex items-center justify-between pt-2 border-t">
                     <span className="text-sm text-muted-foreground">API Status</span>
                     {exchange.apiConfigured ? (
-                      <Badge className="bg-green-500/10 text-green-500 border-green-500/30">
+                      <Badge className="bg-success/10 text-success border-success/30">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Connected
                       </Badge>
@@ -212,8 +212,8 @@ export default function Arbitrage() {
               </div>
 
               {configuredCount < 2 && (
-                <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-sm">
-                  <p className="text-yellow-600 dark:text-yellow-400">
+                <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-sm">
+                  <p className="text-warning">
                     Connect at least 2 exchanges to enable arbitrage scanning.
                   </p>
                 </div>
@@ -293,7 +293,7 @@ export default function Arbitrage() {
                             </div>
                             <div className="text-right">
                               <div className="text-xs text-muted-foreground">Net Edge</div>
-                              <div className="font-mono text-green-500">
+                              <div className="font-mono text-success">
                                 {opp.net_edge_bps.toFixed(2)} bps
                               </div>
                             </div>

@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
 type FeatureStatus = 'functional' | 'simulated' | 'pending';
@@ -198,6 +199,9 @@ export default function SystemStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['system-health'] });
     },
+    onError: (error: Error) => {
+      toast.error('Health check failed', { description: error.message });
+    },
   });
 
   // Trigger scheduled monitor
@@ -211,6 +215,9 @@ export default function SystemStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['system-health'] });
+    },
+    onError: (error: Error) => {
+      toast.error('Monitor check failed', { description: error.message });
     },
   });
 

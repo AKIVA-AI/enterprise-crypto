@@ -15,6 +15,13 @@ import { cn } from '@/lib/utils';
 import { useArbPnlAnalytics } from '@/hooks/useArbPnlAnalytics';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Area, AreaChart } from 'recharts';
 
+const formatTooltipNumber = (value: unknown) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Number(value);
+  if (Array.isArray(value) && typeof value[0] === 'number') return value[0];
+  return 0;
+};
+
 export function PnLAnalyticsDashboard() {
   const {
     data,
@@ -207,7 +214,7 @@ export function PnLAnalyticsDashboard() {
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px',
                     }}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'P&L']}
+                    formatter={(value) => [`$${formatTooltipNumber(value).toFixed(2)}`, 'P&L']}
                   />
                   <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
                   <Area

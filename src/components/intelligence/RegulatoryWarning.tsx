@@ -33,10 +33,10 @@ export function RegulatoryWarning({
   }
 
   return (
-    <Alert className="border-yellow-500/50 bg-yellow-500/5">
-      <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      <AlertTitle className="text-yellow-600">Regulatory Notice</AlertTitle>
-      <AlertDescription className="text-yellow-600">
+    <Alert className="border-warning/50 bg-warning/5">
+      <AlertTriangle className="h-4 w-4 text-warning" />
+      <AlertTitle className="text-warning">Regulatory Notice</AlertTitle>
+      <AlertDescription className="text-warning">
         <p className="mb-3">
           Based on your location (United States), the following exchanges are not available:
         </p>
@@ -48,7 +48,7 @@ export function RegulatoryWarning({
               <div key={exchange} className="flex items-center gap-2">
                 <span>{config.icon}</span>
                 <span className="font-medium">{config.name}</span>
-                <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">
+                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">
                   ❌ Not available in US
                 </Badge>
               </div>
@@ -97,9 +97,9 @@ export function ExchangeCardWarning({
   }
 
   return (
-    <Alert className="border-yellow-500/50 bg-yellow-500/5">
-      <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      <AlertDescription className="text-yellow-600">
+    <Alert className="border-warning/50 bg-warning/5">
+      <AlertTriangle className="h-4 w-4 text-warning" />
+      <AlertDescription className="text-warning">
         <p className="font-medium mb-2">
           ⚠️ This exchange is not available in the United States
         </p>
@@ -127,9 +127,9 @@ export function ComplianceStatus({
 
   if (allCompliant) {
     return (
-      <Alert className="border-green-500/50 bg-green-500/5">
-        <CheckCircle2 className="h-4 w-4 text-green-600" />
-        <AlertDescription className="text-green-600">
+      <Alert className="border-success/50 bg-success/5">
+        <CheckCircle2 className="h-4 w-4 text-success" />
+        <AlertDescription className="text-success">
           ✅ All configured exchanges are compliant with your location
         </AlertDescription>
       </Alert>
@@ -141,9 +141,9 @@ export function ComplianceStatus({
   ).length;
 
   return (
-    <Alert className="border-yellow-500/50 bg-yellow-500/5">
-      <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      <AlertDescription className="text-yellow-600">
+    <Alert className="border-warning/50 bg-warning/5">
+      <AlertTriangle className="h-4 w-4 text-warning" />
+      <AlertDescription className="text-warning">
         ⚠️ {restrictedCount} of your configured exchanges {restrictedCount === 1 ? 'is' : 'are'} not available in your location
       </AlertDescription>
     </Alert>

@@ -201,7 +201,7 @@ export default function Trade() {
                     const statusColor = isOnline
                       ? 'bg-success animate-pulse'
                       : isDegraded
-                        ? 'bg-yellow-500'
+                        ? 'bg-warning'
                         : 'bg-destructive';
 
                     return (

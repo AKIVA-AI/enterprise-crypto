@@ -26,16 +26,11 @@ from datetime import datetime, UTC
 from pathlib import Path
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from importlib import import_module
 
 # FreqTrade FreqAI imports
 from freqtrade.freqai.data_kitchen import FreqaiDataKitchen
 from freqtrade.freqai.freqai_interface import IFreqaiModel
-from freqtrade.freqai.prediction_models import (
-    XGBoostRegressor,
-    LightGBMRegressor,
-    TensorFlowRegressor,
-    PyTorchRegressor,
-)
 from freqtrade.configuration import TimeRange
 
 # Local imports
@@ -43,6 +38,26 @@ from app.core.config import settings
 from app.services.market_data_service import MarketDataService
 
 logger = logging.getLogger(__name__)
+
+
+def _load_prediction_model(module_name: str, class_name: str):
+    """Load FreqAI model classes defensively across freqtrade versions."""
+    try:
+        module = import_module(f"freqtrade.freqai.prediction_models.{module_name}")
+        return getattr(module, class_name)
+    except Exception as exc:
+        logger.warning("FreqAI model unavailable: %s (%s)", class_name, exc)
+        return None
+
+
+XGBoostRegressor = _load_prediction_model("XGBoostRegressor", "XGBoostRegressor")
+LightGBMRegressor = _load_prediction_model("LightGBMRegressor", "LightGBMRegressor")
+TensorFlowRegressor = _load_prediction_model(
+    "TensorFlowRegressor", "TensorFlowRegressor"
+)
+PyTorchRegressor = _load_prediction_model(
+    "PyTorchMLPRegressor", "PyTorchMLPRegressor"
+)
 
 
 class FreqAIEnhancedEngine:
@@ -128,15 +143,25 @@ class FreqAIEnhancedEngine:
             )
 
             # Initialize different ML models
+            model_classes = {
+                "xgboost": XGBoostRegressor,
+                "lightgbm": LightGBMRegressor,
+                "tensorflow": TensorFlowRegressor,
+                "pytorch": PyTorchRegressor,
+            }
             self.models = {
-                "xgboost": XGBoostRegressor(self.freqai_config),
-                "lightgbm": LightGBMRegressor(self.freqai_config),
-                "tensorflow": TensorFlowRegressor(self.freqai_config),
-                "pytorch": PyTorchRegressor(self.freqai_config),
+                name: model_class(self.freqai_config)
+                for name, model_class in model_classes.items()
+                if model_class is not None
             }
 
+            if not self.models:
+                raise RuntimeError("No compatible FreqAI prediction models available")
+
             # Set default active model
-            self.active_model = self.models["lightgbm"]
+            self.active_model = self.models.get("lightgbm") or next(
+                iter(self.models.values())
+            )
 
             logger.info("FreqAI components initialized successfully")
 

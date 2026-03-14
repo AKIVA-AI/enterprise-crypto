@@ -94,7 +94,7 @@ export function LivePositionTracker() {
       </div>
 
       {/* Summary bar */}
-      <div className="p-3 bg-muted/30 border-b border-border/30 flex items-center justify-between">
+      <div className="p-3 bg-muted/30 border-b border-border/30 flex items-center justify-between" aria-live="polite" aria-atomic="true">
         <div className="flex items-center gap-4">
           <div>
             <span className="text-xs text-muted-foreground mr-2">Live P&L:</span>

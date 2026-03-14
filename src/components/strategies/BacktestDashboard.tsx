@@ -303,8 +303,8 @@ function SummaryCard({ title, value, subtitle, positive, negative }: SummaryCard
         <div className="text-sm text-muted-foreground">{title}</div>
         <div className={cn(
           'text-2xl font-bold mt-1',
-          positive && 'text-green-600 dark:text-green-400',
-          negative && 'text-red-600 dark:text-red-400',
+          positive && 'text-success',
+          negative && 'text-destructive',
         )}>
           {value}
         </div>

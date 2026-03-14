@@ -321,40 +321,40 @@ const CATEGORIES = {
   trend: {
     name: 'Trend Following',
     description: 'Strategies that follow market trends',
-    color: 'bg-green-500',
+    color: 'bg-success',
   },
   momentum: {
     name: 'Momentum',
     description: 'Strategies based on price momentum',
-    color: 'bg-blue-500',
+    color: 'bg-primary',
   },
   mean_reversion: {
     name: 'Mean Reversion',
     description: 'Strategies that bet on price returning to mean',
-    color: 'bg-purple-500',
+    color: 'bg-accent',
   },
   volatility: {
     name: 'Volatility',
     description: 'Strategies that profit from volatility',
-    color: 'bg-orange-500',
+    color: 'bg-warning',
   },
   arbitrage: {
     name: 'Arbitrage',
     description: 'Statistical arbitrage strategies',
-    color: 'bg-cyan-500',
+    color: 'bg-secondary',
   },
 };
 
 const DIFFICULTY_COLORS = {
-  beginner: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  intermediate: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  advanced: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  beginner: 'bg-success/10 text-success',
+  intermediate: 'bg-warning/10 text-warning',
+  advanced: 'bg-destructive/10 text-destructive',
 };
 
 const RISK_COLORS = {
-  low: 'text-green-600',
-  medium: 'text-yellow-600',
-  high: 'text-red-600',
+  low: 'text-success',
+  medium: 'text-warning',
+  high: 'text-destructive',
 };
 
 export function StrategyTemplateSelector({

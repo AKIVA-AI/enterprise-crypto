@@ -17,12 +17,18 @@ export function MainLayout({ children, showComplianceBanner = false }: MainLayou
 
   return (
     <div className="min-h-screen bg-background flex w-full">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none"
+      >
+        Skip to main content
+      </a>
       <Sidebar />
       <div className="flex flex-1 ml-64">
         <div className="flex-1 flex flex-col min-h-screen">
           <TopBar />
           {showComplianceBanner && <ComplianceBanner compact dismissible />}
-          <main className="p-6 flex-1 overflow-auto">
+          <main id="main-content" className="p-6 flex-1 overflow-auto">
             {/* Risk Alerts Banner - Shows critical risk warnings */}
             <RiskAlertBanner />
             {children}

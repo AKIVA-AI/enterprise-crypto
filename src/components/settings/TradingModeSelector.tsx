@@ -51,9 +51,9 @@ export function TradingModeSelector() {
           size="sm" 
           className={cn(
             "gap-2 h-8",
-            mode === 'us' 
-              ? "border-blue-500/50 text-blue-500" 
-              : "border-amber-500/50 text-amber-500"
+            mode === 'us'
+              ? "border-primary/50 text-primary"
+              : "border-warning/50 text-warning"
           )}
         >
           {mode === 'us' ? (
@@ -89,7 +89,7 @@ export function TradingModeSelector() {
               <div className="flex items-center gap-2">
                 <Flag className={cn(
                   "h-4 w-4",
-                  mode === 'us' ? "text-blue-500" : "text-muted-foreground"
+                  mode === 'us' ? "text-primary" : "text-muted-foreground"
                 )} />
                 <span className={cn(
                   "text-sm font-medium",
@@ -111,7 +111,7 @@ export function TradingModeSelector() {
                 </span>
                 <Globe className={cn(
                   "h-4 w-4",
-                  mode === 'international' ? "text-amber-500" : "text-muted-foreground"
+                  mode === 'international' ? "text-warning" : "text-muted-foreground"
                 )} />
               </div>
             </div>

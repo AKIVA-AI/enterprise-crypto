@@ -88,10 +88,10 @@ export function MultiExchangeHealthMonitor() {
               className={cn(
                 'p-3 rounded-lg border transition-colors',
                 exchange.isConnected
-                  ? 'bg-green-500/5 border-green-500/20'
+                  ? 'bg-success/5 border-success/20'
                   : exchange.isConnecting
-                  ? 'bg-yellow-500/5 border-yellow-500/20'
-                  : 'bg-red-500/5 border-red-500/20'
+                  ? 'bg-warning/5 border-warning/20'
+                  : 'bg-destructive/5 border-destructive/20'
               )}
             >
               <div className="flex items-center justify-between mb-2">
@@ -135,7 +135,7 @@ export function MultiExchangeHealthMonitor() {
               </div>
 
               {exchange.error && (
-                <div className="mt-2 text-xs text-red-500">
+                <div className="mt-2 text-xs text-destructive">
                   Error: {exchange.error}
                 </div>
               )}
@@ -151,7 +151,7 @@ export function MultiExchangeHealthMonitor() {
             </div>
             <div>
               <div className="text-muted-foreground">Connected</div>
-              <div className="text-lg font-bold text-green-500">
+              <div className="text-lg font-bold text-success">
                 {exchanges.filter(e => e.isConnected).length}
               </div>
             </div>

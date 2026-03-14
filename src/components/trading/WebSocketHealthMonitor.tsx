@@ -125,7 +125,7 @@ export function WebSocketHealthMonitor({
   }
 
   return (
-    <div className={cn('flex items-center gap-3 p-2 rounded-lg', config.bg, className)}>
+    <div className={cn('flex items-center gap-3 p-2 rounded-lg', config.bg, className)} aria-live="polite">
       <div className={cn('flex items-center gap-2', config.color)}>
         <Icon className={cn(
           'h-4 w-4',

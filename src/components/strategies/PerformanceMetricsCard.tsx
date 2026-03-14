@@ -54,8 +54,8 @@ function MetricItem({ label, value, icon, good, bad, neutral }: MetricItemProps)
       <span
         className={cn(
           'text-lg font-semibold',
-          good && 'text-green-600 dark:text-green-400',
-          bad && 'text-red-600 dark:text-red-400',
+          good && 'text-success',
+          bad && 'text-destructive',
           neutral && 'text-foreground'
         )}
       >
