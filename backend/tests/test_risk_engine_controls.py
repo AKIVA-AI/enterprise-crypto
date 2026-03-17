@@ -143,13 +143,23 @@ async def test_activate_circuit_breaker_emits_alert_and_audit(monkeypatch, risk_
         resource_id="latency",
         severity="critical",
         book_id=str(book_id),
-        after_state={"active": True, "reason": "Latency spike"},
+        after_state={
+            "active": True,
+            "reason": "Latency spike",
+            "prev_state": "closed",
+            "new_state": "open",
+        },
     )
     audit_log.assert_any_await(
         action="circuit_breaker_deactivated",
         resource_type="circuit_breaker",
         resource_id="latency",
-        after_state={"active": False},
+        after_state={
+            "active": False,
+            "reason": "Manual deactivation",
+            "prev_state": "open",
+            "new_state": "closed",
+        },
     )
 
 
