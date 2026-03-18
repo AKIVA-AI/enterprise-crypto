@@ -22,7 +22,6 @@ import redis.asyncio as redis
 import httpx
 
 from app.core.agent_identity import (
-    AgentIdentity,
     create_agent_identity,
     verify_agent_signature,
 )
