@@ -166,7 +166,7 @@ class KrakenAdapter(VenueAdapter):
     async def health_check(self) -> VenueHealth:
         """Check venue health status."""
         if not self._connected:
-            status = VenueStatus.OFFLINE
+            status = VenueStatus.DOWN
             latency = 0
         else:
             status = VenueStatus.HEALTHY
