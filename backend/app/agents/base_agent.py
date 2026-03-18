@@ -16,6 +16,8 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
 
+import hashlib
+
 import redis.asyncio as redis
 import httpx
 
@@ -26,6 +28,56 @@ from app.core.agent_identity import (
 )
 
 logger = logging.getLogger(__name__)
+
+# ── Agent behavior version tracking (D21 Agentic Workspace) ──
+
+AGENT_BEHAVIOR_VERSION = "1.0.0"  # Bump on prompt/tool/model changes
+
+
+@dataclass
+class AgentBehaviorVersion:
+    """Tracks the versioned behavior configuration of an agent."""
+
+    version: str
+    prompt_hash: str  # SHA-256 of the agent's system prompt / config
+    tools: List[str]  # List of tool/capability names
+    model: str  # Model identifier (e.g., "rule-based", "llm-v1")
+    changed_at: str  # ISO timestamp of last change
+
+
+@dataclass
+class AgentDriftMetrics:
+    """Tracks drift indicators for agent behavior monitoring."""
+
+    override_count: int = 0  # Times a human overrode agent decision
+    fallback_count: int = 0  # Times agent fell back to default behavior
+    approval_count: int = 0  # Times agent decision was approved
+    rejection_count: int = 0  # Times agent decision was rejected
+    total_decisions: int = 0
+
+    @property
+    def override_rate(self) -> float:
+        return self.override_count / max(self.total_decisions, 1)
+
+    @property
+    def fallback_rate(self) -> float:
+        return self.fallback_count / max(self.total_decisions, 1)
+
+    @property
+    def approval_rate(self) -> float:
+        return self.approval_count / max(self.total_decisions, 1)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "override_count": self.override_count,
+            "fallback_count": self.fallback_count,
+            "approval_count": self.approval_count,
+            "rejection_count": self.rejection_count,
+            "total_decisions": self.total_decisions,
+            "override_rate": round(self.override_rate, 4),
+            "fallback_rate": round(self.fallback_rate, 4),
+            "approval_rate": round(self.approval_rate, 4),
+        }
 
 
 class AgentChannel(str, Enum):
@@ -108,6 +160,17 @@ class BaseAgent(ABC):
 
         # Per-agent identity (Zero Trust — each agent has unique signing key)
         self._identity = create_agent_identity(agent_id, agent_type)
+
+        # Behavior versioning and drift monitoring (D21 Agentic Workspace)
+        config_str = f"{agent_id}:{agent_type}:{','.join(capabilities or [])}"
+        self._behavior_version = AgentBehaviorVersion(
+            version=AGENT_BEHAVIOR_VERSION,
+            prompt_hash=hashlib.sha256(config_str.encode()).hexdigest()[:16],
+            tools=list(capabilities or []),
+            model="rule-based",
+            changed_at=datetime.now(UTC).isoformat(),
+        )
+        self._drift = AgentDriftMetrics()
 
         self._redis: Optional[redis.Redis] = None
         self._pubsub: Optional[redis.client.PubSub] = None
@@ -387,6 +450,8 @@ class BaseAgent(ABC):
                 "agent_type": self.agent_type,
                 "status": "paused" if self._paused else "running",
                 "metrics": self._metrics,
+                "behavior_version": self._behavior_version.version,
+                "drift": self._drift.to_dict(),
             },
         )
         self._metrics["last_heartbeat"] = datetime.now(UTC).isoformat()
@@ -590,6 +655,32 @@ class BaseAgent(ABC):
         while self._running:
             await self.send_heartbeat()
             await asyncio.sleep(30)  # 30 second interval for production
+
+    # ── Drift monitoring methods ──
+
+    def record_decision(self, approved: bool):
+        """Record an agent decision outcome for drift tracking."""
+        self._drift.total_decisions += 1
+        if approved:
+            self._drift.approval_count += 1
+        else:
+            self._drift.rejection_count += 1
+
+    def record_override(self):
+        """Record a human override of an agent decision."""
+        self._drift.override_count += 1
+        self._drift.total_decisions += 1
+
+    def record_fallback(self):
+        """Record the agent falling back to default behavior."""
+        self._drift.fallback_count += 1
+
+    def get_behavior_info(self) -> Dict[str, Any]:
+        """Return behavior version + drift metrics for monitoring."""
+        return {
+            "behavior_version": asdict(self._behavior_version),
+            "drift": self._drift.to_dict(),
+        }
 
     # Abstract methods to be implemented by subclasses
 

@@ -87,6 +87,15 @@ async def get_agent_metrics():
     return metrics
 
 
+@router.get("/behavior/versions")
+async def get_agent_behavior_versions():
+    """Get behavior versions and drift metrics for all agents (D21)."""
+    result = {}
+    for agent_id, agent in orchestrator._agents.items():
+        result[agent_id] = agent.get_behavior_info()
+    return result
+
+
 @router.get("/{agent_id}")
 async def get_agent_detail(agent_id: str):
     """Get detailed status for a specific agent"""
@@ -102,4 +111,5 @@ async def get_agent_detail(agent_id: str):
         "running": task is not None and not task.done(),
         "subscribed_channels": [ch.value for ch in agent.subscribed_channels],
         "metrics": agent._metrics,
+        **agent.get_behavior_info(),
     }
