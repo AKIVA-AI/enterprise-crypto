@@ -19,6 +19,7 @@ from . import (
     backtest,
     execution,
     ml_signals,
+    compliance,
 )
 
 # Create main API router
@@ -38,6 +39,7 @@ api_router.include_router(screener.router)
 api_router.include_router(backtest.router)
 api_router.include_router(execution.router)
 api_router.include_router(ml_signals.router)
+api_router.include_router(compliance.router)
 
 # WebSocket router (separate prefix, no auth middleware)
 ws_router = websocket.router
