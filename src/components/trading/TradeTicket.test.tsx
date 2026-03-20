@@ -26,14 +26,16 @@ vi.mock('@/integrations/supabase/client', () => ({
       return {
         insert: vi.fn(() => ({
           select: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ 
-              data: { id: 'order-123', status: 'submitted' }, 
-              error: null 
+            single: vi.fn(() => Promise.resolve({
+              data: { id: 'order-123', status: 'submitted' },
+              error: null
             }))
           }))
         })),
         select: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({ data: [], error: null }))
+          eq: vi.fn(() => ({
+            neq: vi.fn(() => Promise.resolve({ data: [], error: null }))
+          }))
         }))
       };
     }),
@@ -55,6 +57,42 @@ vi.mock('sonner', () => ({
     info: vi.fn()
   }
 }));
+
+// Override useLivePriceFeed mock to return proper LivePrice objects
+vi.mock('@/hooks/useLivePriceFeed', () => ({
+  useLivePriceFeed: () => ({
+    prices: new Map([
+      ['BTC-USDT', { price: 50000, change24h: 2.5, timestamp: Date.now() }],
+    ]),
+    isConnected: true,
+    getPrice: (symbol: string) => {
+      if (symbol === 'BTC-USDT') {
+        return { price: 50000, change24h: 2.5, volume24h: 1000000, timestamp: Date.now() };
+      }
+      return undefined;
+    },
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+  })
+}));
+
+// Mock Radix UI AlertDialog Portal to render inline
+vi.mock('@radix-ui/react-alert-dialog', async () => {
+  const actual = await vi.importActual<typeof import('@radix-ui/react-alert-dialog')>('@radix-ui/react-alert-dialog');
+  return {
+    ...actual,
+    Portal: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
+
+// Mock Radix UI Select Portal to render inline
+vi.mock('@radix-ui/react-select', async () => {
+  const actual = await vi.importActual<typeof import('@radix-ui/react-select')>('@radix-ui/react-select');
+  return {
+    ...actual,
+    Portal: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
 
 describe('TradeTicket', () => {
   let queryClient: QueryClient;
@@ -122,12 +160,13 @@ describe('TradeTicket', () => {
       const onClose = vi.fn();
       renderTradeTicket({ defaultBookId: 'book-123', onClose });
 
-      // Set size
+      // Set a small size so notional stays under risk limit
+      // Default risk = 1% of 100000 = 1000. Price ~50000. Size 0.01 => notional = 500 < 1000
       const sizeInput = screen.getByLabelText(/Size/i);
-      fireEvent.change(sizeInput, { target: { value: '0.5' } });
+      fireEvent.change(sizeInput, { target: { value: '0.01' } });
 
       // Submit - look for button with size in text
-      const submitButton = screen.getByRole('button', { name: /BUY 0\.5/i });
+      const submitButton = screen.getByRole('button', { name: /BUY 0\.01/i });
       fireEvent.click(submitButton);
 
       // Confirmation dialog should appear - click confirm button
@@ -142,12 +181,11 @@ describe('TradeTicket', () => {
       });
     });
 
-    it.skip('should submit limit order with price', async () => {
-      // TODO: Fix onClose callback not being called after submission
+    it('should submit limit order with price', async () => {
       const onClose = vi.fn();
       renderTradeTicket({ defaultBookId: 'book-123', onClose });
 
-      // Switch to limit order - use getByRole to be more specific
+      // Switch to limit order
       const limitButton = screen.getByRole('button', { name: /^Limit$/i });
       fireEvent.click(limitButton);
 
@@ -156,19 +194,27 @@ describe('TradeTicket', () => {
         expect(screen.getByLabelText(/Price/i)).toBeInTheDocument();
       });
 
-      // Set size and price
+      // Set small size and price so notional stays under risk limit
+      // Risk limit = 1% of 100000 = 1000. Size 0.01 * price 50000 = 500 < 1000
       const sizeInput = screen.getByLabelText(/Size/i);
       const priceInput = screen.getByLabelText(/Price/i);
-      fireEvent.change(sizeInput, { target: { value: '0.5' } });
+      fireEvent.change(sizeInput, { target: { value: '0.01' } });
       fireEvent.change(priceInput, { target: { value: '50000' } });
 
       // Submit - look for button with size in text
-      const submitButton = screen.getByRole('button', { name: /BUY 0\.5/i });
+      const submitButton = screen.getByRole('button', { name: /BUY 0\.01/i });
       fireEvent.click(submitButton);
+
+      // Confirmation dialog should appear - click confirm button
+      await waitFor(() => {
+        const confirmButton = screen.getByRole('button', { name: /Confirm BUY/i });
+        expect(confirmButton).toBeInTheDocument();
+        fireEvent.click(confirmButton);
+      });
 
       await waitFor(() => {
         expect(onClose).toHaveBeenCalled();
-      }, { timeout: 3000 });
+      });
     });
 
     it('should handle sell orders', async () => {
@@ -188,23 +234,21 @@ describe('TradeTicket', () => {
   });
 
   describe('Risk Warnings', () => {
-    it.skip('should show warning when risk exceeds limit', async () => {
-      // TODO: Risk warning component not rendering or text doesn't match
+    it('should show warning when risk exceeds limit', async () => {
       renderTradeTicket({ defaultBookId: 'book-123' });
 
-      // Wait for component to load and price to be available
-      await waitFor(() => {
-        expect(screen.getByText(/BTC/i)).toBeInTheDocument();
-      });
-
-      // Set large size
+      // Set a very large size to exceed risk limit
+      // Default risk is 1% of 100000 = 1000. Price is ~50000 from mock.
+      // size * 50000 > 1000 => size > 0.02
+      // With default 0.1, notional = 5000 which already exceeds 1000 at 1%
+      // But the component shows "Exceeds risk limit" text inline
       const sizeInput = screen.getByLabelText(/Size/i);
       fireEvent.change(sizeInput, { target: { value: '100' } });
 
-      // Risk warning should appear
+      // Risk warning should appear as inline text in the order summary
       await waitFor(() => {
         expect(screen.getByText(/Exceeds risk limit/i)).toBeInTheDocument();
-      }, { timeout: 3000 });
+      });
     });
   });
 });

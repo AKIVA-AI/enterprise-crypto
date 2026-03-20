@@ -86,6 +86,11 @@ vi.mock('@/hooks/useLivePriceFeed', () => ({
   })
 }));
 
+// Mock document.elementFromPoint for input-otp library
+if (!document.elementFromPoint) {
+  document.elementFromPoint = () => null;
+}
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();

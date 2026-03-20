@@ -59,6 +59,24 @@ vi.mock('sonner', () => ({
   },
 }));
 
+// Mock Radix UI AlertDialog Portal to render inline instead of in a portal
+vi.mock('@radix-ui/react-alert-dialog', async () => {
+  const actual = await vi.importActual<typeof import('@radix-ui/react-alert-dialog')>('@radix-ui/react-alert-dialog');
+  return {
+    ...actual,
+    Portal: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
+
+// Mock Radix UI Dialog Portal for TwoFactorConfirmDialog
+vi.mock('@radix-ui/react-dialog', async () => {
+  const actual = await vi.importActual<typeof import('@radix-ui/react-dialog')>('@radix-ui/react-dialog');
+  return {
+    ...actual,
+    Portal: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
+
 describe('KillSwitchPanel', () => {
   let queryClient: QueryClient;
 
@@ -101,7 +119,7 @@ describe('KillSwitchPanel', () => {
   describe('Kill Switch Display', () => {
     it('should render kill switch panel', async () => {
       renderPanel();
-      
+
       await waitFor(() => {
         expect(screen.getByText('Global Kill Switch')).toBeInTheDocument();
       });
@@ -109,7 +127,7 @@ describe('KillSwitchPanel', () => {
 
     it('should show SYSTEMS ACTIVE when kill switch is off', async () => {
       renderPanel();
-      
+
       await waitFor(() => {
         expect(screen.getByText('SYSTEMS ACTIVE')).toBeInTheDocument();
       });
@@ -117,7 +135,7 @@ describe('KillSwitchPanel', () => {
 
     it('should show KILL button when kill switch is off', async () => {
       renderPanel();
-      
+
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /KILL/i })).toBeInTheDocument();
       });
@@ -125,9 +143,9 @@ describe('KillSwitchPanel', () => {
 
     it('should show TRADING HALTED when kill switch is on', async () => {
       mockState.settings.global_kill_switch = true;
-      
+
       renderPanel();
-      
+
       await waitFor(() => {
         expect(screen.getByText('TRADING HALTED')).toBeInTheDocument();
       });
@@ -135,8 +153,7 @@ describe('KillSwitchPanel', () => {
   });
 
   describe('Kill Switch Activation', () => {
-    it.skip('should show confirmation dialog when KILL button clicked', async () => {
-      // TODO: AlertDialog not opening in test environment - click event not triggering dialog
+    it('should show confirmation dialog when KILL button clicked', async () => {
       renderPanel();
 
       await waitFor(() => {
@@ -146,16 +163,12 @@ describe('KillSwitchPanel', () => {
       const killButton = screen.getByRole('button', { name: /KILL/i });
       fireEvent.click(killButton);
 
-      // Query the entire document for portal content
       await waitFor(() => {
-        const dialogContent = document.body.textContent;
-        expect(dialogContent).toContain('Activate Kill Switch?');
-      }, { timeout: 3000 });
+        expect(screen.getByText('Activate Kill Switch?')).toBeInTheDocument();
+      });
     });
 
-    it.skip('should show warning message in confirmation dialog', async () => {
-      // TODO: AlertDialog not opening in test environment - click event not triggering dialog
-      // dialogContent variable was undefined - test needs refactoring
+    it('should show warning message in confirmation dialog', async () => {
       renderPanel();
 
       await waitFor(() => {
@@ -165,8 +178,9 @@ describe('KillSwitchPanel', () => {
       const killButton = screen.getByRole('button', { name: /KILL/i });
       fireEvent.click(killButton);
 
-      // Note: This test is skipped as the dialog content query needs to be fixed
-      // The dialogContent variable was never defined
+      await waitFor(() => {
+        expect(screen.getByText(/immediately halt ALL trading/i)).toBeInTheDocument();
+      });
     });
 
     it('should have cancel button in confirmation dialog', async () => {
@@ -186,42 +200,36 @@ describe('KillSwitchPanel', () => {
   });
 
   describe('Security Features', () => {
-    it.skip('should require 2FA for activation', async () => {
-      // TODO: AlertDialog not opening in test environment - click event not triggering dialog
+    it('should require 2FA for activation', async () => {
       renderPanel();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /KILL/i })).toBeInTheDocument();
       });
 
-      // Click KILL button
+      // Click KILL button to open confirmation dialog
       const killButton = screen.getByRole('button', { name: /KILL/i });
       fireEvent.click(killButton);
 
-      // Confirm in dialog - check document body for portal content
       await waitFor(() => {
-        expect(document.body.textContent).toContain('Activate Kill Switch?');
-      }, { timeout: 3000 });
+        expect(screen.getByText('Activate Kill Switch?')).toBeInTheDocument();
+      });
 
-      // Find and click confirm button in the portal
-      const buttons = Array.from(document.querySelectorAll('button'));
-      const activateButton = buttons.find(btn => btn.textContent?.includes('ACTIVATE KILL SWITCH'));
+      // Click ACTIVATE KILL SWITCH to proceed to 2FA
+      const activateButton = screen.getByRole('button', { name: /ACTIVATE KILL SWITCH/i });
+      fireEvent.click(activateButton);
 
-      if (activateButton) {
-        fireEvent.click(activateButton);
-
-        // 2FA dialog should appear
-        await waitFor(() => {
-          expect(document.body.textContent).toContain('two-factor verification');
-        }, { timeout: 3000 });
-      }
+      // 2FA dialog should appear
+      await waitFor(() => {
+        expect(screen.getByText(/two-factor verification/i)).toBeInTheDocument();
+      });
     });
   });
 
   describe('Mode Toggles', () => {
     it('should show reduce-only mode toggle', async () => {
       renderPanel();
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Reduce-Only Mode/i)).toBeInTheDocument();
       });
@@ -229,7 +237,7 @@ describe('KillSwitchPanel', () => {
 
     it('should show paper trading mode toggle', async () => {
       renderPanel();
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Paper Trading Mode/i)).toBeInTheDocument();
       });
@@ -304,4 +312,3 @@ describe('KillSwitchPanel', () => {
     });
   });
 });
-
