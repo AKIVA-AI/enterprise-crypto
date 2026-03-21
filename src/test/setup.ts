@@ -12,7 +12,7 @@ class ResizeObserverMock {
   unobserve = vi.fn();
   disconnect = vi.fn();
 }
-global.ResizeObserver = ResizeObserverMock as any;
+(globalThis as any).ResizeObserver = ResizeObserverMock as any;
 
 // Mock IntersectionObserver
 class IntersectionObserverMock {
