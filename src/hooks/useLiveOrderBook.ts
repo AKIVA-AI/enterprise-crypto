@@ -45,7 +45,7 @@ export function useLiveOrderBook({ symbol, depth = 10, enabled = true }: UseLive
   const [error, setError] = useState<string | null>(null);
   const [latencyMs, setLatencyMs] = useState<number>(0);
   const [isSupported, setIsSupported] = useState(true);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchOrderBook = useCallback(async () => {
     if (!symbol || !enabled) return;

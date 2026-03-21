@@ -95,7 +95,7 @@ export function MarketDataProvider({ children, refreshInterval = 5000 }: Props) 
   const MAX_RECONNECT_ATTEMPTS = 5;
   const RECONNECT_DELAY = 3000;
   const useWebSocket = useRef(true); // Flag to enable/disable WebSocket
-  const fallbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fallbackIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fallback polling method (used if WebSocket fails)
   const fetchMarketDataPolling = useCallback(async () => {
