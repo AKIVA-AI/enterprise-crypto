@@ -42,8 +42,8 @@ export function useWebSocketManager({
   });
 
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const pingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pingStartTimeRef = useRef<number | null>(null);
   const enabledRef = useRef(enabled);
   const urlRef = useRef(url);

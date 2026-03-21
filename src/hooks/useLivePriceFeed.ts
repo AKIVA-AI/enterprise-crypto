@@ -95,7 +95,7 @@ export function useLivePriceFeed({ symbols, enabled = true }: UseLivePriceFeedOp
   const [usingFallback, setUsingFallback] = useState(false);
   const [dataSource, setDataSource] = useState<string>('');
   const [apiLatency, setApiLatency] = useState<number>(0);
-  const fallbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fallbackIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wsFailCountRef = useRef(0);
 
   // Build WebSocket URL for all symbols

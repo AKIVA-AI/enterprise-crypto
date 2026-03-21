@@ -12,7 +12,7 @@ class ResizeObserverMock {
   unobserve = vi.fn();
   disconnect = vi.fn();
 }
-global.ResizeObserver = ResizeObserverMock as any;
+(globalThis as any).ResizeObserver = ResizeObserverMock as any;
 
 // Mock IntersectionObserver
 class IntersectionObserverMock {
@@ -24,7 +24,7 @@ class IntersectionObserverMock {
   thresholds = [];
   takeRecords = vi.fn(() => []);
 }
-global.IntersectionObserver = IntersectionObserverMock as any;
+(globalThis as any).IntersectionObserver = IntersectionObserverMock as any;
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
