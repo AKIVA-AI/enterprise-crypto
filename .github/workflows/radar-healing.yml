@@ -8,9 +8,11 @@ on:
 
 jobs:
   heal:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-    uses: AKIVA-AI/radar-ci/.github/workflows/shared-radar-healing.yml@main
+    uses: AKIVA-AI/radar-ci/.github/workflows/shared-radar-healing.yml@v0.2.5
     with:
       python_version: '3.11'
-    secrets:
-      STANDARDS_TOKEN: ${{ secrets.STANDARDS_TOKEN }}
+      source_run_id: ${{ github.event.workflow_run.id }}
+      source_run_url: ${{ github.event.workflow_run.html_url }}
+      source_head_branch: ${{ github.event.workflow_run.head_branch }}
+      source_head_sha: ${{ github.event.workflow_run.head_sha }}
+      source_conclusion: ${{ github.event.workflow_run.conclusion }}
