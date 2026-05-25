@@ -80,5 +80,5 @@ opentelemetry-instrumentation-fastapi>=0.41b0
 opentelemetry-exporter-otlp-proto-grpc>=1.20.0
 
 # Error tracking
-sentry-sdk[fastapi]>=1.40.0
+sentry-sdk[fastapi]>=2.60.0
 
