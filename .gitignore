@@ -49,6 +49,12 @@ test-detailed.log
 test-final.log
 lint-output.txt
 
+# Python coverage
+htmlcov/
+.mypy_cache/
+.coverage
+coverage.xml
+
 .git_disabled/
 
 # Python
