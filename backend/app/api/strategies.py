@@ -9,7 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/strategies", tags=["strategies"])
+router = APIRouter(prefix="/strategies", tags=["strategies"])
 
 
 # Check FreqTrade availability at import time

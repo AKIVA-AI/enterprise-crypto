@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from app.database import get_supabase
 from app.middleware.security import RATE_LIMITS, get_rate_limiter
 
-router = APIRouter(prefix="/api/trading", tags=["trading"])
+router = APIRouter(prefix="/trading", tags=["trading"])
 limiter = get_rate_limiter()
 
 

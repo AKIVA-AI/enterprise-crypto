@@ -7,7 +7,9 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/arbitrage", tags=["arbitrage"])
+# EC-16: align with the canonical /api/v1 prefix the shared frontend client
+# already targets (it defaults to 'http://.../api/v1' + '/arbitrage/...').
+router = APIRouter(prefix="/arbitrage", tags=["arbitrage"])
 
 
 class ArbitrageConfigRequest(BaseModel):

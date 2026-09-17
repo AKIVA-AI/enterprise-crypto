@@ -12,7 +12,7 @@ from app.database import get_supabase
 from app.services.advanced_risk_engine import advanced_risk_engine
 from app.services.risk_engine import risk_engine
 
-router = APIRouter(prefix="/api/risk", tags=["risk"])
+router = APIRouter(prefix="/risk", tags=["risk"])
 
 
 class KillSwitchRequest(BaseModel):

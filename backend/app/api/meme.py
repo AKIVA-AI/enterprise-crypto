@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from app.database import get_supabase
 from app.services.meme_venture import meme_service
 
-router = APIRouter(prefix="/api/meme", tags=["meme"])
+router = APIRouter(prefix="/meme", tags=["meme"])
 
 
 class CreateProjectRequest(BaseModel):

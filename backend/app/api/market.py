@@ -7,7 +7,7 @@ from datetime import datetime
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/market", tags=["market"])
+router = APIRouter(prefix="/market", tags=["market"])
 
 
 class CandleResponse(BaseModel):

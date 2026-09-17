@@ -6,7 +6,7 @@ from fastapi import APIRouter
 
 from app.database import get_supabase
 
-router = APIRouter(prefix="/api/venues", tags=["venues"])
+router = APIRouter(prefix="/venues", tags=["venues"])
 
 
 @router.get("")
