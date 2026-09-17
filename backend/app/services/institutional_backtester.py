@@ -253,8 +253,15 @@ class InstitutionalBacktester:
             # Record equity point
             self._record_equity(current_time, current_price)
 
-        # Close any remaining positions at end
+        # Close any remaining positions at end (EC-11: this final liquidation
+        # must be reflected in the terminal equity point, not omitted).
         self._close_all_positions(df.iloc[-1])
+
+        # EC-11: re-record terminal equity AFTER liquidation so the last equity
+        # point reflects all exit fees and forced flat position.
+        final_time = pd.to_datetime(df.iloc[-1]["date"])
+        final_price = float(df.iloc[-1]["close"])
+        self._record_equity(final_time, final_price)
 
         # Calculate metrics for this split
         metrics = None
@@ -387,8 +394,16 @@ class InstitutionalBacktester:
         net_pnl = pnl - exit_fees
         pnl_percent = net_pnl / (position.entry_price * position.size)
 
-        # Update cash
-        self._cash += (exit_price * position.size) - exit_fees
+        # EC-11: update cash using the side-correct formula. Short: cash was
+        # debited on entry; on close it should CREDIT (entry_value + pnl) minus
+        # fees, not the long-sale formula.
+        if position.side == "long":
+            cash_out = (exit_price * position.size) - exit_fees
+        else:
+            entry_value = position.entry_price * position.size
+            cash_out = entry_value + pnl - exit_fees
+
+        self._cash += cash_out
 
         # Record trade
         self._trades.append(

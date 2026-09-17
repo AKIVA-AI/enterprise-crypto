@@ -160,9 +160,18 @@ class CoinbaseAdapter(VenueAdapter):
         return await self._place_live_order(order)
 
     async def _place_live_order(self, order: Order) -> Order:
-        """Place a real order on Coinbase."""
+        """Place a real order on Coinbase.
+
+        EC-10: Coinbase Create Order returns `success_response.order_id`, not a
+        bare `order_id`. Use a stable, reused client_order_id so a lost response
+        lands idempotently. Never guess a $50,000 price — a market buy requires
+        a REAL quote_size derived from a resolved price, or it must fail loudly.
+        """
+        # Stable client order id bound to the durable order id (EC-06/EC-10).
+        client_order_id = str(order.id)
+
         order_config = {
-            "client_order_id": str(order.id),
+            "client_order_id": client_order_id,
             "product_id": order.instrument,
             "side": order.side.value.upper(),
         }
@@ -170,18 +179,29 @@ class CoinbaseAdapter(VenueAdapter):
         # Order type configuration
         if order.order_type == "market":
             if order.side == OrderSide.BUY:
+                # EC-01: never hardcode a price. quote_size IS the USD notional
+                # when price is resolved upstream in the OMS.
+                if order.price is None or order.price <= 0:
+                    order.status = OrderStatus.REJECTED
+                    logger.error(
+                        "live_market_buy_needs_price",
+                        order_id=str(order.id),
+                        instrument=order.instrument,
+                    )
+                    return order
+                quote_size = order.size * order.price
                 order_config["order_configuration"] = {
-                    "market_market_ioc": {
-                        "quote_size": str(
-                            order.size * (order.price or 50000)
-                        )  # Approximate USD value
-                    }
+                    "market_market_ioc": {"quote_size": f"{quote_size:.2f}"}
                 }
             else:
                 order_config["order_configuration"] = {
                     "market_market_ioc": {"base_size": str(order.size)}
                 }
         else:  # limit order
+            if order.price is None or order.price <= 0:
+                order.status = OrderStatus.REJECTED
+                logger.error("live_limit_needs_price", order_id=str(order.id))
+                return order
             order_config["order_configuration"] = {
                 "limit_limit_gtc": {
                     "base_size": str(order.size),
@@ -199,9 +219,10 @@ class CoinbaseAdapter(VenueAdapter):
             latency_ms = int((time.time() - start_time) * 1000)
             order.latency_ms = latency_ms
 
-            if response.get("success"):
-                response.get("order_configuration", {})
-                order.venue_order_id = response.get("order_id")
+            # EC-10: nested acknowledgement shape.
+            success_resp = response.get("success_response")
+            if response.get("success") and isinstance(success_resp, dict):
+                order.venue_order_id = success_resp.get("order_id")
                 order.status = OrderStatus.OPEN
 
                 logger.info(
@@ -212,8 +233,10 @@ class CoinbaseAdapter(VenueAdapter):
                 )
             else:
                 order.status = OrderStatus.REJECTED
-                error_msg = response.get("error_response", {}).get(
-                    "message", "Unknown error"
+                error_msg = (
+                    response.get("error_response", {}).get("message", "Unknown error")
+                    if isinstance(response.get("error_response"), dict)
+                    else "Unknown error"
                 )
                 logger.error(
                     "live_order_rejected", order_id=str(order.id), error=error_msg
