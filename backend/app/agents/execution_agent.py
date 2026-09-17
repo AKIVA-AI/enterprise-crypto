@@ -303,11 +303,14 @@ class ExecutionAgent(BaseAgent):
         return healthy_venues[0]
 
     async def _execute_order(self, order: Dict, venue: str) -> Dict:
-        """Execute order on venue"""
-        start_time = datetime.utcnow()
+        """Execute order on venue.
 
-        # Simulated execution (would call actual venue adapter in production)
-        # This is where you'd integrate with the Coinbase adapter
+        EC-18: this path is a SIMULATION placeholder, not real venue execution.
+        Never present a random fill as a live venue outcome. In production the
+        real venue adapter (e.g. CoinbaseAdapter.place_order) must be used; this
+        fallback only runs when no live adapter is registered.
+        """
+        start_time = datetime.utcnow()
 
         try:
             # Simulate execution latency
@@ -328,13 +331,17 @@ class ExecutionAgent(BaseAgent):
             return {
                 "success": True,
                 "order_id": order["id"],
-                "venue_order_id": f"{venue}_{uuid4().hex[:8]}",
+                "venue_order_id": f"SIMULATED-{venue}-{uuid4().hex[:8]}",
                 "filled_price": filled_price,
                 "filled_size": order["size_base"],
                 "slippage": slippage,
                 "latency_ms": latency_ms,
                 "fee": order["size_usd"] * 0.001,  # 0.1% fee
                 "executed_at": datetime.utcnow().isoformat(),
+                # EC-18: explicit simulation tag so downstream accounting/audit
+                # cannot confuse this with a venue fill.
+                "simulation": True,
+                "simulated_by": "execution_agent_fallback",
             }
 
         except Exception as e:
