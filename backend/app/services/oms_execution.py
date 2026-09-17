@@ -60,6 +60,24 @@ class OMSExecutionService:
     CRITICAL: This is the ONLY service that writes to the orders table.
     """
 
+    async def _resolve_executable_price(self, intent: TradeIntent, venue_name: str) -> Optional[float]:
+        """EC-01: resolve the current executable price for the intent instrument,
+        used to convert USD notional to base-asset quantity.
+
+        Returns None when no usable price is available — the caller MUST then
+        refuse to size an order rather than submit a broken quantity.
+        """
+        try:
+            last = await market_data_service.get_price(venue_name, intent.instrument)
+            if not last:
+                return None
+            price = last.get("price")
+            if isinstance(price, (int, float)) and price > 0 and float(price) == float(price):
+                return float(price)
+            return None
+        except Exception:
+            return None
+
     # Execution cost thresholds
     MIN_EDGE_BUFFER_BPS = 10  # 10 basis points buffer required above costs
 
@@ -220,6 +238,16 @@ class OMSExecutionService:
             await self._update_basis_strategy_positions(intent, executed_orders)
             return executed_orders[-1] if executed_orders else None
 
+        # Create order. EC-01: position_size is a USD notional budget; convert
+        # to base-asset quantity at the current executable price. Refuse to
+        # submit when no price is available — a market order submitted without a
+        # resolved price is a broken intent.
+        price = await self._resolve_executable_price(intent, venue_name)
+        if price is None:
+            logger.error("no_executable_price", intent_id=str(intent.id), venue=venue_name)
+            return None
+        quantity = position_size / price
+
         # Create order
         order = Order(
             id=uuid4(),
@@ -228,7 +256,8 @@ class OMSExecutionService:
             venue_id=venue_id,
             instrument=intent.instrument,
             side=intent.direction,
-            size=position_size,
+            size=quantity,
+            price=price,
             order_type="market",
             status=OrderStatus.OPEN,
         )

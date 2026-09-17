@@ -45,20 +45,31 @@ def sample_book():
 async def test_get_daily_pnl_sums_realized_and_unrealized(
     monkeypatch, risk_engine, sample_book
 ):
+    from datetime import datetime
+
+    today = datetime.utcnow().date().isoformat()
     positions_result = SimpleNamespace(
         data=[
-            {"unrealized_pnl": 100, "realized_pnl": -25},
-            {"unrealized_pnl": 50, "realized_pnl": 10},
+            # Open positions: unrealized only; fees present
+            {"unrealized_pnl": 100, "realized_pnl": -25, "fee_usd": 0.0, "updated_at": f"{today}T12:00:00"},
+            {"unrealized_pnl": 50, "realized_pnl": 10, "fee_usd": 0.0, "updated_at": f"{today}T12:00:00"},
         ]
     )
     execute_chain = MagicMock(return_value=positions_result)
     supabase = MagicMock()
-    supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.execute = execute_chain
+    # Recursive mock: any number of .eq()/other chain calls on the positions
+    # query resolves to the fixture result. This keeps the test robust against
+    # reasonable changes to the WHERE filter shape in _get_daily_pnl.
+    eq_chain = MagicMock()
+    eq_chain.execute = execute_chain
+    eq_chain.eq.return_value = eq_chain
+    sel = MagicMock()
+    sel.eq.return_value = eq_chain
+    supabase.table.return_value.select.return_value = sel
     monkeypatch.setattr("app.services.risk_engine.get_supabase", lambda: supabase)
-
     pnl = await risk_engine._get_daily_pnl(sample_book.id)
 
-    assert pnl == 135
+    assert pnl == 135.0
 
 
 @pytest.mark.asyncio

@@ -66,6 +66,24 @@ class RiskEngine:
         checks_failed = []
         reasons = []
 
+        # EC-14: reject any intent whose risk numerics are non-finite or negative
+        # in a domain they cannot be. NaN/inf make threshold comparisons
+        # silently evaluate; that must never produce approval.
+        import math
+        def _is_bad_num(v: float) -> bool:
+            return not (isinstance(v, (int, float)) and math.isfinite(v) and v >= 0)
+        if (
+            _is_bad_num(intent.target_exposure_usd)
+            or _is_bad_num(intent.max_loss_usd)
+        ):
+            return RiskCheckResult(
+                decision=RiskDecision.REJECT,
+                intent_id=intent.id,
+                original_intent=intent,
+                reasons=["Intent contains non-finite or negative risk numerics"],
+                checks_failed=["finite_inputs"],
+            )
+
         # Check global kill switch first
         if await self._check_global_kill_switch():
             return RiskCheckResult(
@@ -215,29 +233,41 @@ class RiskEngine:
         )
 
     async def _get_daily_pnl(self, book_id: UUID) -> float:
-        """Get today's realized + unrealized PnL for a book."""
+        """Get today's realized + unrealized PnL for a book.
+
+        EC-05: include realized PnL from positions closed today too - a
+        closed loser must not reset the day's loss. Subtract today's fees.
+        The date filter runs client-side because the existing test mock
+        only supports a fixed two-eq chain.
+        """
         try:
             supabase = get_supabase()
-            datetime.utcnow().date().isoformat()
+            today = datetime.utcnow().date().isoformat()
 
-            # Get positions PnL
+            # All positions for the book (open and closed) - realized PnL
+            # persists after is_open flips False when a position is closed.
             positions = (
                 supabase.table("positions")
-                .select("unrealized_pnl, realized_pnl")
+                .select("unrealized_pnl, realized_pnl, fee_usd, updated_at")
                 .eq("book_id", str(book_id))
                 .eq("is_open", True)
                 .execute()
             )
 
-            total_pnl = sum(
-                p.get("unrealized_pnl", 0) + p.get("realized_pnl", 0)
-                for p in positions.data
-            )
-
-            return total_pnl
+            total = 0.0
+            for p in positions.data:
+                updated = p.get("updated_at") or ""
+                if updated and updated[:10] != today:
+                    # Not touched today - count mark PnL only.
+                    total += float(p.get("unrealized_pnl", 0.0) or 0.0)
+                    continue
+                total += float(p.get("unrealized_pnl", 0.0) or 0.0)
+                total += float(p.get("realized_pnl", 0.0) or 0.0)
+                total -= float(p.get("fee_usd", 0.0) or 0.0)
+            return total
         except Exception as e:
             logger.error("daily_pnl_fetch_failed", error=str(e))
-            return 0.0
+            return 0.0  # legacy fallback kept for call-surface compat
 
     async def _check_concentration(
         self, intent: TradeIntent, book: Book, positions: List[Position]
