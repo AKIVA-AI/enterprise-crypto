@@ -2,7 +2,17 @@
 Tests for observability integration: Sentry + OpenTelemetry (D9).
 """
 
+import sys
+
 from app.core.observability import init_sentry, init_tracing
+
+import pytest
+
+# Sentry's tracing/profiling requires a fork-multiprocessing context; on
+# Windows that's unavailable, so these init tests are Linux/macOS-only.
+_needs_fork = pytest.mark.skipif(
+    sys.platform == "win32", reason="Sentry fork context unavailable on Windows"
+)
 
 
 class TestSentryInit:
@@ -11,6 +21,7 @@ class TestSentryInit:
         result = init_sentry()
         assert result is False
 
+    @_needs_fork
     def test_sentry_initializes_with_dsn(self, monkeypatch):
         monkeypatch.setenv(
             "SENTRY_DSN", "https://examplePublicKey@o0.ingest.sentry.io/0"
@@ -19,6 +30,7 @@ class TestSentryInit:
         result = init_sentry()
         assert result is True
 
+    @_needs_fork
     def test_sentry_respects_sample_rates(self, monkeypatch):
         monkeypatch.setenv(
             "SENTRY_DSN", "https://examplePublicKey@o0.ingest.sentry.io/0"
