@@ -1076,8 +1076,12 @@ serve(async (req) => {
         
         // Update order with fill
         const orderStatus = fill.filledSize >= order.size ? 'filled' : 'open';
-        
-        await supabase
+
+        // EC-07: every post-execution write is checked. A failed write returns
+        // an explicit partial-recorded state rather than silently claiming success.
+        let writeErr: string | null = null;
+
+        const orderUpdateRes = await supabase
           .from('orders')
           .update({
             filled_size: fill.filledSize,
@@ -1087,9 +1091,12 @@ serve(async (req) => {
             status: orderStatus,
           })
           .eq('id', newOrder.id);
+        if (orderUpdateRes.error) {
+          writeErr = `orders.update: ${orderUpdateRes.error.message}`;
+        }
 
         // Create fill record
-        await supabase.from('fills').insert({
+        const fillInsRes = await supabase.from('fills').insert({
           order_id: newOrder.id,
           instrument: order.instrument,
           side: order.side,
@@ -1098,6 +1105,11 @@ serve(async (req) => {
           fee: fill.fee,
           venue_id: venueData?.id,
         });
+        if (fillInsRes.error) {
+          writeErr = writeErr
+            ? `${writeErr}; fills.insert: ${fillInsRes.error.message}`
+            : `fills.insert: ${fillInsRes.error.message}`;
+        }
 
         // Update position if filled
         if (fill.filledSize > 0) {
@@ -1144,7 +1156,27 @@ serve(async (req) => {
 
         console.log(`Order ${newOrder.id} executed: ${fill.filledSize}@${fill.filledPrice}`);
 
-        return new Response(JSON.stringify({ 
+        // EC-07: report persistence gaps honestly — never claim success=true
+        // when any post-execution write failed.
+        if (writeErr) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: `Partial persistence failure after fill: ${writeErr}`,
+            order: {
+              id: newOrder.id,
+              status: orderStatus,
+              filledSize: fill.filledSize,
+              filledPrice: fill.filledPrice,
+            },
+            mode: executionMode,
+            persistence_error: true,
+          }), {
+            status: 207, // Multi-Status: partial persistence; the venue fill exists but the ledger may not.
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        return new Response(JSON.stringify({
           success: true,
           order: {
             id: newOrder.id,
