@@ -109,7 +109,7 @@ class LiveReconciliationService:
             query = (
                 supabase.table("orders")
                 .select(
-                    "id, instrument, side, size, filled_size, price, filled_price, status, venue_id"
+                    "id, instrument, side, size, filled_size, price, filled_price, status, venue_id, venue_order_id"
                 )
                 .not_.eq("status", "cancelled")
                 .not_.eq("status", "rejected")
@@ -169,21 +169,29 @@ class LiveReconciliationService:
     async def _reconcile_single_order(
         self, internal_order: Dict, venue_orders: Dict, venue_fills: List, venue: str
     ) -> OrderReconciliation:
-        """Reconcile a single order."""
+        """Reconcile a single order.
+
+        EC-13: match on the persisted venue_order_id. The internal UUID is not
+        the venue identity. If an order has no venue_order_id yet, it has not
+        reached the venue — reconcile it as 'not_submitted', not 'not_found'.
+        """
         discrepancies = []
         order_id = internal_order["id"]
+        stored_venue_id = internal_order.get("venue_order_id")
 
-        # Try to find matching venue order
-        venue_order = venue_orders.get(order_id)
+        # EC-13: match on the venue identity persisted at submission time.
+        venue_order = venue_orders.get(stored_venue_id) if stored_venue_id else None
 
         # Check status
         internal_status = internal_order.get("status", "unknown")
         venue_status = (
             venue_order.get("status", "not_found") if venue_order else "not_found"
         )
+        if not stored_venue_id:
+            venue_status = "not_submitted"
 
         status_match = self._compare_status(internal_status, venue_status)
-        if not status_match:
+        if not status_match and stored_venue_id:
             discrepancies.append(
                 f"Status mismatch: internal={internal_status}, venue={venue_status}"
             )

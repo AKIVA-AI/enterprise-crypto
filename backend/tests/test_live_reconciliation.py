@@ -115,10 +115,18 @@ class TestCompareStatus:
 class TestReconcileSingleOrder:
     @pytest.mark.asyncio
     async def test_match(self, service):
-        io = {"id": "o1", "status": "filled", "filled_size": 1, "filled_price": 50000}
+        # EC-13: the venue identity is the persisted venue_order_id, not the
+        # internal UUID.
+        io = {
+            "id": "o1",
+            "status": "filled",
+            "filled_size": 1,
+            "filled_price": 50000,
+            "venue_order_id": "v-o1",
+        }
         vo = {
-            "o1": {
-                "id": "o1",
+            "v-o1": {
+                "id": "v-o1",
                 "status": "filled",
                 "filled_quantity": 1,
                 "average_fill_price": 50000,
@@ -129,16 +137,34 @@ class TestReconcileSingleOrder:
 
     @pytest.mark.asyncio
     async def test_not_found(self, service):
+        # A submitted order whose stored venue id has no live match is 'not_found';
+        # an order that was never submitted has venue_status 'not_submitted'.
         io = {"id": "o1", "status": "open", "filled_size": 0, "filled_price": None}
         r = await service._reconcile_single_order(io, {}, [], "binance")
-        assert r.venue_status == "not_found"
+        assert r.venue_status == "not_submitted"
+
+        io2 = {
+            "id": "o2",
+            "status": "open",
+            "filled_size": 0,
+            "filled_price": None,
+            "venue_order_id": "v-o2",
+        }
+        r2 = await service._reconcile_single_order(io2, {}, [], "binance")
+        assert r2.venue_status == "not_found"
 
     @pytest.mark.asyncio
     async def test_status_mismatch(self, service):
-        io = {"id": "o1", "status": "open", "filled_size": 0, "filled_price": None}
+        io = {
+            "id": "o1",
+            "status": "open",
+            "filled_size": 0,
+            "filled_price": None,
+            "venue_order_id": "v-o1",
+        }
         vo = {
-            "o1": {
-                "id": "o1",
+            "v-o1": {
+                "id": "v-o1",
                 "status": "filled",
                 "filled_quantity": 1,
                 "average_fill_price": 50000,
@@ -149,10 +175,16 @@ class TestReconcileSingleOrder:
 
     @pytest.mark.asyncio
     async def test_size_mismatch(self, service):
-        io = {"id": "o1", "status": "filled", "filled_size": 1, "filled_price": 50000}
+        io = {
+            "id": "o1",
+            "status": "filled",
+            "filled_size": 1,
+            "filled_price": 50000,
+            "venue_order_id": "v-o1",
+        }
         vo = {
-            "o1": {
-                "id": "o1",
+            "v-o1": {
+                "id": "v-o1",
                 "status": "filled",
                 "filled_quantity": 0.8,
                 "average_fill_price": 50000,
@@ -163,10 +195,16 @@ class TestReconcileSingleOrder:
 
     @pytest.mark.asyncio
     async def test_price_mismatch(self, service):
-        io = {"id": "o1", "status": "filled", "filled_size": 1, "filled_price": 50000}
+        io = {
+            "id": "o1",
+            "status": "filled",
+            "filled_size": 1,
+            "filled_price": 50000,
+            "venue_order_id": "v-o1",
+        }
         vo = {
-            "o1": {
-                "id": "o1",
+            "v-o1": {
+                "id": "v-o1",
                 "status": "filled",
                 "filled_quantity": 1,
                 "average_fill_price": 50500,
