@@ -1,0 +1,51 @@
+{
+  "source": "e603ddd7bb908d24321a640ba1ac646e5b043600",
+  "probe_count": 9,
+  "observed": {
+    "settings_read_error_passes_safety": {
+      "passed": true
+    },
+    "missing_paper_mode_defaults_to_live": {
+      "status": 200,
+      "mode": "live",
+      "mock_venue_submissions": 1
+    },
+    "missing_health_rows_override_known_unhealthy": {
+      "known_oms_status": "unhealthy",
+      "passed": true
+    },
+    "live_position_close_only_simulates_and_overstates_fill": {
+      "reported_closed_size": 10,
+      "simulated_filled_size": 5,
+      "db_is_open": false,
+      "venue_submissions": 0
+    },
+    "cancel_order_only_updates_database": {
+      "success": true,
+      "venue_requests": 0
+    },
+    "coinbase_acknowledgement_becomes_zero_price_full_fill": {
+      "venue_response": "success_response.order_id only",
+      "filled_size": 2,
+      "filled_price": 0
+    },
+    "post_execution_writes_fail_but_response_succeeds": {
+      "status": 200,
+      "success": true,
+      "failed_write_targets": [
+        "orders",
+        "fills",
+        "positions"
+      ]
+    },
+    "uncertain_submission_retried_with_new_client_ids": {
+      "submission_attempts": 3,
+      "unique_client_order_ids": 3
+    },
+    "frontend_api_client_uses_incompatible_default_route_and_no_session": {
+      "requested_url": "http://localhost:8000/api/arbitrage/status",
+      "authorization_header_present": false,
+      "backend_composed_path": "/api/v1/api/arbitrage/status"
+    }
+  }
+}

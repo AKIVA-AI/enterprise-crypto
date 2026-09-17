@@ -1,0 +1,91 @@
+
+ RUN  v4.0.16 C:/Users/ccana/Documents/augment-projects/enterprise-crypto
+      Coverage enabled with v8
+
+ ✓ src/lib/status-colors.test.ts (26 tests) 8ms
+ ✓ src/lib/tradingGate.test.ts (11 tests) 8ms
+ ✓ src/lib/symbolUtils.test.ts (28 tests) 11ms
+ ✓ src/lib/complianceEnforcement.test.ts (27 tests) 8ms
+ ✓ src/lib/instrumentParser.test.ts (22 tests) 10ms
+ ✓ src/lib/tradingModes.test.ts (18 tests) 9ms
+ ✓ src/lib/userModes.test.ts (26 tests) 10ms
+ ✓ src/lib/schemas.test.ts (27 tests) 21ms
+ ✓ src/components/dashboard/RiskGauge.test.tsx (23 tests) 109ms
+ ✓ src/hooks/__tests__/usePositions.test.ts (5 tests) 200ms
+ ✓ src/hooks/__tests__/useDashboardMetrics.test.ts (5 tests) 254ms
+ ✓ src/hooks/__tests__/useStrategies.test.ts (7 tests) 273ms
+ ✓ src/hooks/__tests__/useAlerts.test.ts (7 tests) 268ms
+ ✓ src/hooks/__tests__/useSystemHealth.test.ts (6 tests) 322ms
+ ✓ src/components/Accessibility.test.tsx (6 tests) 279ms
+ ✓ src/pages/Onboarding.test.tsx (8 tests) 509ms
+ ✓ src/components/positions/PositionManagementPanel.test.tsx (9 tests) 433ms
+ ✓ src/components/risk/AdvancedRiskDashboard.test.tsx (15 tests) 1130ms
+ ✓ src/components/trading/TradeTicket.test.tsx (8 tests) 1288ms
+       ✓ should render trade ticket with default values  340ms
+ ✓ src/components/risk/KillSwitchPanel.test.tsx (14 tests) 1289ms
+
+ Test Files  20 passed (20)
+      Tests  298 passed (298)
+   Start at  14:45:15
+   Duration  9.90s (transform 40.91s, setup 58.51s, import 8.25s, tests 6.44s, environment 83.46s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   74.69 |    59.12 |   75.73 |   76.86 |
+ components/auth   |      50 |    78.78 |   44.44 |   51.28 |
+  ...irmDialog.tsx |      50 |    78.78 |   44.44 |   51.28 | 62-78,83-89,181
+ ...ents/dashboard |   65.95 |       60 |    62.5 |    87.5 |
+  MetricCard.tsx   |     100 |     64.7 |     100 |     100 | 32,36-56
+  RiskGauge.tsx    |   66.66 |    76.47 |   66.66 |   72.72 | 21-23
+  ...tusBanner.tsx |   63.33 |    46.15 |      50 |   94.73 | 53
+ ...nts/onboarding |   53.33 |    66.66 |      50 |   57.14 |
+  ...ofileStep.tsx |      75 |      100 |   66.66 |      75 | 49
+  ...encesStep.tsx |      40 |       50 |   33.33 |   44.44 | 21-24,47,62
+  WelcomeStep.tsx  |     100 |      100 |     100 |     100 |
+ ...ents/positions |   51.88 |    32.47 |   41.17 |   50.98 |
+  ...mentPanel.tsx |   51.88 |    32.47 |   41.17 |   50.98 | ...42-555,586-696
+ components/risk   |   67.74 |    55.92 |      75 |   70.27 |
+  ...Dashboard.tsx |   71.18 |    47.69 |      72 |   73.07 | ...50-152,250-526
+  ...itchPanel.tsx |   64.61 |    62.06 |   78.94 |   67.79 | ...25,140-141,163
+ ...onents/trading |   71.71 |    59.09 |   73.07 |   78.16 |
+  TradeTicket.tsx  |   81.08 |    66.05 |   73.91 |   84.05 | ...73,291-300,398
+  ...thMonitor.tsx |      44 |    42.22 |   66.66 |   55.55 | 34-36,42-45,127
+ components/ui     |   96.22 |       75 |   89.36 |    96.1 |
+  alert-dialog.tsx |     100 |      100 |     100 |     100 |
+  alert.tsx        |      90 |      100 |   66.66 |      90 | 30
+  badge.tsx        |     100 |      100 |     100 |     100 |
+  button.tsx       |     100 |    66.66 |     100 |     100 | 46
+  card.tsx         |     100 |      100 |     100 |     100 |
+  dialog.tsx       |     100 |      100 |     100 |     100 |
+  input-otp.tsx    |   92.85 |      100 |      75 |   92.85 | 53
+  input.tsx        |     100 |      100 |     100 |     100 |
+  label.tsx        |     100 |      100 |     100 |     100 |
+  progress.tsx     |      50 |        0 |       0 |      50 | 14-20
+  select.tsx       |   91.66 |      100 |   71.42 |   91.66 | 96,127
+  separator.tsx    |     100 |       75 |     100 |     100 | 14
+  skeleton.tsx     |     100 |      100 |     100 |     100 |
+  slider.tsx       |     100 |      100 |     100 |     100 |
+  switch.tsx       |     100 |      100 |     100 |     100 |
+  tabs.tsx         |     100 |      100 |     100 |     100 |
+  tooltip.tsx      |     100 |      100 |     100 |     100 |
+ hooks             |   66.91 |    49.33 |   77.08 |   69.16 |
+  useAlerts.ts     |   81.48 |       80 |      90 |    87.5 | 40-44
+  ...ardMetrics.ts |     100 |    59.09 |     100 |     100 | 37-54
+  usePositions.ts  |    90.9 |      100 |      80 |      90 | 35
+  useStrategies.ts |   42.85 |    31.81 |   55.55 |   45.23 | 43-103
+  ...stemHealth.ts |   67.64 |    36.84 |      90 |   65.51 | 106-123
+ lib               |   83.22 |    72.95 |   91.78 |   83.27 |
+  ...nforcement.ts |   90.24 |    81.48 |     100 |   94.44 | 186-187
+  ...mentParser.ts |   82.19 |    77.08 |     100 |   82.19 | 54-57,132-152,221
+  schemas.ts       |   95.74 |       75 |   88.88 |   97.67 | 43
+  status-colors.ts |     100 |    85.71 |     100 |     100 | 255-270
+  symbolUtils.ts   |     100 |     87.5 |     100 |     100 | 89,95
+  tradingGate.ts   |      40 |    41.66 |      50 |      40 | ...48,172,191-277
+  tradingModes.ts  |    87.5 |      100 |    90.9 |   84.61 | 294-296
+  userModes.ts     |     100 |      100 |     100 |     100 |
+  utils.ts         |     100 |      100 |     100 |     100 |
+ pages             |    92.3 |      100 |   83.33 |    92.3 |
+  Onboarding.tsx   |    92.3 |      100 |   83.33 |    92.3 | 61
+-------------------|---------|----------|---------|---------|-------------------

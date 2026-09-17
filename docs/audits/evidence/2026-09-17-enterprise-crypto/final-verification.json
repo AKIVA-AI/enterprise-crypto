@@ -1,0 +1,97 @@
+[
+  {
+    "name": "core-probes",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\docs\\audits\\evidence\\2026-09-17-enterprise-crypto\\reproduce.py",
+      "--repo",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "analytics-probes",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\docs\\audits\\evidence\\2026-09-17-enterprise-crypto\\analytics_probes.py",
+      "--repo",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "edge-probes",
+    "command": [
+      "node",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\docs\\audits\\evidence\\2026-09-17-enterprise-crypto\\edge_probes.cjs",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "evidence-ruff",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "ruff",
+      "check",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\docs\\audits\\evidence\\2026-09-17-enterprise-crypto",
+      "--select",
+      "F,I",
+      "--output-format=concise"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "evidence-format",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "ruff",
+      "format",
+      "--check",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\docs\\audits\\evidence\\2026-09-17-enterprise-crypto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "evidence-eslint",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\docs\\audits\\evidence\\2026-09-17-enterprise-crypto\\edge_probes.cjs",
+      "--max-warnings=0"
+    ],
+    "exit_code": 0
+  },
+  {
+    "changed_tracked_source_hashes": [
+      "docs/CODEBASE_MAP.md"
+    ],
+    "preserved_preexisting_deletions": [
+      ".coverage",
+      "backend/app/api/schemas/__pycache__/__init__.cpython-312.pyc",
+      "backend/app/api/schemas/__pycache__/backtest_schemas.cpython-312.pyc",
+      "backend/app/gpu/__pycache__/__init__.cpython-312.pyc",
+      "backend/app/gpu/__pycache__/cuda_engine.cpython-312.pyc",
+      "backend/app/gpu/__pycache__/ml_inference.cpython-312.pyc",
+      "backend/app/gpu/__pycache__/optimizations.cpython-312.pyc",
+      "backend/data/freqtrade/strategies/__pycache__/AkivaMomentumStrategy.cpython-312.pyc",
+      "backend/data/freqtrade/strategies/__pycache__/AkivaTrendStrategy.cpython-312.pyc",
+      "data/freqtrade/strategies/__pycache__/AkivaBaseStrategy.cpython-312.pyc",
+      "data/freqtrade/strategies/__pycache__/AkivaFreqAIStrategy.cpython-312.pyc",
+      "user_data/exchanges/__pycache__/__init__.cpython-312.pyc",
+      "user_data/exchanges/__pycache__/coinbase_futures.cpython-312.pyc",
+      "user_data/strategies/__pycache__/WhaleFlowScalper.cpython-312.pyc",
+      "user_data/strategies/__pycache__/WhaleFlowScalperSpot.cpython-312.pyc"
+    ],
+    "local_links_verified": 46,
+    "findings": {
+      "P1": 14,
+      "P2": 6
+    },
+    "vite_engine_requirement": {
+      "node": "^20.19.0 || >=22.12.0"
+    }
+  }
+]

@@ -1,0 +1,114 @@
+{
+  "source": "e603ddd7bb908d24321a640ba1ac646e5b043600",
+  "probe_count": 16,
+  "observed": {
+    "usd_notional_used_as_base_quantity": {
+      "target_exposure_usd": 1000,
+      "adapter_order_size": 1000.0,
+      "base_quantity_at_fixture_price_50000": 0.02
+    },
+    "same_intent_executes_twice": {
+      "venue_submissions": 2,
+      "different_client_order_ids": true
+    },
+    "manual_limit_order_contract_lost": {
+      "requested_size": 2,
+      "requested_price": 100,
+      "requested_type": "limit",
+      "submitted_size": 200.0,
+      "submitted_price": null,
+      "submitted_type": "market"
+    },
+    "filled_order_relabelled_rejected_after_save_error": {
+      "status": "rejected",
+      "filled_size": 1000.0,
+      "save_attempts": 2
+    },
+    "oms_drops_venue_order_id": {
+      "input_venue_order_id": "real-venue-id",
+      "stored_venue_order_id": null
+    },
+    "oms_cancel_without_persisted_id_skips_venue": {
+      "success": true,
+      "venue_cancel_calls": 0
+    },
+    "reduce_only_accepts_position_flip": {
+      "existing_notional": 500,
+      "proposed_opposite_notional": 10000,
+      "classified_reducing": true
+    },
+    "book_cache_does_not_observe_external_freeze": {
+      "cached_status_after_db_update": "active",
+      "cache_has_expiry": false
+    },
+    "risk_missing_control_data_is_permissive": {
+      "empty_settings_kill_switch_active": false,
+      "failed_pnl_read_returns": 0.0
+    },
+    "nonfinite_intent_approved": {
+      "target_exposure": "NaN",
+      "max_loss": "NaN",
+      "decision": "approve"
+    },
+    "daily_pnl_query_excludes_closed_and_has_no_date_filter": {
+      "filters": [
+        [
+          "book_id",
+          "fbdd0879-6791-49b3-990a-02986f770b26"
+        ],
+        [
+          "is_open",
+          true
+        ]
+      ],
+      "date_filter_calls": 0
+    },
+    "unwind_submits_reverse_order_for_rejected_zero_fill": {
+      "rejected_venue_orders": [
+        {
+          "side": "sell",
+          "size": 2.0
+        },
+        {
+          "side": "buy",
+          "size": 2.0
+        }
+      ],
+      "first_venue_orders": [
+        {
+          "side": "buy",
+          "size": 2.0
+        },
+        {
+          "side": "sell",
+          "size": 2.0
+        }
+      ]
+    },
+    "planner_loses_filled_leg_when_persistence_fails": {
+      "venue_submissions": [
+        {
+          "side": "buy",
+          "size": 2.0
+        }
+      ],
+      "unwind_submissions": 0
+    },
+    "next_leg_ignores_partial_fill_size": {
+      "first_requested": 2.0,
+      "first_filled": 0.5,
+      "second_requested": 2.0
+    },
+    "alternate_gateway_ignores_persistence_failure": {
+      "success": true,
+      "write_success": false,
+      "production_callers_found": false
+    },
+    "coinbase_default_price_and_nested_ack": {
+      "instrument": "ETH-USD",
+      "requested_base_size": 2,
+      "quote_size_sent": "100000.0",
+      "nested_order_id_saved": null
+    }
+  }
+}

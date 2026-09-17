@@ -1,0 +1,970 @@
+........................................................................ [  5%]
+........................................................................ [ 11%]
+........................................................................ [ 17%]
+........................................................................ [ 23%]
+........................................................................ [ 29%]
+........................................................................ [ 35%]
+........................................................................ [ 41%]
+........................................................................ [ 47%]
+..........................................ss............................ [ 53%]
+........................................................................ [ 59%]
+........................................................................ [ 65%]
+.....................................FF................................. [ 71%]
+........................................................................ [ 77%]
+........................................................................ [ 83%]
+........................................................................ [ 89%]
+........................................................................ [ 95%]
+........................................................                 [100%]
+================================== FAILURES ===================================
+_______________ TestSentryInit.test_sentry_initializes_with_dsn _______________
+
+self = <tests.test_observability.TestSentryInit object at 0x000002226A5FE930>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002226EB01280>
+
+    def test_sentry_initializes_with_dsn(self, monkeypatch):
+        monkeypatch.setenv(
+            "SENTRY_DSN", "https://examplePublicKey@o0.ingest.sentry.io/0"
+        )
+        monkeypatch.setenv("ENVIRONMENT", "test")
+        result = init_sentry()
+>       assert result is True
+E       assert False is True
+
+tests\test_observability.py:20: AssertionError
+---------------------------- Captured stdout call -----------------------------
+2026-09-17T18:46:56.032645Z [error    ] sentry_init_failed             error=cannot find context for 'fork'
+______________ TestSentryInit.test_sentry_respects_sample_rates _______________
+
+self = <tests.test_observability.TestSentryInit object at 0x000002226A5FE180>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000022272C44E60>
+
+    def test_sentry_respects_sample_rates(self, monkeypatch):
+        monkeypatch.setenv(
+            "SENTRY_DSN", "https://examplePublicKey@o0.ingest.sentry.io/0"
+        )
+        monkeypatch.setenv("SENTRY_TRACES_SAMPLE_RATE", "0.5")
+        monkeypatch.setenv("SENTRY_PROFILES_SAMPLE_RATE", "0.25")
+        result = init_sentry()
+>       assert result is True
+E       assert False is True
+
+tests\test_observability.py:29: AssertionError
+---------------------------- Captured stdout call -----------------------------
+2026-09-17T18:46:56.494973Z [error    ] sentry_init_failed             error=cannot find context for 'fork'
+============================== warnings summary ===============================
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PushDataV3ApiWrapper.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicDealsV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicIncreaseDepthsV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicLimitDepthsV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PrivateOrdersV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicBookTickerV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PrivateDealsV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PrivateAccountV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicSpotKlineV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicMiniTickerV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicMiniTickersV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicBookTickerBatchV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicIncreaseDepthsBatchV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicAggreDepthsV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicAggreDealsV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+..\..\..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\google\protobuf\runtime_version.py:98: UserWarning: Protobuf gencode version 5.29.3 is exactly one major version older than the runtime version 6.31.1 at PublicAggreBookTickerV3Api.proto. Please update the gencode to avoid compatibility violations in the next runtime release.
+    warnings.warn(
+
+tests/test_adapter_coverage.py: 10 warnings
+tests/test_adapters.py: 10 warnings
+tests/test_allocator_integration.py: 1 warning
+tests/test_arbitrage_engine.py: 8 warnings
+tests/test_backtesting_service.py: 57 warnings
+tests/test_basis_integration.py: 1 warning
+tests/test_edge_cost_model.py: 2 warnings
+tests/test_engine_runner.py: 33 warnings
+tests/test_risk_engine.py: 23 warnings
+tests/test_risk_engine_controls.py: 2 warnings
+tests/test_risk_engine_edge_cases.py: 11 warnings
+tests/test_scanner_to_oms_cost_gate.py: 3 warnings
+tests/test_spot_arb_integration.py: 7 warnings
+tests/test_spot_arb_scanner.py: 1 warning
+tests/test_trading_engine_coverage.py: 40 warnings
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\pydantic\main.py:253: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+
+tests/test_adapter_coverage.py::TestCoinbase::test_health_not_connected
+tests/test_adapter_coverage.py::TestCoinbase::test_health_connected
+tests/test_adapters.py::TestCoinbaseAdapter::test_health_check
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\adapters\coinbase_adapter.py:431: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self._last_health_check = datetime.utcnow()
+
+tests/test_adapter_coverage.py::TestKraken::test_health_down
+tests/test_adapters.py::TestKrakenAdapter::test_health_check_connected
+tests/test_adapters.py::TestKrakenAdapter::test_health_check_disconnected
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\adapters\kraken_adapter.py:182: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    last_heartbeat=datetime.utcnow(),
+
+tests/test_adapter_coverage.py::TestMEXC::test_health_connected
+tests/test_adapter_coverage.py::TestMEXC::test_health_futures_instr
+tests/test_adapters.py::TestMEXCAdapter::test_health_check
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\adapters\mexc_adapter.py:515: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self._last_health_check = datetime.utcnow()
+
+tests/test_adapter_coverage.py::TestDEX::test_health_connected
+tests/test_adapter_coverage.py::TestDEX::test_health_disconnected
+tests/test_adapters.py::TestDEXAdapter::test_health_check
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\adapters\dex_adapter.py:462: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    last_heartbeat=datetime.utcnow(),
+
+tests/test_adapter_coverage.py::TestDEX::test_sim_quote
+tests/test_adapter_coverage.py::TestDEX::test_sim_swap
+tests/test_adapter_coverage.py::TestDEX::test_get_quote
+tests/test_adapter_coverage.py::TestDEX::test_execute_swap_paper
+tests/test_adapter_coverage.py::TestDEX::test_swap_updates_balances
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\adapters\dex_adapter.py:267: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=datetime.utcnow(),
+
+tests/test_adapter_coverage.py::TestDEX::test_sim_swap
+tests/test_adapter_coverage.py::TestDEX::test_execute_swap_paper
+tests/test_adapter_coverage.py::TestDEX::test_swap_updates_balances
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\adapters\dex_adapter.py:319: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    tx_hash=f"0x{hashlib.sha256(str(datetime.utcnow()).encode()).hexdigest()}",
+
+tests/test_adapter_coverage.py::TestDEX::test_sim_swap
+tests/test_adapter_coverage.py::TestDEX::test_execute_swap_paper
+tests/test_adapter_coverage.py::TestDEX::test_swap_updates_balances
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\adapters\dex_adapter.py:327: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_adapter_coverage.py::TestDEX::test_execute_swap_live_raises
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_adapter_coverage.py:279: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=datetime.utcnow(),
+
+tests/test_adapter_coverage.py::TestSwapDC::test_quote
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_adapter_coverage.py:309: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=datetime.utcnow(),
+
+tests/test_adapter_coverage.py::TestSwapDC::test_result
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_adapter_coverage.py:323: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_var_at_known_confidence_levels
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_var_ordering_by_confidence
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_expected_shortfall_exceeds_var
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_es_is_average_of_tail_losses
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_var_values_are_positive
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_calculation_date_set
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\advanced_risk_engine.py:344: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    calculation_date=datetime.utcnow(),
+
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_es_is_average_of_tail_losses
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\core\fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+    return _methods._mean(a, axis=axis, dtype=dtype,
+
+tests/test_advanced_risk_coverage.py::TestHistoricalVaR::test_es_is_average_of_tail_losses
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+    ret = ret.dtype.type(ret / rcount)
+
+tests/test_advanced_risk_coverage.py::TestParametricVaR::test_parametric_var_with_known_distribution
+tests/test_advanced_risk_coverage.py::TestParametricVaR::test_parametric_var_ordering
+tests/test_advanced_risk_coverage.py::TestParametricVaR::test_parametric_es_calculation
+tests/test_advanced_risk_coverage.py::TestParametricVaR::test_parametric_var_scales_with_volatility
+tests/test_advanced_risk_coverage.py::TestParametricVaR::test_parametric_var_scales_with_volatility
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\advanced_risk_engine.py:377: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    calculation_date=datetime.utcnow(),
+
+tests/test_advanced_risk_coverage.py::TestMonteCarloVaR::test_monte_carlo_var_returns_values
+tests/test_advanced_risk_coverage.py::TestMonteCarloVaR::test_monte_carlo_var_10000_sims_reasonable_range
+tests/test_advanced_risk_coverage.py::TestMonteCarloVaR::test_monte_carlo_var_ordering
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\advanced_risk_engine.py:413: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    calculation_date=datetime.utcnow(),
+
+tests/test_advanced_risk_coverage.py::TestReconcileVenue::test_returns_ok_when_no_mismatches
+tests/test_advanced_risk_coverage.py::TestReconcileVenue::test_returns_mismatch_with_mismatches_found
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\reconciliation.py:81: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow().isoformat(),
+
+tests/test_advanced_risk_coverage.py::TestReconcileVenue::test_returns_ok_when_no_mismatches
+tests/test_advanced_risk_coverage.py::TestReconcileVenue::test_returns_mismatch_with_mismatches_found
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\reconciliation.py:105: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self._last_recon_time[venue_name] = datetime.utcnow()
+
+tests/test_arbitrage_modules.py::test_funding_rate_opportunity_properties
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_arbitrage_modules.py:26: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    next_funding_time=datetime.utcnow() + timedelta(hours=3),
+
+tests/test_arbitrage_modules.py::test_funding_rate_opportunity_properties
+tests/test_arbitrage_modules.py::test_funding_rate_analyze_opportunity_handles_thresholds_and_direction
+tests/test_arbitrage_modules.py::test_funding_rate_scan_collects_profitable_opportunities
+tests/test_arbitrage_modules.py::test_cross_exchange_find_best_opportunity_and_sorting
+tests/test_arbitrage_modules.py::test_cross_exchange_find_best_opportunity_and_sorting
+tests/test_arbitrage_modules.py::test_statistical_arbitrage_calculates_stats_and_exit_signal
+tests/test_arbitrage_modules.py::test_arbitrage_engine_stats_and_lifecycle
+tests/test_arbitrage_modules.py::test_arbitrage_engine_stats_and_lifecycle
+  <string>:15: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_arbitrage_modules.py::test_funding_rate_opportunity_properties
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\arbitrage\funding_rate.py:61: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    delta = self.next_funding_time - datetime.utcnow()
+
+tests/test_arbitrage_modules.py::test_funding_rate_analyze_opportunity_handles_thresholds_and_direction
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_arbitrage_modules.py:50: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "next_funding_time": datetime.utcnow() + timedelta(hours=4),
+
+tests/test_arbitrage_modules.py::test_funding_rate_analyze_opportunity_handles_thresholds_and_direction
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_arbitrage_modules.py:63: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "next_funding_time": datetime.utcnow() + timedelta(hours=4),
+
+tests/test_arbitrage_modules.py::test_funding_rate_analyze_opportunity_handles_thresholds_and_direction
+tests/test_arbitrage_modules.py::test_funding_rate_scan_collects_profitable_opportunities
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\arbitrage\funding_rate.py:192: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    next_funding_time=rate_data.get("next_funding_time", datetime.utcnow()),
+
+tests/test_arbitrage_modules.py::test_funding_rate_scan_collects_profitable_opportunities
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_arbitrage_modules.py:85: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "next_funding_time": datetime.utcnow() + timedelta(hours=2),
+
+tests/test_arbitrage_modules.py::test_statistical_arbitrage_calculates_stats_and_exit_signal
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_arbitrage_modules.py:225: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    entry_time=datetime.utcnow(),
+
+tests/test_arbitrage_modules.py::test_triangular_arbitrage_paths_profit_and_scan
+tests/test_arbitrage_modules.py::test_triangular_arbitrage_paths_profit_and_scan
+tests/test_arbitrage_modules.py::test_triangular_arbitrage_paths_profit_and_scan
+  <string>:12: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_arbitrage_modules.py::test_arbitrage_engine_stats_and_lifecycle
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_arbitrage_modules.py:269: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    next_funding_time=datetime.utcnow() + timedelta(hours=1),
+
+tests/test_arbitrage_modules.py::test_arbitrage_engine_stats_and_lifecycle
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_arbitrage_modules.py:304: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    entry_time=datetime.utcnow(),
+
+tests/test_backtesting_service.py::TestDataclasses::test_backtest_trade_defaults
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_backtesting_service.py:102: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_backtesting_service.py: 12 warnings
+  <string>:10: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_with_signals
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_no_signals
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_strategy_errors
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_low_confidence_rejected
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_sell_side
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_multi_instrument
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_stored_in_running
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_equity_curve_populated
+tests/test_backtesting_service.py::TestRunBacktest::test_run_backtest_with_strategy_config
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\backtesting.py:469: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    result.end_time = datetime.utcnow()
+
+tests/test_basis_integration.py::test_basis_scanner_to_oms_unwind
+tests/test_execution_api.py::test_register_and_list_strategies
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\supabase\_sync\client.py:309: DeprecationWarning: The 'timeout' parameter is deprecated. Please configure it in the http client instead.
+    return SyncPostgrestClient(
+
+tests/test_basis_integration.py::test_basis_scanner_to_oms_unwind
+tests/test_execution_api.py::test_register_and_list_strategies
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\supabase\_sync\client.py:309: DeprecationWarning: The 'verify' parameter is deprecated. Please configure it in the http client instead.
+    return SyncPostgrestClient(
+
+tests/test_capital_allocation_agent.py: 43 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\capital_allocation_agent.py:171: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    decided_at=datetime.utcnow().isoformat(),
+
+tests/test_capital_allocation_agent.py: 43 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\capital_allocation_agent.py:145: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self._last_reallocation = datetime.utcnow()
+
+tests/test_capital_allocation_agent.py::TestReallocate::test_updates
+tests/test_capital_allocation_agent.py::TestReallocate::test_quarantined
+tests/test_capital_allocation_agent.py::TestReallocate::test_regime
+tests/test_capital_allocation_agent.py::TestReallocate::test_drawdown
+tests/test_capital_allocation_agent.py::TestCycle::test_reallocates
+tests/test_capital_allocation_agent.py::TestHooks::test_on_resume
+tests/test_capital_allocation_agent.py::TestEdgeCases::test_all_quarantined
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\capital_allocation_agent.py:404: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    decided_at=datetime.utcnow().isoformat(),
+
+tests/test_capital_allocation_agent.py::TestCycle::test_skip
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_capital_allocation_agent.py:304: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    a._last_reallocation = datetime.utcnow()
+
+tests/test_capital_allocation_agent.py::TestCycle::test_skip
+tests/test_capital_allocation_agent.py::TestCycle::test_reallocates
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\capital_allocation_agent.py:324: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_capital_allocation_agent.py::TestCycle::test_reallocates
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_capital_allocation_agent.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    a._last_reallocation = datetime.utcnow() - timedelta(seconds=120)
+
+tests/test_database_and_security.py::test_activate_and_deactivate_kill_switch
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\database.py:196: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "updated_at": datetime.utcnow().isoformat(),
+
+tests/test_database_and_security.py::test_activate_and_deactivate_kill_switch
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\database.py:211: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow().isoformat(),
+
+tests/test_database_and_security.py::test_activate_and_deactivate_kill_switch
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\database.py:257: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "updated_at": datetime.utcnow().isoformat(),
+
+tests/test_engine_runner.py::TestRunCycle::test_empty
+tests/test_engine_runner.py::TestRunCycle::test_approved
+tests/test_engine_runner.py::TestRunCycle::test_rejected
+tests/test_engine_runner.py::TestRunCycle::test_paused_skipped
+tests/test_engine_runner.py::TestRunCycle::test_monitoring_skipped
+tests/test_engine_runner.py::TestRunCycle::test_error_handling
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\engine_runner.py:89: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    cycle_start = datetime.utcnow()
+
+tests/test_engine_runner.py::TestRunCycle::test_empty
+tests/test_engine_runner.py::TestRunCycle::test_approved
+tests/test_engine_runner.py::TestRunCycle::test_rejected
+tests/test_engine_runner.py::TestRunCycle::test_paused_skipped
+tests/test_engine_runner.py::TestRunCycle::test_monitoring_skipped
+tests/test_engine_runner.py::TestRunCycle::test_error_handling
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\engine_runner.py:181: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self._last_cycle_time = datetime.utcnow()
+
+tests/test_engine_runner.py::TestConvertSignal::test_long
+tests/test_engine_runner.py::TestConvertSignal::test_short
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\engine_runner.py:286: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow().isoformat(),
+
+tests/test_engine_runner.py::TestUpdateBookExposure::test_valid
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\engine_runner.py:436: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "updated_at": datetime.utcnow().isoformat(),
+
+tests/test_enhanced_market_data.py::TestHandlers::test_orderbook
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py:508: RuntimeWarning: coroutine 'EnhancedMarketDataService._save_ticker_data' was never awaited
+    def _mock_add_spec(self, spec, spec_set, _spec_as_instance=False,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_enhanced_market_data.py::TestReconnect::test_fail
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py:2217: RuntimeWarning: coroutine 'EnhancedMarketDataService._save_market_data' was never awaited
+    def __init__(self, name, parent):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_enhanced_market_data.py::TestReconnect::test_fail
+  C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\unittest\mock.py:2217: RuntimeWarning: coroutine 'EnhancedMarketDataService._save_orderbook_data' was never awaited
+    def __init__(self, name, parent):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_integration_coverage.py: 58 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\technical_analysis.py:39: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.timestamp = datetime.utcnow()
+
+tests/test_integration_coverage.py: 11 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\technical_analysis.py:479: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow().isoformat(),
+
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_generate_synthetic_ohlcv_btc
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_generate_synthetic_ohlcv_unknown_instrument
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_fetch_market_data_supabase_error_falls_back
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\enhanced_signal_engine.py:143: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamps = pd.date_range(end=datetime.utcnow(), periods=limit, freq="1h")
+
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_generate_technical_signals_returns_list
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_signal_cooldown_prevents_duplicate
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_signal_has_stop_loss_and_take_profit
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_signal_direction_is_buy_or_sell
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_composite_signal_from_tech_only
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_integration_coverage.py:905: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamps = pd.date_range(end=datetime.utcnow(), periods=n, freq="1h")
+
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_composite_signal_from_tech_only
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_composite_signal_from_tech_only
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_enhanced_signal_post_init_defaults
+  <string>:14: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_integration_coverage.py::TestEnhancedSignalEngine::test_enhanced_signal_post_init_defaults
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_integration_coverage.py:1077: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_live_reconciliation.py::TestDataclasses::test_report
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_live_reconciliation.py:61: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_live_reconciliation.py::TestReconcileOrders::test_no_orders
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\live_reconciliation.py:123: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "created_at", (datetime.utcnow() - timedelta(hours=24)).isoformat()
+
+tests/test_live_reconciliation.py::TestFullReconciliation::test_clean
+tests/test_live_reconciliation.py::TestFullReconciliation::test_high_order_discrepancy
+tests/test_live_reconciliation.py::TestFullReconciliation::test_major_pos_discrepancy
+tests/test_live_reconciliation.py::TestFullReconciliation::test_resets_failures
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\live_reconciliation.py:354: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp = datetime.utcnow()
+
+tests/test_live_reconciliation.py::TestHandleDiscrepancy::test_auto_correct
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\live_reconciliation.py:439: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    {"status": "filled", "updated_at": datetime.utcnow().isoformat()}
+
+tests/test_live_reconciliation.py::TestStoreReport::test_ok
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_live_reconciliation.py:494: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_live_reconciliation.py::TestStoreReport::test_exception
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_live_reconciliation.py:516: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_live_reconciliation.py::TestAlert::test_alert
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_live_reconciliation.py:543: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_logging_config.py::TestSetupLogging::test_returns_logger
+tests/test_logging_config.py::TestSetupLogging::test_debug_level
+tests/test_logging_config.py::TestSetupLogging::test_production_mode
+tests/test_logging_config.py::TestSetupLogging::test_invalid_level_defaults_to_info
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\core\logging.py:65: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py: 34 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:126: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    decided_at=datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py: 34 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:127: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=(datetime.utcnow() + timedelta(minutes=5)).isoformat(),
+
+tests/test_meta_decision_agent.py: 34 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:164: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self._last_decision_time = datetime.utcnow()
+
+tests/test_meta_decision_agent.py::TestMakeDecision::test_no_data
+tests/test_meta_decision_agent.py::TestCycle::test_decides
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:298: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    decided_at=datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py::TestMakeDecision::test_no_data
+tests/test_meta_decision_agent.py::TestCycle::test_decides
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:299: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=(datetime.utcnow() + timedelta(minutes=1)).isoformat(),
+
+tests/test_meta_decision_agent.py::TestMakeDecision::test_missing_agents
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:321: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    decided_at=datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py::TestMakeDecision::test_missing_agents
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:322: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=(datetime.utcnow() + timedelta(minutes=1)).isoformat(),
+
+tests/test_meta_decision_agent.py::TestMakeDecision::test_normal
+tests/test_meta_decision_agent.py::TestMakeDecision::test_crisis
+tests/test_meta_decision_agent.py::TestMakeDecision::test_high_vol
+tests/test_meta_decision_agent.py::TestMakeDecision::test_choppy_disables
+tests/test_meta_decision_agent.py::TestMakeDecision::test_degraded_liq
+tests/test_meta_decision_agent.py::TestMakeDecision::test_high_slippage
+tests/test_meta_decision_agent.py::TestMakeDecision::test_critical_alerts
+tests/test_meta_decision_agent.py::TestMakeDecision::test_high_corr
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:404: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    decided_at=datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py::TestMakeDecision::test_normal
+tests/test_meta_decision_agent.py::TestMakeDecision::test_crisis
+tests/test_meta_decision_agent.py::TestMakeDecision::test_high_vol
+tests/test_meta_decision_agent.py::TestMakeDecision::test_choppy_disables
+tests/test_meta_decision_agent.py::TestMakeDecision::test_degraded_liq
+tests/test_meta_decision_agent.py::TestMakeDecision::test_high_slippage
+tests/test_meta_decision_agent.py::TestMakeDecision::test_critical_alerts
+tests/test_meta_decision_agent.py::TestMakeDecision::test_high_corr
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:405: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=(datetime.utcnow() + timedelta(seconds=30)).isoformat(),
+
+tests/test_meta_decision_agent.py::TestMessageProc::test_market_data
+tests/test_meta_decision_agent.py::TestHandleMsg::test_market
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:200: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "updated_at": datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py::TestMessageProc::test_heartbeat
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:209: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "last_seen": datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py::TestHandleMsg::test_error_fail_safe
+tests/test_meta_decision_agent.py::TestFailSafe::test_halts
+tests/test_meta_decision_agent.py::TestHooks::test_on_pause
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:450: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    decided_at=datetime.utcnow().isoformat(),
+
+tests/test_meta_decision_agent.py::TestHandleMsg::test_error_fail_safe
+tests/test_meta_decision_agent.py::TestFailSafe::test_halts
+tests/test_meta_decision_agent.py::TestHooks::test_on_pause
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:451: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=(datetime.utcnow() + timedelta(minutes=5)).isoformat(),
+
+tests/test_meta_decision_agent.py::TestCycle::test_skip
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_meta_decision_agent.py:293: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    a._last_decision_time = datetime.utcnow()
+
+tests/test_meta_decision_agent.py::TestCycle::test_skip
+tests/test_meta_decision_agent.py::TestCycle::test_decides
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\meta_decision_agent.py:249: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_meta_decision_agent.py::TestCycle::test_decides
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_meta_decision_agent.py:298: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    a._last_decision_time = datetime.utcnow() - timedelta(seconds=10)
+
+tests/test_risk_engine.py: 9 warnings
+tests/test_risk_engine_controls.py: 1 warning
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\risk_engine.py:221: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow().date().isoformat()
+
+tests/test_risk_engine.py::TestRiskEngine::test_circuit_breaker_activation
+tests/test_risk_engine_controls.py::test_activate_circuit_breaker_emits_alert_and_audit
+tests/test_risk_engine_edge_cases.py::TestCircuitBreakerCascades::test_multiple_breakers_can_be_active
+tests/test_risk_engine_edge_cases.py::TestCircuitBreakerCascades::test_multiple_breakers_can_be_active
+tests/test_risk_engine_edge_cases.py::TestCircuitBreakerCascades::test_deactivating_one_breaker_leaves_others
+tests/test_risk_engine_edge_cases.py::TestCircuitBreakerCascades::test_deactivating_one_breaker_leaves_others
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\risk_engine.py:327: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    transition_timestamp=datetime.utcnow().isoformat(),
+
+tests/test_risk_engine.py::TestRiskEngine::test_circuit_breaker_activation
+tests/test_risk_engine_controls.py::test_activate_circuit_breaker_emits_alert_and_audit
+tests/test_risk_engine_edge_cases.py::TestCircuitBreakerCascades::test_deactivating_one_breaker_leaves_others
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\risk_engine.py:371: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    transition_timestamp=datetime.utcnow().isoformat(),
+
+tests/test_risk_engine.py::TestKillSwitch::test_kill_switch_triggers_on_severe_loss
+tests/test_risk_engine.py::TestDailyLossLimit::test_daily_loss_within_limit_allows_trade
+tests/test_risk_engine.py::TestDailyLossLimit::test_daily_loss_breached_rejects_trade
+tests/test_risk_engine.py::TestPositionSizing::test_oversized_trade_gets_scaled_down
+tests/test_risk_engine.py::TestPositionSizing::test_position_at_capacity_rejects
+tests/test_risk_engine.py::TestPositionSizing::test_remaining_capacity_used
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\risk_agent.py:236: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "evaluated_at": datetime.utcnow().isoformat(),
+
+tests/test_routes_and_websocket.py::test_connection_manager_broadcast_drops_disconnected_websocket
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\api\websocket.py:78: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    {"stream": stream, "timestamp": datetime.utcnow().isoformat(), "data": data}
+
+tests/test_smart_order_router.py::test_route_order_selects_best_venue
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:52: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_route_order_selects_best_venue
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:53: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=1),
+
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:431: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+tests/test_smart_order_router.py::test_select_execution_algorithm_varies_by_participation
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:432: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=time_horizon),
+
+tests/test_smart_order_router.py::test_measure_execution_quality_handles_empty_and_non_empty
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:173: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:251: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:252: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=5),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:262: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:263: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=5),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:273: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:274: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=5),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:284: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:285: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=5),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:309: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:310: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow() + timedelta(seconds=10),
+
+tests/test_smart_order_router.py::test_execution_time_helpers_and_isq
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow() + timedelta(seconds=25),
+
+tests/test_smart_order_router.py::test_execute_twap_dispatches_real_slices
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:336: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_twap_dispatches_real_slices
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:337: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=3),
+
+tests/test_smart_order_router.py::test_execute_twap_dispatches_real_slices
+tests/test_smart_order_router.py::test_execute_twap_dispatches_real_slices
+tests/test_smart_order_router.py::test_execute_twap_dispatches_real_slices
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:504: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_vwap_uses_volume_profile_and_remaining_quantity
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:370: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_vwap_uses_volume_profile_and_remaining_quantity
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:371: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=3),
+
+tests/test_smart_order_router.py::test_execute_vwap_uses_volume_profile_and_remaining_quantity
+tests/test_smart_order_router.py::test_execute_vwap_uses_volume_profile_and_remaining_quantity
+tests/test_smart_order_router.py::test_execute_vwap_uses_volume_profile_and_remaining_quantity
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:536: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_pov_respects_participation_rate
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:400: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_pov_respects_participation_rate
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:401: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=1),
+
+tests/test_smart_order_router.py::test_execute_pov_respects_participation_rate
+tests/test_smart_order_router.py::test_execute_pov_respects_participation_rate
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:554: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    while remaining_quantity > 0 and datetime.utcnow() < algorithm.end_time:
+
+tests/test_smart_order_router.py::test_execute_pov_respects_participation_rate
+tests/test_smart_order_router.py::test_execute_pov_respects_participation_rate
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:567: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:428: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:429: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=10),
+
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:585: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    while remaining_quantity > 0 and datetime.utcnow() < algorithm.end_time:
+
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+tests/test_smart_order_router.py::test_execute_iceberg_splits_visible_quantity
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\services\smart_order_router.py:598: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_algorithmic_order_unknown_type_raises
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:452: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_smart_order_router.py::test_execute_algorithmic_order_unknown_type_raises
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:453: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    end_time=datetime.utcnow() + timedelta(minutes=1),
+
+tests/test_smart_order_router.py::test_execute_adaptive_covers_market_condition_branches[conditions0-2.0-120]
+tests/test_smart_order_router.py::test_execute_adaptive_covers_market_condition_branches[conditions1-1.0-300]
+tests/test_smart_order_router.py::test_execute_adaptive_covers_market_condition_branches[conditions2-5.0-60]
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_smart_order_router.py:504: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    start_time=datetime.utcnow(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyStateTransition::test_create_transition
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:30: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycle::test_defaults
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:41: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    state_entered_at=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py: 31 warnings
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:118: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    state_entered_at=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_active_quarantine_edge_decay
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_active_quarantine_underperformance
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_active_quarantine_drawdown
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_active_quarantine_execution
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_active_multiple_reasons
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:227: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_to_disabled
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:265: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_to_active_expired
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:187: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    s.quarantine_expires_at = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_to_active_expired
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_not_expired
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_expired_poor_perf
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:186: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    if datetime.utcnow() > expires:
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_to_active_expired
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:248: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_not_expired
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:197: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    s.quarantine_expires_at = (datetime.utcnow() + timedelta(hours=4)).isoformat()
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_expired_poor_perf
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:204: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    s.quarantine_expires_at = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_execute_to_quarantined
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:229: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_execute_to_quarantined
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_count_increments
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_count_increments
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_count_increments
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:294: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    datetime.utcnow()
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_execute_to_active_clears
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:247: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_execute_missing
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:261: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_count_increments
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_count_increments
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_quarantine_count_increments
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\tests\test_strategy_lifecycle_agent.py:274: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_manually_disable
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:322: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_manually_enable
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:338: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+tests/test_strategy_lifecycle_agent.py::TestStrategyLifecycleManager::test_promote_to_active
+  C:\Users\ccana\Documents\augment-projects\enterprise-crypto\backend\app\agents\strategy_lifecycle.py:358: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow().isoformat(),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.12.10-final-0 _______________
+
+Name                                           Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------------
+app\__init__.py                                    0      0   100%
+app\adapters\__init__.py                           6      0   100%
+app\adapters\base.py                              25      6    76%   21, 26, 31, 36, 41, 46
+app\adapters\coinbase_adapter.py                 225    142    37%   52-85, 90-91, 99-105, 111-153, 160, 164-227, 246-249, 286-309, 316-332, 352-371, 378-400, 404-427, 436, 438-439, 441-442, 449-454
+app\adapters\dex_adapter.py                      188     68    64%   115-136, 141-142, 147-158, 184-226, 363-388, 403, 419-435, 442-454
+app\adapters\kraken_adapter.py                    86      7    92%   85-86, 116-118, 139-146
+app\adapters\mexc_adapter.py                     265    164    38%   54-83, 88-89, 95-101, 112-156, 163, 167-220, 283-300, 309-327, 351-387, 394-427, 439-452, 456-486, 490-511, 519-520, 522-523, 525-526, 533-540
+app\agents\__init__.py                            10      0   100%
+app\agents\agent_orchestrator.py                 203    147    28%   35-40, 83-104, 108-126, 133-167, 171-194, 198-225, 231-259, 263-287, 293-313, 317-336, 340-356, 360, 364, 368, 372, 376-377, 381-392, 407-426, 432, 437-448
+app\agents\arbitrage_agent.py                     92     75    18%   42-57, 65-78, 82-102, 106-125, 129-137, 141-144, 148-151, 155-194, 198, 202-206
+app\agents\base_agent.py                         340    118    65%   200-238, 242-250, 263-265, 315-342, 352-400, 406-439, 589-635, 690, 695, 699, 703
+app\agents\behavior_tracking.py                   71      0   100%
+app\agents\capital_allocation_agent.py           198      3    98%   181-182, 278
+app\agents\execution_agent.py                    138    111    20%   34-70, 74-77, 81-202, 214, 228-240, 258-281, 291-303, 307-342, 351-380, 391-402, 408-414, 418-422, 426-428, 432-439, 443-448, 456, 460, 466-470, 474-475
+app\agents\freqtrade_signal_agent.py              83     67    19%   40-57, 61-80, 84-110, 116-151, 155-161, 167-170, 174, 178-180, 184
+app\agents\meta_decision_agent.py                204      7    97%   171-176, 263
+app\agents\risk_agent.py                         120     34    72%   78-81, 85-125, 149-152, 182-189, 211-217, 304, 308, 314-315, 321-322
+app\agents\signal_agent.py                        93     73    22%   29-45, 61-62, 66-72, 76-89, 96-103, 109-134, 156-175, 197-208, 230-245, 253, 259-260, 264-265
+app\agents\strategy_lifecycle.py                 146      0   100%
+app\api\__init__.py                                0      0   100%
+app\api\agents.py                                 64     36    44%   36, 42-47, 53-58, 64-76, 82-88, 94-97, 103-109
+app\api\arbitrage.py                              89     67    25%   26-32, 44-93, 99-123, 129-148, 154-172, 178-185
+app\api\backtest.py                              116     15    87%   116, 120, 167, 181, 228-235, 253, 291, 423
+app\api\compliance.py                             34     21    38%   25-27, 34, 48-63, 74-93
+app\api\execution.py                             117     12    90%   63, 72, 89, 94-99, 103, 165-166, 212
+app\api\health.py                                107      2    98%   55, 178
+app\api\market.py                                 53     30    43%   27-34, 54-69, 84-92, 106-112, 125-143, 149
+app\api\meme.py                                   63     30    52%   36-39, 45, 56-61, 67-69, 83-92, 100-102, 108-110, 118-127
+app\api\ml_signals.py                             82     43    48%   63-101, 107-125, 131-144, 156-159, 180-187, 193-197
+app\api\risk.py                                  120     76    37%   33-40, 48-57, 63-71, 77, 83-89, 97-104, 110-112, 126-153, 164-185, 193-217, 223-239, 247-260, 268-277, 285-327
+app\api\routes.py                                 18      0   100%
+app\api\schemas\__init__.py                        0      0   100%
+app\api\schemas\backtest_schemas.py              111      0   100%
+app\api\screener.py                               51     21    59%   46, 56-73, 98-108, 133-137, 161-167
+app\api\strategies.py                            103     72    30%   20-21, 47, 58-70, 83-104, 110-127, 133-190, 196-243
+app\api\system.py                                 73     21    71%   64, 70-72, 87, 97-105, 124-128, 154-158
+app\api\trading.py                                54     28    48%   30-41, 53-62, 69-76, 88-97
+app\api\venues.py                                 32     21    34%   15-17, 23-48, 54-63, 69-77
+app\api\websocket.py                             112     38    66%   50-58, 64-70, 75, 102, 154-192, 215, 223, 230, 237
+app\arbitrage\__init__.py                          6      0   100%
+app\arbitrage\cross_exchange.py                  109     32    71%   53, 113-123, 127-128, 132-137, 143-146, 156-164, 174, 184
+app\arbitrage\engine.py                           91     15    84%   91-93, 98, 144-155, 228
+app\arbitrage\funding_rate.py                     96     12    88%   116-125, 129-130, 148
+app\arbitrage\statistical.py                      88      7    92%   50, 121, 144-145, 170, 176, 182
+app\arbitrage\triangular.py                      104      2    98%   49, 154
+app\config.py                                    107      7    93%   200, 213-220
+app\control_plane\__init__.py                      9      4    56%   13-15, 22-23
+app\control_plane\authority_adapter.py            33     19    42%   26, 89-94, 104-108, 129-130, 138-147, 156-157
+app\control_plane\evidence_adapter.py             34     29    15%   20-148
+app\control_plane\risk_policy.py                  58     58     0%   19-187
+app\core\__init__.py                               2      0   100%
+app\core\agent_identity.py                        60      3    95%   118-120
+app\core\config.py                                 2      0   100%
+app\core\enhanced_config.py                      325     65    80%   38-39, 42-47, 96-132, 151-153, 176-180, 207-220, 415, 442-444, 463-493, 509-510, 555-557, 587, 675-676, 688, 692, 728
+app\core\error_handlers.py                        30     10    67%   42-43, 51-58, 70-77, 100-111
+app\core\logging.py                               23      0   100%
+app\core\observability.py                         48     14    71%   39-40, 42-43, 68-74, 97-104
+app\core\security.py                              57      8    86%   29-32, 70-72, 115, 141
+app\core\strategy_registry.py                    110     15    86%   68-69, 85, 111-112, 115-120, 134, 137, 163, 204-206
+app\core\trading_config.py                        51     17    67%   47-53, 57, 62-73, 81, 89
+app\database.py                                  122     25    80%   36-38, 56-57, 66, 159-167, 227-229, 283-285, 307, 340, 368, 385
+app\enterprise\__init__.py                         5      0   100%
+app\enterprise\audit.py                          101      5    95%   157-159, 253, 258
+app\enterprise\compliance.py                      79      0   100%
+app\enterprise\compliance_reporting.py           116     51    56%   104, 129-146, 170-191, 222-238, 259-276, 291-303
+app\enterprise\rbac.py                            89      3    97%   227, 246, 255
+app\enterprise\risk_limits.py                     70      1    99%   154
+app\freqtrade\__init__.py                          5      0   100%
+app\freqtrade\backtester.py                      135      3    98%   134-135, 155
+app\freqtrade\core.py                            102     57    44%   73-75, 79-116, 120-130, 134, 182-191, 197-234, 238, 254
+app\freqtrade\data_provider.py                    86     58    33%   52-67, 71-79, 83-101, 105-139, 145-187, 193, 197-198, 202
+app\freqtrade\freqai_manager.py                  222    183    18%   91-97, 102, 106-111, 115-179, 191-217, 221-230, 234-266, 270, 289-342, 355-429, 443-537
+app\freqtrade\strategy_manager.py                140     88    37%   27-30, 83-95, 99-163, 167-174, 178, 182, 204-220, 224, 228, 237-286
+app\gpu\__init__.py                                4      4     0%   16-20
+app\gpu\cuda_engine.py                           127    127     0%   8-233
+app\gpu\ml_inference.py                          151    151     0%   11-243
+app\gpu\optimizations.py                          81     81     0%   12-169
+app\logging_config.py                             19     14    26%   27-85
+app\main.py                                      124     71    43%   62-117, 165-173, 180, 187-188, 196-239, 256, 269-274, 297
+app\middleware\__init__.py                         2      0   100%
+app\middleware\security.py                        64      9    86%   58-64, 100, 132-145
+app\models\__init__.py                             0      0   100%
+app\models\backtest_result.py                    145     20    86%   23, 27, 30-32, 37, 43, 45, 49-51, 156, 278, 280, 285-286, 288, 303-304, 306
+app\models\basis.py                               39      0   100%
+app\models\domain.py                             140      0   100%
+app\models\opportunity.py                         57      0   100%
+app\services\__init__.py                           0      0   100%
+app\services\advanced_risk_engine.py             328    162    51%   112-127, 146-185, 210-225, 239-247, 261-272, 280-312, 511-579, 585-645, 649-659, 742-753, 780-800, 805, 833-863
+app\services\arbitrage_engine.py                  66     26    61%   39, 43, 52, 56, 113-154
+app\services\backtesting.py                      271      4    99%   383-388
+app\services\basis_edge_model.py                  22      0   100%
+app\services\basis_opportunity_scanner.py        110     48    56%   54, 77-78, 92, 94, 110, 119-149, 161-208, 229-276, 292-332
+app\services\basis_quote_service.py               96     36    62%   48-49, 54, 61, 68, 105, 119, 124, 127-145, 150-171, 181-199
+app\services\cache.py                             33      6    82%   33-34, 42-43, 47-48
+app\services\capital_allocator.py                185     66    64%   74-102, 107, 111, 121, 131, 239-248, 251-263, 266-278, 283-331, 339-378, 381-387
+app\services\compliance_reports.py               181     16    91%   206-209, 256-259, 302-305, 340, 348-350
+app\services\drawdown_monitor.py                 122      3    98%   170, 210, 217
+app\services\edge_cost_model.py                   62      5    92%   111, 118, 120, 131, 139
+app\services\engine_runner.py                    202     80    60%   56-75, 136, 151-152, 195-246, 290, 298-319, 323-366, 370-402, 431, 440-441, 445-457
+app\services\enhanced_backtesting_engine.py      251     85    66%   158-166, 189-222, 229-233, 240-293, 343, 349-351, 380-382, 392, 424, 442-446, 473, 534-581, 616-618, 627, 658-684, 694-708
+app\services\enhanced_market_data_service.py     202     90    55%   54-62, 103-126, 132, 163-164, 172-175, 181-196, 200-215, 219-234, 238-253, 293-294, 320-321, 349-350, 354-356, 360-362, 366-368, 382-385, 402, 411-416, 434, 443-446, 521-522, 532-537
+app\services\enhanced_quantitative_engine.py     173     40    77%   191-232, 248-273, 418-420, 442
+app\services\enhanced_signal_engine.py           175     63    64%   84-109, 193-247, 257-267, 299, 303-308, 322-326, 331, 363-399, 403-429
+app\services\execution_planner.py                 76     23    70%   30-37, 53-59, 67-73, 86-92, 114-116, 120, 132, 145, 160-173, 185, 198, 213, 226-227
+app\services\freqtrade_integration.py            308    189    39%   81-82, 113, 119-122, 130-134, 142-146, 154-158, 186, 195-196, 203-206, 218-219, 228-256, 260-266, 270-327, 359-385, 389-408, 414-419, 423-442, 446, 450, 454, 459-465, 469-476, 480-484, 506, 512-527, 537-551, 557-569, 575-586, 617, 624-625, 632-637, 644-647
+app\services\institutional_backtester.py         163      6    96%   297, 319, 366, 378, 438, 449
+app\services\live_reconciliation.py              201     17    92%   119, 129, 145-152, 344-345, 498-512
+app\services\market_data.py                       86     42    51%   46-52, 58-65, 74, 84-90, 141, 154-157, 173-178, 182-185, 189-202, 212-223
+app\services\market_data_service.py              408    287    30%   163-172, 176-188, 197-207, 211-218, 223-235, 241-255, 262-274, 278-292, 297-364, 369-395, 401-412, 418-426, 432-453, 457-492, 512-551, 562-599, 605-643, 647-667, 671-697, 702-712, 718-736, 742-764, 768-788, 792-804, 808-821, 826-827, 842-843, 858-859, 874-875, 879-880, 884-885, 889-890, 894, 903, 907, 911, 929, 933, 938, 945, 952
+app\services\meme_venture.py                      93     69    26%   43-51, 55-63, 73-100, 111-133, 142-186, 192-233, 237-247, 259-282, 291-325, 329-345
+app\services\model_registry.py                    86      0   100%
+app\services\oms_execution.py                    280    190    32%   76-77, 97-108, 113-114, 118-141, 158-162, 190-298, 317, 380-395, 400-420, 427-446, 455-538, 547-554, 572-589, 593-635, 642-655, 659-680, 684-694, 707-724, 732-733, 754, 775, 778, 781, 784, 787
+app\services\opportunity_scanner.py              131     58    56%   44-45, 59, 62, 75, 77, 82, 124-151, 158-201, 214-229, 236, 248-250, 256, 272, 294
+app\services\order_gateway.py                    160     32    80%   98-103, 131, 156-159, 163-199, 207, 319-320, 324-350, 362, 426, 433, 441
+app\services\order_simulator.py                  112     21    81%   61, 63, 65, 67, 97, 104, 110, 119, 124, 156, 160, 171, 174, 180-184, 191, 194, 200
+app\services\performance_metrics.py              183     19    90%   106, 123, 147, 192, 196, 211, 258, 278, 283, 323-326, 367, 374, 383, 391, 395, 398, 404
+app\services\portfolio_analytics.py              256     87    66%   107-190, 209, 280-281, 289-341, 345-394, 414-416, 425, 430-431, 475
+app\services\portfolio_engine.py                  79     36    54%   61-79, 83-109, 185-223, 227-246
+app\services\position_manager.py                  55      4    93%   55, 83, 121-122
+app\services\position_sizer.py                    88      1    99%   104
+app\services\realtime_broadcaster.py             117    117     0%   14-248
+app\services\reconciliation.py                   204    132    35%   45-48, 55-65, 115-118, 124-143, 147-228, 308-338, 342-345, 351-410, 414-480, 483-488
+app\services\regime_detection_service.py          94     66    30%   40-60, 63-70, 73-83, 86-101, 104-124, 127-131, 134-151
+app\services\risk_engine.py                      159      9    94%   82-83, 101, 133-134, 154-155, 197, 308
+app\services\smart_order_router.py               278      0   100%
+app\services\spot_arb_edge_model.py               30      0   100%
+app\services\spot_arb_scanner.py                 141     48    66%   52, 72-73, 77, 91, 93, 95, 97, 99, 110, 170, 180, 187, 193-235, 279-324
+app\services\spot_quote_service.py                93     64    31%   43-82, 85-111, 114-132, 137-160
+app\services\strategy_metrics_service.py          56     42    25%   30-82, 85-107, 117-138
+app\services\strategy_registry.py                  2      0   100%
+app\services\strategy_screener.py                297    216    27%   89-110, 127-149, 161-173, 186-210, 220-226, 267-279, 350-351, 368-449, 453-517, 544-571, 575-579, 585-626, 633-673, 677, 686, 690-693, 697, 729-732
+app\services\technical_analysis.py               221     14    94%   161-162, 169-170, 177-178, 180-181, 251-252, 255-256, 460-461
+app\services\walk_forward_engine.py               56      2    96%   70, 121
+----------------------------------------------------------------------------
+TOTAL                                          14552   5344    63%
+Coverage JSON written to file C:\Users\ccana\Documents\augment-projects\enterprise-crypto\.radar\audit-20260917\backend-coverage.json
+Required test coverage of 60% reached. Total coverage: 63.28%
+=========================== short test summary info ===========================
+FAILED tests/test_observability.py::TestSentryInit::test_sentry_initializes_with_dsn - assert False is True
+FAILED tests/test_observability.py::TestSentryInit::test_sentry_respects_sample_rates - assert False is True
+2 failed, 1204 passed, 3 skipped, 804 warnings in 28.49s

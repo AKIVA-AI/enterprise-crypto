@@ -1,0 +1,29 @@
+[
+  {
+    "name": "frontend-full-source-coverage",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--coverage",
+      "--coverage.include=src/**/*.{ts,tsx}",
+      "--coverage.reportsDirectory=C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\frontend-full-coverage"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "framework-tests",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "pytest",
+      "tests/test_control_plane.py",
+      "-p",
+      "pytest_asyncio.plugin",
+      "-q",
+      "-o",
+      "cache_dir=C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\framework-pytest-cache"
+    ],
+    "exit_code": 0
+  }
+]

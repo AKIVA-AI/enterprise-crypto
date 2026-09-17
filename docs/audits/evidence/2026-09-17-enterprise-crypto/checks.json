@@ -1,0 +1,111 @@
+[
+  {
+    "name": "frontend-tests",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--coverage",
+      "--coverage.reportsDirectory=C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\frontend-coverage"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto",
+    "exit_code": 1,
+    "seconds": 2.11
+  },
+  {
+    "name": "frontend-types",
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.app.json",
+      "--noEmit"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto",
+    "exit_code": 0,
+    "seconds": 19.42
+  },
+  {
+    "name": "frontend-lint",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      ".",
+      "--max-warnings=0",
+      "--format=json"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto",
+    "exit_code": 0,
+    "seconds": 9.05
+  },
+  {
+    "name": "frontend-build",
+    "command": [
+      "node",
+      "node_modules/vite/bin/vite.js",
+      "build",
+      "--outDir",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\dist"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto",
+    "exit_code": 1,
+    "seconds": 2.14
+  },
+  {
+    "name": "backend-tests",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "pytest",
+      "-p",
+      "pytest_asyncio.plugin",
+      "-p",
+      "pytest_cov",
+      "--cov=app",
+      "--cov-report=term-missing",
+      "--cov-report=json:C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\backend-coverage.json",
+      "--cov-fail-under=60",
+      "-q",
+      "-o",
+      "cache_dir=C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\pytest-cache",
+      "--basetemp=C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\pytest-tmp"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\backend",
+    "exit_code": 1,
+    "seconds": 90.05
+  },
+  {
+    "name": "backend-lint",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "ruff",
+      "check",
+      "app/",
+      "--select",
+      "E,W,F",
+      "--ignore",
+      "E501",
+      "--output-format=json"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\backend",
+    "exit_code": 0,
+    "seconds": 0.41
+  },
+  {
+    "name": "backend-types",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "mypy",
+      "app/",
+      "--ignore-missing-imports",
+      "--no-error-summary",
+      "--cache-dir",
+      "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\mypy-cache"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\backend",
+    "exit_code": 1,
+    "seconds": 47.41
+  }
+]

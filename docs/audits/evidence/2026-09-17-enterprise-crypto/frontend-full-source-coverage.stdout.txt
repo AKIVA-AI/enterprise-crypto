@@ -1,0 +1,369 @@
+
+ RUN  v4.0.16 C:/Users/ccana/Documents/augment-projects/enterprise-crypto
+      Coverage enabled with v8
+
+ ✓ src/lib/userModes.test.ts (26 tests) 6ms
+ ✓ src/lib/instrumentParser.test.ts (22 tests) 5ms
+ ✓ src/lib/status-colors.test.ts (26 tests) 8ms
+ ✓ src/lib/tradingGate.test.ts (11 tests) 6ms
+ ✓ src/lib/tradingModes.test.ts (18 tests) 6ms
+ ✓ src/lib/symbolUtils.test.ts (28 tests) 7ms
+ ✓ src/lib/complianceEnforcement.test.ts (27 tests) 10ms
+ ✓ src/lib/schemas.test.ts (27 tests) 14ms
+ ✓ src/components/dashboard/RiskGauge.test.tsx (23 tests) 78ms
+ ✓ src/hooks/__tests__/usePositions.test.ts (5 tests) 208ms
+ ✓ src/components/Accessibility.test.tsx (6 tests) 176ms
+ ✓ src/hooks/__tests__/useDashboardMetrics.test.ts (5 tests) 265ms
+ ✓ src/hooks/__tests__/useStrategies.test.ts (7 tests) 268ms
+ ✓ src/hooks/__tests__/useAlerts.test.ts (7 tests) 267ms
+ ✓ src/hooks/__tests__/useSystemHealth.test.ts (6 tests) 319ms
+ ✓ src/pages/Onboarding.test.tsx (8 tests) 329ms
+ ✓ src/components/positions/PositionManagementPanel.test.tsx (9 tests) 310ms
+ ✓ src/components/risk/AdvancedRiskDashboard.test.tsx (15 tests) 738ms
+ ✓ src/components/trading/TradeTicket.test.tsx (8 tests) 790ms
+ ✓ src/components/risk/KillSwitchPanel.test.tsx (14 tests) 943ms
+
+ Test Files  20 passed (20)
+      Tests  298 passed (298)
+   Start at  14:52:44
+   Duration  4.61s (transform 2.42s, setup 6.68s, import 4.40s, tests 4.75s, environment 18.97s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |    7.97 |     6.25 |    7.37 |    8.31 |
+ src               |       0 |      100 |       0 |       0 |
+  App.tsx          |       0 |      100 |       0 |       0 | 17-58
+  main.tsx         |       0 |      100 |     100 |       0 | 6
+ src/components    |       0 |        0 |       0 |       0 |
+  ...rBoundary.tsx |       0 |        0 |       0 |       0 | 16-48
+  NavLink.tsx      |       0 |        0 |       0 |       0 | 11-26
+  ...ctedRoute.tsx |       0 |        0 |       0 |       0 | 10-27
+ ...onents/actions |       0 |        0 |       0 |       0 |
+  ...tionModal.tsx |       0 |        0 |       0 |       0 | 56-183
+ ...ponents/agents |       0 |        0 |       0 |       0 |
+  ...sionPanel.tsx |       0 |        0 |       0 |       0 | 47-265
+  ...tTimeline.tsx |       0 |        0 |       0 |       0 | 52-339
+ src/components/ai |       0 |        0 |       0 |       0 |
+  ...ysisPanel.tsx |       0 |        0 |       0 |       0 | 23-184
+ ...ponents/alerts |       0 |        0 |       0 |       0 |
+  ...ionSystem.tsx |       0 |        0 |       0 |       0 | 15-203
+  ...ertsPanel.tsx |       0 |        0 |       0 |       0 | 29-441
+ ...ents/allocator |       0 |        0 |       0 |       0 |
+  ...atorPanel.tsx |       0 |        0 |       0 |       0 | 15-145
+  ...ionsPanel.tsx |       0 |        0 |       0 |       0 | 9-31
+ ...ents/arbitrage |       0 |        0 |       0 |       0 |
+  ...ragePanel.tsx |       0 |        0 |       0 |       0 | 35-308
+  ...trageInfo.tsx |       0 |        0 |       0 |       0 | 28-115
+  ...Dashboard.tsx |       0 |        0 |       0 |       0 | 18-253
+ ...mponents/audit |       0 |        0 |       0 |       0 |
+  ...ditSearch.tsx |       0 |        0 |       0 |       0 | 39-302
+  ...Dashboard.tsx |       0 |        0 |       0 |       0 | 51-451
+ ...omponents/auth |   26.92 |    60.46 |      20 |   28.16 |
+  RoleGate.tsx     |       0 |        0 |       0 |       0 | 23-135
+  ...irmDialog.tsx |      50 |    78.78 |   44.44 |   51.28 | 62-78,83-89,181
+ ...nents/backtest |       0 |        0 |       0 |       0 |
+  ...estCharts.tsx |       0 |        0 |       0 |       0 | 20-322
+  ...testPanel.tsx |       0 |        0 |       0 |       0 | 51-225
+ ...nts/blockchain |       0 |        0 |       0 |       0 |
+  ...itorPanel.tsx |       0 |        0 |       0 |       0 | 27-282
+ ...mponents/books |       0 |        0 |       0 |       0 |
+  ...anagement.tsx |       0 |        0 |       0 |       0 | 13-301
+ ...ponents/charts |       0 |        0 |       0 |       0 |
+  ...ViewChart.tsx |       0 |        0 |       0 |       0 | 25-370
+ ...omponents/chat |       0 |        0 |       0 |       0 |
+  ...otSidebar.tsx |       0 |        0 |       0 |       0 | 27-307
+ ...nts/compliance |       0 |        0 |       0 |       0 |
+  ...nceBanner.tsx |       0 |        0 |       0 |       0 | 24-152
+  ...VenueList.tsx |       0 |        0 |       0 |       0 | 26-119
+  ...isclaimer.tsx |       0 |        0 |       0 |       0 | 23-64
+  ...atureGate.tsx |       0 |        0 |       0 |       0 | 17-102
+  ...sureModal.tsx |       0 |        0 |       0 |       0 | 29-122
+ ...ents/dashboard |   13.08 |    13.04 |    7.81 |   13.52 |
+  ...tatusGrid.tsx |       0 |        0 |       0 |       0 | 9-59
+  MetricCard.tsx   |     100 |     64.7 |     100 |     100 | 32,36-56
+  PnLChart.tsx     |       0 |        0 |       0 |       0 | 11-222
+  ...onHeatMap.tsx |       0 |        0 |       0 |       0 | 21-209
+  ...ionsTable.tsx |       0 |        0 |       0 |       0 | 6-65
+  RecentEvents.tsx |       0 |        0 |       0 |       0 | 8-52
+  RiskGauge.tsx    |   66.66 |    76.47 |   66.66 |   72.72 | 21-23
+  ...tusBanner.tsx |   63.33 |    46.15 |      50 |   94.73 | 53
+  ...Accordion.tsx |       0 |        0 |       0 |       0 | 32-129
+  ...adeWidget.tsx |       0 |        0 |       0 |       0 | 47-304
+ ...ponents/engine |       0 |        0 |       0 |       0 |
+  ...trolPanel.tsx |       0 |        0 |       0 |       0 | 9-73
+  ...atusPanel.tsx |       0 |        0 |       0 |       0 | 23-177
+  IntentsTable.tsx |       0 |        0 |       0 |       0 | 15-86
+  SignalsTable.tsx |       0 |        0 |       0 |       0 | 16-64
+ ...explainability |       0 |        0 |       0 |       0 |
+  ...lityPanel.tsx |       0 |        0 |       0 |       0 | 87-367
+ ...s/intelligence |       0 |        0 |       0 |       0 |
+  ...eTriggers.tsx |       0 |        0 |       0 |       0 | 56-474
+  ...tTriggers.tsx |       0 |        0 |       0 |       0 | 50-335
+  ...ivesPanel.tsx |       0 |        0 |       0 |       0 | 25-277
+  ...PIManager.tsx |       0 |        0 |       0 |       0 | 29-356
+  ...eOverview.tsx |       0 |        0 |       0 |       0 | 24-112
+  ...encePanel.tsx |       0 |        0 |       0 |       0 | 44-395
+  ...lseWidget.tsx |       0 |        0 |       0 |       0 | 20-108
+  ...genceView.tsx |       0 |        0 |       0 |       0 | 35-283
+  ...nnerPanel.tsx |       0 |        0 |       0 |       0 | 35-321
+  ...ryWarning.tsx |       0 |        0 |       0 |       0 | 23-143
+  ...otManager.tsx |       0 |        0 |       0 |       0 | 32-316
+  ...ilotPanel.tsx |       0 |        0 |       0 |       0 | 28-237
+  ...lertPanel.tsx |       0 |        0 |       0 |       0 | 33-197
+ ...onents/journal |       0 |        0 |       0 |       0 |
+  ...rnalPanel.tsx |       0 |        0 |       0 |       0 | 32-356
+ ...ponents/layout |       0 |        0 |       0 |       0 |
+  MainLayout.tsx   |       0 |        0 |       0 |       0 | 17-22
+  Sidebar.tsx      |       0 |        0 |       0 |       0 | 30-115
+  TopBar.tsx       |       0 |        0 |       0 |       0 | 29-238
+ ...omponents/meme |       0 |        0 |       0 |       0 |
+  ...ovalPanel.tsx |       0 |        0 |       0 |       0 | 29-219
+  ...elineView.tsx |       0 |        0 |       0 |       0 | 13-53
+  ...ojectCard.tsx |       0 |        0 |       0 |       0 | 22-70
+  ...corePanel.tsx |       0 |        0 |       0 |       0 | 22-59
+ ...ponents/mobile |       0 |        0 |       0 |       0 |
+  ...Dashboard.tsx |       0 |        0 |       0 |       0 | 29-317
+  ...itionCard.tsx |       0 |        0 |       0 |       0 | 26-157
+ ...omponents/mode |       0 |        0 |       0 |       0 |
+  ...etyBanner.tsx |       0 |        0 |       0 |       0 | 24-33
+  ...eSelector.tsx |       0 |        0 |       0 |       0 | 31-89
+ .../observability |       0 |        0 |       0 |       0 |
+  ...racePanel.tsx |       0 |        0 |       0 |       0 | 38-281
+  ...althPanel.tsx |       0 |        0 |       0 |       0 | 32-222
+ ...nts/onboarding |   53.33 |    66.66 |      50 |   57.14 |
+  ...ofileStep.tsx |      75 |      100 |   66.66 |      75 | 49
+  ...encesStep.tsx |      40 |       50 |   33.33 |   44.44 | 21-24,47,62
+  WelcomeStep.tsx  |     100 |      100 |     100 |     100 |
+ ...ponents/orders |       0 |        0 |       0 |       0 |
+  ...toryTable.tsx |       0 |        0 |       0 |       0 | 40-376
+ ...ents/portfolio |       0 |        0 |       0 |       0 |
+  ...ticsPanel.tsx |       0 |        0 |       0 |       0 | 46-413
+  ...aryWidget.tsx |       0 |        0 |       0 |       0 | 27-262
+  ...olioPanel.tsx |       0 |        0 |       0 |       0 | 20-164
+ ...ents/positions |   51.88 |    32.47 |   41.17 |   50.98 |
+  ...mentPanel.tsx |   51.88 |    32.47 |   41.17 |   50.98 | ...42-555,586-696
+ ...omponents/risk |   28.62 |    34.13 |   35.16 |   31.45 |
+  ...Dashboard.tsx |   69.49 |    47.69 |      68 |   73.07 | ...50-152,250-526
+  ...itchPanel.tsx |   64.61 |    62.06 |   78.94 |   67.79 | ...25,140-141,163
+  ...Analytics.tsx |       0 |        0 |       0 |       0 | 30-356
+  ...ertBanner.tsx |       0 |        0 |       0 |       0 | 35-117
+  ...Simulator.tsx |       0 |        0 |       0 |       0 | 31-387
+ ...nents/settings |       0 |        0 |       0 |       0 |
+  ...tDeletion.tsx |       0 |        0 |       0 |       0 | 14-165
+  AvatarUpload.tsx |       0 |        0 |       0 |       0 | 9-169
+  MfaSettings.tsx  |       0 |        0 |       0 |       0 | 22-371
+  ...elManager.tsx |       0 |        0 |       0 |       0 | 40-348
+  ThemeToggle.tsx  |       0 |        0 |       0 |       0 | 9-88
+  ...eSelector.tsx |       0 |        0 |       0 |       0 | 33-194
+  ...leManager.tsx |       0 |        0 |       0 |       0 | 13-254
+ ...nts/strategies |       0 |        0 |       0 |       0 |
+  ...omparison.tsx |       0 |        0 |       0 |       0 | 28-392
+  ...Dashboard.tsx |       0 |        0 |       0 |       0 | 30-300
+  ...nnerPanel.tsx |       0 |        0 |       0 |       0 | 22-157
+  ...urveChart.tsx |       0 |        0 |       0 |       0 | 32-192
+  ...tricsCard.tsx |       0 |        0 |       0 |       0 | 29-210
+  ...tExporter.tsx |       0 |        0 |       0 |       0 | 37-401
+  ...Dashboard.tsx |       0 |        0 |       0 |       0 | 72-377
+  ...onfigForm.tsx |       0 |        0 |       0 |       0 | 22-346
+  ...entWizard.tsx |       0 |        0 |       0 |       0 | 40-478
+  ...yclePanel.tsx |       0 |        0 |       0 |       0 | 30-413
+  ...terEditor.tsx |       0 |        0 |       0 |       0 | 40-496
+  ...eSelector.tsx |       0 |        0 |       0 |       0 | 33-491
+  TradeJournal.tsx |       0 |        0 |       0 |       0 | 61-560
+  index.ts         |       0 |        0 |       0 |       0 |
+ ...onents/trading |   14.66 |    13.56 |   12.25 |   15.88 |
+  ...derTicket.tsx |       0 |        0 |       0 |       0 | 30-474
+  ...OrderBook.tsx |       0 |        0 |       0 |       0 | 23-169
+  ...onTracker.tsx |       0 |        0 |       0 |       0 | 9-119
+  ...thMonitor.tsx |       0 |        0 |       0 |       0 | 18-166
+  ...arketData.tsx |       0 |        0 |       0 |       0 | 18-78
+  ...FlowPanel.tsx |       0 |        0 |       0 |       0 | 14-100
+  ...tionPanel.tsx |       0 |        0 |       0 |       0 | 25-255
+  ...nLTracker.tsx |       0 |        0 |       0 |       0 | 15-127
+  TradeBlotter.tsx |       0 |        0 |       0 |       0 | 32-184
+  TradeTicket.tsx  |   81.08 |    66.05 |   73.91 |   84.05 | ...73,291-300,398
+  ...potTrader.tsx |       0 |        0 |       0 |       0 | 41-385
+  ...thMonitor.tsx |      44 |    42.22 |   66.66 |   55.55 | 34-36,42-45,127
+ src/components/ui |   18.54 |     4.76 |   18.26 |   18.54 |
+  accordion.tsx    |       0 |      100 |       0 |       0 | 7-50
+  alert-dialog.tsx |     100 |      100 |     100 |     100 |
+  alert.tsx        |      90 |      100 |   66.66 |      90 | 30
+  aspect-ratio.tsx |       0 |      100 |     100 |       0 | 3
+  avatar.tsx       |       0 |      100 |       0 |       0 | 6-36
+  badge.tsx        |     100 |      100 |     100 |     100 |
+  breadcrumb.tsx   |       0 |        0 |       0 |       0 | 7-80
+  button.tsx       |     100 |    66.66 |     100 |     100 | 46
+  calendar.tsx     |       0 |        0 |       0 |       0 | 11-58
+  card.tsx         |     100 |      100 |     100 |     100 |
+  carousel.tsx     |       0 |        0 |       0 |       0 | 29-222
+  chart.tsx        |       0 |        0 |       0 |       0 | 13-306
+  checkbox.tsx     |       0 |      100 |       0 |       0 | 7-24
+  collapsible.tsx  |       0 |      100 |     100 |       0 | 3-7
+  command.tsx      |       0 |      100 |       0 |       0 | 9-120
+  context-menu.tsx |       0 |        0 |       0 |       0 | 7-160
+  dialog.tsx       |     100 |      100 |     100 |     100 |
+  drawer.tsx       |       0 |        0 |       0 |       0 | 6-74
+  ...down-menu.tsx |       0 |        0 |       0 |       0 | 7-161
+  ...nge-badge.tsx |       0 |        0 |       0 |       0 | 30-185
+  form.tsx         |       0 |        0 |       0 |       0 | 9-127
+  hover-card.tsx   |       0 |        0 |       0 |       0 | 6-25
+  input-otp.tsx    |   92.85 |      100 |      75 |   92.85 | 53
+  input.tsx        |     100 |      100 |     100 |     100 |
+  label.tsx        |     100 |      100 |     100 |     100 |
+  menubar.tsx      |       0 |        0 |       0 |       0 | 7-188
+  ...tion-menu.tsx |       0 |      100 |       0 |       0 | 8-108
+  pagination.tsx   |       0 |        0 |       0 |       0 | 7-71
+  popover.tsx      |       0 |        0 |       0 |       0 | 6-27
+  progress.tsx     |      50 |        0 |       0 |      50 | 14-20
+  radio-group.tsx  |       0 |      100 |       0 |       0 | 7-34
+  resizable.tsx    |       0 |        0 |       0 |       0 | 6-21
+  scroll-area.tsx  |       0 |        0 |       0 |       0 | 6-36
+  select.tsx       |   91.66 |      100 |   71.42 |   91.66 | 96,127
+  separator.tsx    |     100 |       75 |     100 |     100 | 14
+  sheet.tsx        |       0 |        0 |       0 |       0 | 8-94
+  sidebar.tsx      |       0 |        0 |       0 |       0 | 15-610
+  skeleton.tsx     |     100 |      100 |     100 |     100 |
+  slider.tsx       |     100 |      100 |     100 |     100 |
+  sonner.tsx       |       0 |        0 |       0 |       0 | 8-29
+  switch.tsx       |     100 |      100 |     100 |     100 |
+  table.tsx        |       0 |      100 |       0 |       0 | 5-75
+  tabs.tsx         |     100 |      100 |     100 |     100 |
+  textarea.tsx     |       0 |      100 |       0 |       0 | 7-19
+  toast.tsx        |       0 |      100 |       0 |       0 | 8-95
+  toaster.tsx      |       0 |        0 |       0 |       0 | 5-10
+  toggle-group.tsx |       0 |        0 |       0 |       0 | 8-47
+  toggle.tsx       |       0 |      100 |       0 |       0 | 7-35
+  tooltip.tsx      |     100 |      100 |     100 |     100 |
+  use-toast.ts     |       0 |        0 |       0 |       0 |
+ ...ponents/wallet |       0 |        0 |       0 |       0 |
+  WalletButton.tsx |       0 |        0 |       0 |       0 | 29-119
+ src/contexts      |       0 |        0 |       0 |       0 |
+  ...otContext.tsx |       0 |        0 |       0 |       0 | 10-36
+  ...usContext.tsx |       0 |        0 |       0 |       0 | 37-181
+  ...taContext.tsx |       0 |        0 |       0 |       0 | 49-397
+  ...arketData.tsx |       0 |        0 |       0 |       0 | 59-310
+  ...deContext.tsx |       0 |        0 |       0 |       0 | 52-211
+  ...deContext.tsx |       0 |        0 |       0 |       0 | 53-133
+ src/hooks         |    3.11 |     2.33 |    4.14 |    3.14 |
+  index.ts         |       0 |        0 |       0 |       0 |
+  use-mobile.tsx   |       0 |      100 |       0 |       0 | 3-18
+  use-toast.ts     |       0 |        0 |       0 |       0 | 5-182
+  useAgents.ts     |       0 |        0 |       0 |       0 | 24-102
+  useAlerts.ts     |   81.48 |       80 |      90 |    87.5 | 40-44
+  ...rDecisions.ts |       0 |        0 |       0 |       0 | 14-24
+  ...lAnalytics.ts |       0 |        0 |       0 |       0 | 37-58
+  useArbitrage.ts  |       0 |        0 |       0 |       0 | 44-165
+  ...rageEngine.ts |       0 |        0 |       0 |       0 | 15-85
+  ...ageHistory.ts |       0 |        0 |       0 |       0 | 18-35
+  useAuth.tsx      |       0 |        0 |       0 |       0 | 29-168
+  ...estResults.ts |       0 |        0 |       0 |       0 | 79-175
+  ...eUSTrading.ts |       0 |        0 |       0 |       0 | 5-144
+  useBooks.ts      |       0 |        0 |       0 |       0 | 11-108
+  ...aseTrading.ts |       0 |        0 |       0 |       0 | 64-183
+  ...ntrolPlane.ts |       0 |        0 |       0 |       0 | 6-160
+  ...eArbitrage.ts |       0 |        0 |       0 |       0 | 55-219
+  ...ardMetrics.ts |     100 |    59.09 |     100 |     100 | 37-54
+  ...sionTraces.ts |       0 |        0 |       0 |       0 | 37-179
+  ...ativesData.ts |       0 |        0 |       0 |       0 | 22-86
+  ...ineControl.ts |       0 |        0 |       0 |       0 | 23-298
+  ...changeKeys.ts |       0 |        0 |       0 |       0 | 38-190
+  ...ngeTrading.ts |       0 |        0 |       0 |       0 | 85-357
+  ...eWebSocket.ts |       0 |        0 |       0 |       0 | 32-201
+  ...Strategies.ts |       0 |        0 |       0 |       0 | 15-74
+  ...gArbitrage.ts |       0 |        0 |       0 |       0 | 37-212
+  ...yperliquid.ts |       0 |        0 |       0 |       0 | 25-108
+  ...nstruments.ts |       0 |        0 |       0 |       0 | 13-21
+  ...kenTrading.ts |       0 |        0 |       0 |       0 | 76-223
+  ...eOrderBook.ts |       0 |        0 |       0 |       0 | 43-163
+  ...ePriceFeed.ts |       0 |        0 |       0 |       0 | 24-216
+  ...iveTrading.ts |       0 |        0 |       0 |       0 | 29-102
+  ...telligence.ts |       0 |        0 |       0 |       0 | 23-189
+  ...ketRegimes.ts |       0 |        0 |       0 |       0 | 15-25
+  ...owAnalysis.ts |       0 |        0 |       0 |       0 | 39-333
+  useOrders.ts     |       0 |        0 |       0 |       0 | 9-58
+  ...nceMetrics.ts |       0 |        0 |       0 |       0 | 26-92
+  ...Protection.ts |       0 |        0 |       0 |       0 | 59-418
+  usePositions.ts  |    90.9 |      100 |      80 |      90 | 35
+  ...gedActions.ts |       0 |        0 |       0 |       0 | 38-188
+  ...timeStream.ts |       0 |        0 |       0 |       0 | 35-132
+  ...scriptions.ts |       0 |        0 |       0 |       0 | 26-215
+  ...ionTimeout.ts |       0 |        0 |       0 |       0 | 5-119
+  ...nalScoring.ts |       0 |        0 |       0 |       0 | 48-192
+  ...ArbSpreads.ts |       0 |        0 |       0 |       0 | 19-23
+  useSpotQuotes.ts |       0 |        0 |       0 |       0 | 19-23
+  useStrategies.ts |   42.85 |    31.81 |   55.55 |   45.23 | 43-103
+  ...llocations.ts |       0 |        0 |       0 |       0 | 15-25
+  ...yLifecycle.ts |       0 |        0 |       0 |       0 | 34-274
+  ...yPositions.ts |       0 |        0 |       0 |       0 | 18-28
+  ...stemHealth.ts |   67.64 |    36.84 |      90 |   65.51 | 106-123
+  ...kenMetrics.ts |       0 |        0 |       0 |       0 | 25-88
+  ...dingAlerts.ts |       0 |        0 |       0 |       0 | 41-159
+  useTradingApi.ts |       0 |        0 |       0 |       0 | 44-133
+  ...ingCopilot.ts |       0 |        0 |       0 |       0 | 33-102
+  ...radingGate.ts |       0 |        0 |       0 |       0 | 55-173
+  ...radingMode.ts |       0 |        0 |       0 |       0 |
+  ...gShortcuts.ts |       0 |        0 |       0 |       0 | 19-118
+  ...dPortfolio.ts |       0 |        0 |       0 |       0 | 41-234
+  useUserRoles.ts  |       0 |        0 |       0 |       0 | 11-122
+  useVenues.ts     |       0 |        0 |       0 |       0 | 9-44
+  useWallet.ts     |       0 |        0 |       0 |       0 | 8-57
+  useWallets.ts    |       0 |        0 |       0 |       0 | 12-131
+  ...tExecution.ts |       0 |        0 |       0 |       0 | 38-357
+  ...ketManager.ts |       0 |        0 |       0 |       0 | 35-226
+  ...cketStream.ts |       0 |        0 |       0 |       0 | 31-254
+  ...haleAlerts.ts |       0 |        0 |       0 |       0 | 10-110
+ ...tions/supabase |       0 |        0 |     100 |       0 |
+  client.ts        |       0 |        0 |     100 |       0 | 4-16
+  types.ts         |       0 |      100 |     100 |       0 | 3141
+ src/lib           |   53.17 |    50.88 |      50 |   52.47 |
+  agentRoles.ts    |       0 |        0 |       0 |       0 | 13-176
+  ...trategies.tsx |       0 |        0 |       0 |       0 | 40-296
+  apiClient.ts     |       0 |        0 |       0 |       0 | 13-203
+  ...nforcement.ts |   90.24 |    81.48 |     100 |   94.44 | 186-187
+  decisionTrace.ts |       0 |        0 |       0 |       0 | 112-421
+  ...mentParser.ts |   82.19 |    77.08 |     100 |   82.19 | 54-57,132-152,221
+  logger.ts        |       0 |        0 |       0 |       0 | 16-98
+  ...trategies.tsx |       0 |        0 |       0 |       0 | 40-438
+  schemas.ts       |   95.74 |       75 |   88.88 |   97.67 | 43
+  sentry.ts        |       0 |      100 |       0 |       0 | 73-81
+  status-colors.ts |     100 |    85.71 |     100 |     100 | 255-270
+  ...Templates.tsx |       0 |        0 |       0 |       0 | 26-498
+  symbolUtils.ts   |     100 |     87.5 |     100 |     100 | 89,95
+  tradingGate.ts   |      40 |    41.66 |      50 |      40 | ...48,172,191-277
+  tradingModes.ts  |    87.5 |      100 |    90.9 |   84.61 | 294-296
+  userModes.ts     |     100 |      100 |     100 |     100 |
+  utils.ts         |     100 |      100 |     100 |     100 |
+  web3Config.ts    |       0 |      100 |     100 |       0 | 7-22
+ src/pages         |    1.46 |     1.64 |     1.7 |    1.65 |
+  Agents.tsx       |       0 |        0 |       0 |       0 | 17-336
+  Analytics.tsx    |       0 |      100 |       0 |       0 | 9
+  Arbitrage.tsx    |       0 |        0 |       0 |       0 | 25-271
+  AuditLog.tsx     |       0 |        0 |       0 |       0 | 59-521
+  Auth.tsx         |       0 |        0 |       0 |       0 | 17-319
+  Engine.tsx       |       0 |      100 |       0 |       0 | 13-39
+  Execution.tsx    |       0 |        0 |       0 |       0 | 21-33
+  Index.tsx        |       0 |        0 |       0 |       0 | 23-52
+  Launch.tsx       |       0 |        0 |       0 |       0 | 22-270
+  Markets.tsx      |       0 |        0 |       0 |       0 | 35-361
+  ...hangeDemo.tsx |       0 |        0 |       0 |       0 | 24-121
+  NotFound.tsx     |       0 |      100 |       0 |       0 | 4-11
+  ...rvability.tsx |       0 |        0 |       0 |       0 | 19-285
+  Onboarding.tsx   |    92.3 |      100 |   83.33 |    92.3 | 61
+  Operations.tsx   |       0 |        0 |       0 |       0 | 41-426
+  Positions.tsx    |       0 |      100 |       0 |       0 | 6
+  Risk.tsx         |       0 |        0 |       0 |       0 | 15-195
+  Screener.tsx     |       0 |        0 |       0 |       0 | 33-181
+  Settings.tsx     |       0 |        0 |       0 |       0 | 40-436
+  Strategies.tsx   |       0 |        0 |       0 |       0 | 22-316
+  SystemStatus.tsx |       0 |        0 |       0 |       0 | 53-470
+  Trade.tsx        |       0 |        0 |       0 |       0 | 26-207
+  Treasury.tsx     |       0 |        0 |       0 |       0 | 10-209
+  ...ePassword.tsx |       0 |        0 |       0 |       0 | 13-106
+ src/providers     |       0 |      100 |       0 |       0 |
+  Web3Provider.tsx |       0 |      100 |       0 |       0 | 6-13
+ src/types         |       0 |      100 |     100 |       0 |
+  exchangeKeys.ts  |       0 |      100 |     100 |       0 | 56
+  index.ts         |       0 |        0 |       0 |       0 |
+-------------------|---------|----------|---------|---------|-------------------

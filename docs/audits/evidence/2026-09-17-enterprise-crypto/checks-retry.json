@@ -1,0 +1,25 @@
+[
+  {
+    "name": "backend-tests-retry",
+    "command": [
+      "C:\\Users\\ccana\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-m",
+      "pytest",
+      "-p",
+      "pytest_asyncio.plugin",
+      "-p",
+      "pytest_cov",
+      "--cov=app",
+      "--cov-report=term-missing",
+      "--cov-report=json:C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\backend-coverage.json",
+      "--cov-fail-under=60",
+      "-q",
+      "-o",
+      "cache_dir=C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\pytest-cache",
+      "--basetemp=C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\.radar\\audit-20260917\\pytest-tmp"
+    ],
+    "cwd": "C:\\Users\\ccana\\Documents\\augment-projects\\enterprise-crypto\\backend",
+    "exit_code": 1,
+    "seconds": 30.83
+  }
+]

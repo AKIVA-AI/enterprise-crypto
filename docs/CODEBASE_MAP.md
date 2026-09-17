@@ -1,333 +1,82 @@
 # Enterprise Crypto — Codebase Map
 
-**Version:** 1.1
-**Date:** 2026-04-05
-**Standard:** Akiva Build Standard v2.15, Phase 0.5
-**Archetype:** 7 — Algorithmic Trading Platform
+Verified 2026-09-17 at `e603ddd7bb908d24321a640ba1ac646e5b043600`, matching freshly fetched `origin/main`. This replaces the outdated April inventory. See the [engineering audit](audits/2026-09-17-ENTERPRISE_CRYPTO_ENGINEERING_AUDIT.md) and [reproduction evidence](audits/evidence/2026-09-17-enterprise-crypto/README.md).
 
----
+## Scope and stack
 
-## System Overview
+Enterprise Crypto combines a React trading frontend, Supabase edge functions, a FastAPI backend, exchange adapters, analytical/backtesting services, and Redis-based agents. Some paths execute substantive logic, some simulate, and some optional integrations are only partially wired. Core trading correctness findings remain unresolved; this map is not a production-readiness certification.
 
-Enterprise Crypto is an institutional-grade, multi-agent algorithmic trading platform. It provides multi-exchange execution, fail-closed risk management, full audit trails, and AI-driven signal generation for cryptocurrency markets.
+- Frontend: React 19.2.4, TypeScript 5.8.3, Vite 7.3.2, TanStack Query, shadcn/Radix components, Supabase JS 2.89.0 in the audited installation.
+- Backend: Python/FastAPI, Pydantic, Supabase, Redis, numerical libraries, optional FreqTrade and Framework packages.
+- Source inventory: **134 Python files under `backend/app/`**, **312 TS/TSX files under `src/`** including tests/declarations, **25 page files**, **36 edge-function entry points**.
+- Database: three timestamped migration files. The first is a comment-only baseline; the other two change function permissions. The active chain does not contain a reconstructable application schema. Remote table/policy counts were not verified.
 
-**Stack:** React 18 / TypeScript (Vite) frontend, FastAPI (Python) backend, Supabase PostgreSQL database, Redis pub/sub, 36 Deno edge functions, FreqTrade integration, Docker deployment.
+## Main paths
 
----
+| Path | Role and current qualification |
+| --- | --- |
+| `src/App.tsx` | Route composition: auth, onboarding, dashboard, trading, agents, risk, analytics, markets, positions, and settings. |
+| `src/components/trading/TradeTicket.tsx` | Main order ticket invokes `live-trading`. |
+| `src/hooks/useLiveTrading.ts` | Place/cancel/close mutations; success messages depend on edge results. |
+| `src/components/risk/KillSwitchPanel.tsx` | Direct settings updates and audit/alert invocations. |
+| `src/lib/apiClient.ts` | FastAPI client used by arbitrage/FreqTrade hooks; route/session integration gaps remain. |
+| `supabase/functions/live-trading/index.ts` | Separate execution path with checks, exchange requests, simulation, and DB writes; close/cancel/fill recovery defects are documented. |
+| `supabase/functions/_shared/oms-client.ts` | Intent helpers; accepted idempotency key is not persisted in insert payload. |
+| `backend/app/main.py` | FastAPI/lifespan, DB/market data, FreqTrade hub, router/risk/arbitrage initialization. |
+| `backend/app/api/routes.py` | Router composition mounted under `/api/v1`; some child routers already include `/api`. |
+| `backend/app/config.py` | Backend mode requires production environment plus disabled paper flag for live execution. Edge functions separately use DB mode settings. |
+| `backend/app/database.py` | Supabase client, control helpers, alert/audit helpers. |
+| `backend/app/services/oms_execution.py` | Intent routing/persistence; unit conversion, identity, and recovery findings. |
+| `backend/app/services/order_gateway.py` | Alternative class with tests but no production import found; not the sole writer its documentation claims. |
+| `backend/app/services/execution_planner.py` | Multi-leg execution/compensation; partial/rejected/persistence-failure handling defects. |
+| `backend/app/services/portfolio_engine.py` | Capital sizing and book cache; returns USD sizing and can retain stale controls. |
+| `backend/app/services/risk_engine.py` | Pre-trade comparisons, daily-loss queries, circuit breakers; missing/invalid-data and P&L findings. |
+| `backend/app/services/live_reconciliation.py` | Venue/internal comparison; identity mismatch reproduced. |
+| `backend/app/adapters/` | Mixed paper/live paths. Coinbase has HTTP execution, not only random stubs; protocol/ledger behavior needs repair and venue validation. |
+| `backend/app/services/enhanced_signal_engine.py` | Synthetic fallback/randomized candle fields; timeframe/provenance checks incomplete. |
+| `backend/app/services/opportunity_scanner.py` | Builds timeframe stacks and intents using that input. |
+| `backend/app/services/engine_runner.py` | Scanner/FreqTrade/basis/spot-arbitrage cycle, capital allocation, risk, OMS. |
+| `backend/app/services/institutional_backtester.py` | Local numerical logic; short accounting, fee, and terminal-equity defects. |
+| `backend/app/services/walk_forward_engine.py` | Rolling windows; aggregate includes overlapping train/test series. |
+| `backend/app/agents/` | Redis agents/orchestrator; ExecutionAgent execution remains simulated. |
+| `backend/app/control_plane/` | Optional Framework authority/risk/evidence adapters; construction/status tests do not establish runtime enforcement. |
+| `backend/app/core/observability.py` | Sentry/OpenTelemetry integration; Sentry tests expose a local Windows compatibility limitation. |
 
-## Directory Structure
+## Execution boundaries
 
-```
-enterprise-crypto/
-├── src/                          # Frontend (React/TypeScript/Vite)
-│   ├── App.tsx                   # Route definitions (22 pages)
-│   ├── pages/                    # 22 page components
-│   ├── components/               # 162 UI components (28 subdirectories)
-│   ├── hooks/                    # 67 custom hooks
-│   ├── services/                 # API service clients
-│   ├── lib/                      # Utility functions
-│   └── integrations/             # Supabase client, types
-│
-├── backend/                      # Backend (FastAPI/Python)
-│   ├── app/
-│   │   ├── main.py               # FastAPI app, lifespan, middleware
-│   │   ├── config.py             # Unified Pydantic settings
-│   │   ├── database.py           # Supabase client + audit_log helper
-│   │   ├── logging_config.py     # structlog configuration
-│   │   ├── core/                 # Security, config, strategy registry
-│   │   ├── middleware/           # Security headers, request validation
-│   │   ├── enterprise/           # RBAC, audit, risk limits, compliance
-│   │   ├── agents/               # 10 trading agents + orchestrator
-│   │   ├── api/                  # 12+ API routers
-│   │   ├── adapters/             # Exchange venue adapters (4)
-│   │   ├── arbitrage/            # Arbitrage engines (5 types)
-│   │   ├── services/             # 45+ domain services
-│   │   ├── models/               # Pydantic domain models
-│   │   ├── freqtrade/            # FreqTrade bot integration
-│   │   ├── gpu/                  # GPU/CUDA acceleration
-│   │   ├── control_plane/        # Control-plane adapters (authority, evidence, risk policy)
-│   │   └── compliance/           # Trading region restrictions
-│   ├── tests/                    # 69 pytest test files
-│   ├── requirements.txt          # Python dependencies
-│   └── Dockerfile                # Multi-stage Docker build
-│
-├── supabase/
-│   ├── migrations/               # 1 baseline SQL migration (64 tables, 212 RLS policies)
-│   └── functions/                # 36 Deno edge functions
-│
-├── e2e/                          # 4 Playwright E2E test specs
-├── data/freqtrade/strategies/    # FreqTrade strategy files
-├── scripts/                      # Deployment, health check, setup scripts
-├── docs/                         # 45+ documentation files
-├── .github/
-│   ├── workflows/ci.yml          # Frontend + backend CI
-│   ├── workflows/e2e.yml         # Playwright E2E tests
-│   └── dependabot.yml            # Automated dependency updates
-├── docker-compose.yml            # Production compose
-├── docker-compose.staging.yml    # Staging compose
-└── docker-compose.trading.yml    # FreqTrade bot compose
+```text
+Trading UI -> live-trading edge function -> exchange request or simulation
+                                      -> separate order/fill/position writes
+
+Backend scanner/engine -> risk + sizing -> OMS -> venue adapter
+                                             -> database persistence
+                                             -> multi-leg planner when configured
+
+Redis approved signal -> ExecutionAgent -> simulated execution/fill events
+
+Framework adapters -> constructed by orchestrator; authority metadata queried
+                   -> risk/evidence enforcement not wired into submissions there
 ```
 
----
+These paths are not one consistent execution state machine. Mode selection, units, controls, idempotency, fills, and recovery should converge at a canonical boundary. No live exchange or deployed agent operation was exercised.
 
-## Backend Architecture
+## Tests and measured checks
 
-### Entry Point: `backend/app/main.py`
+- Backend: **69 test modules**. Corrected local run: **1,204 passed, 2 failed, 3 skipped**; **63.2765% statement coverage**, above the 60% floor. No branch measurement. Two Sentry tests fail with a Windows `fork` initialization error in the installed environment.
+- Framework: **37 passed separately** with sibling source dependencies; default run skips the module without them.
+- Frontend: **20 modules, 298 passing tests**. Default coverage represents 44 loaded files and reports 74.69% statements. Full-source inclusion represents 290 files and reports **7.97% statements**, failing all configured 10% thresholds.
+- Frontend type-check, zero-warning ESLint, and Node 22 build passed. Backend CI-style Ruff passed. Mypy: **1,062 errors in 63 files**, non-blocking in CI.
+- Audit probes reproduce **30 observations** using local I/O doubles; archived evidence, not normal regression tests.
+- Python installed versions differ from CI pins. No browser E2E sweep, Docker build, live DB/exchange sandbox, or load test was run.
 
-**Lifespan Management:**
-1. Startup: `init_db()` → `market_data_service.start()` → `initialize_freqtrade_integration()` → `smart_order_router.initialize()` → `advanced_risk_engine.initialize()` → `arbitrage_engine.start()`
-2. Shutdown: reverse order
+## CI and deployment
 
-**Middleware Stack (request order):**
-1. CORSMiddleware (hardened: specific origins, credentials=true)
-2. TrustedHostMiddleware (production only)
-3. RequestValidationMiddleware (10MB body limit, XSS/SQL injection detection)
-4. SecurityHeadersMiddleware (CSP, HSTS, X-Frame-Options, X-Content-Type-Options)
-5. Request Context Middleware (X-Request-ID, structlog binding)
-6. Auth Middleware (Bearer JWT → Supabase verify → role lookup)
-7. Rate Limiting (slowapi: 30/min trading, 100/min read, 10/min auth)
+CI includes targeted frontend types, lint, tests/coverage, a Python 3.11/3.12 matrix, backend coverage enforcement, and uploads. Mypy uses `continue-on-error: true`. Staging deploy/health steps are placeholders. Remote CI results were not verified.
 
-**Registered Routers (all under `/api/v1`):**
-trading, risk, venues, meme, system, agents, arbitrage, market, strategies, screener, backtest, execution, ml_signals + health router (no auth)
+The frontend image uses Node 18 despite Vite 7's newer engine requirement. The backend install shell chain can suppress dependency failure through trailing `|| true`. Local application build success does not certify either image.
 
-### Multi-Agent System (`backend/app/agents/`)
+Schema reconstruction requires a reviewed baseline and migration replay. Earlier remote table/policy counts cannot be inferred from this checkout.
 
-**10 Agents with Hierarchy:**
-```
-META-DECISION AGENT (VETO POWER — no trade without approval)
-  ├── CAPITAL ALLOCATION AGENT (distributes capital across strategies)
-  ├── RISK AGENT (pre-trade validation, kill switch enforcement)
-  ├── SIGNAL AGENT (trend/mean-reversion/funding signal generation)
-  ├── EXECUTION AGENT (order routing to venues)
-  ├── ARBITRAGE AGENT (cross-venue opportunity detection)
-  ├── FREQTRADE SIGNAL AGENT (FreqTrade strategy signals)
-  └── STRATEGY LIFECYCLE AGENT
-```
+## Audit state
 
-**Communication:** Redis pub/sub channels (`agent:signals`, `agent:risk_check`, `agent:risk_approved`, `agent:execution`, `agent:fills`, `agent:control`, `agent:heartbeat`)
-
-**BaseAgent:** Redis pub/sub with message queue fallback (max 1000), exponential backoff reconnection (1s→30s), Supabase heartbeats every 30s (CPU, memory, status), control channel (pause/resume/shutdown).
-
-### Service Layer (`backend/app/services/` — 45+ files)
-
-**Core Engines (WORKING):**
-- `advanced_risk_engine.py` — VaR (historical, parametric, Monte Carlo), portfolio optimization, stress testing, risk attribution
-- `smart_order_router.py` — Multi-venue scoring, TWAP/VWAP/POV/Iceberg algo selection, market impact modeling
-- `execution_planner.py` — Legged execution with atomic unwind on failure
-- `risk_engine.py` — Pre-trade checks (kill switch, circuit breakers, position limits, daily loss)
-
-**Portfolio & Positions (WORKING):**
-- `portfolio_engine.py`, `portfolio_analytics.py` — Tracking, P&L, Greeks
-- `position_manager.py`, `position_sizer.py` — Lifecycle, Kelly criterion
-- `capital_allocator.py` — Capital distribution
-
-**Backtesting (WORKING):**
-- `backtesting.py`, `enhanced_backtesting_engine.py`, `institutional_backtester.py`, `walk_forward_engine.py`
-
-**Arbitrage (PARTIAL — logic real, venue data mocked):**
-- `arbitrage_engine.py`, `basis_edge_model.py`, `spot_arb_edge_model.py`, `basis_opportunity_scanner.py`, `spot_arb_scanner.py`
-
-**Market Data (SCAFFOLDED — adapters return random prices):**
-- `market_data_service.py`, `enhanced_market_data_service.py`
-
-**Signals & ML (PARTIAL):**
-- `enhanced_signal_engine.py`, `regime_detection_service.py`, `technical_analysis.py`
-
-### Exchange Adapters (`backend/app/adapters/` — SCAFFOLDED)
-
-All 4 adapters (Coinbase, Kraken, MEXC, DEX) use `random.uniform()` for prices, fills, slippage, and gas costs. Real exchange API calls are NOT implemented. The adapter pattern and interface are production-quality but the data layer is mocked.
-
-### Enterprise Features (`backend/app/enterprise/`)
-
-- `rbac.py` — 6 roles (viewer→admin), 25 permissions, per-role trade size limits
-- `audit.py` — Async buffer (100 events, 5s flush), structured events, 9 categories, 5 severity levels
-- `risk_limits.py` — Position/loss/drawdown/exposure/velocity limits with breach tracking
-- `compliance.py` — Trading region restrictions, rule engine
-
-### Control-Plane Adapters (`backend/app/control_plane/`)
-
-Bridges the multi-agent trading system to the Akiva execution-contracts and policy-runtime packages. Uses the optional-import guard pattern (`_HAS_CONTROL_PLANE` flag) so the trading backend runs without framework packages installed.
-
-**Three adapters:**
-
-| Adapter | Purpose | Framework Package |
-|---------|---------|-------------------|
-| `authority_adapter.py` | Maps agent roles (meta-decision, execution, risk, signal, etc.) to `AuthorityBoundary` contracts with `PermissionScope` and `ApprovalPolicy`. Unknown agents get READ_ONLY + DENY (fail-closed). | `akiva-execution-contracts` |
-| `evidence_adapter.py` | Converts order fills and META-DECISION vetoes into immutable `EvidenceRecord` objects for the append-only audit trail. | `akiva-execution-contracts` |
-| `risk_policy.py` | Three composable `PolicyAdapter` implementations (VaRPolicy, PositionLimitPolicy, DailyLossPolicy) wired into a `PolicyEngine`. Factory `build_risk_engine()` draws limits from trading config with conservative fallback defaults. | `akiva-policy-runtime` |
-
-**Agent authority mapping:**
-
-- META-DECISION: `FULL_ACCESS` + `REQUIRE_APPROVAL` (supreme veto)
-- Execution / Risk / Capital Allocation / Arbitrage / Strategy Lifecycle: `WORKSPACE_WRITE` + `AUTO`
-- Signal / FreqTrade Signal: `READ_ONLY` + `AUTO`
-- Unknown: `READ_ONLY` + `DENY` (fail-closed)
-
-**Tests:** `backend/tests/test_control_plane.py`
-
----
-
-## Frontend Architecture
-
-### Pages (22 routes in `src/App.tsx`)
-
-All protected by `<ProtectedRoute>` except `/auth`:
-
-| Route | Page | Purpose |
-|-------|------|---------|
-| `/` | Index | Dashboard — metrics, agent status, positions, P&L |
-| `/agents` | Agents | Agent registry, status, role management |
-| `/strategies` | Strategies | Strategy CRUD, backtest, deploy |
-| `/execution` | Execution | Order history, alerts, kill switch |
-| `/risk` | Risk | Risk analytics, kill switch, circuit breakers |
-| `/launch` | Launch | Meme project pipeline |
-| `/treasury` | Treasury | Wallet management (ETH, BTC, SOL, etc.) |
-| `/observability` | Observability | System monitoring |
-| `/settings` | Settings | Configuration |
-| `/engine` | Engine | Strategy execution engine controls |
-| `/analytics` | Analytics | Portfolio performance, trade journal |
-| `/markets` | Markets | Market data viewer |
-| `/positions` | Positions | Live position tracking, P&L |
-| `/audit` | AuditLog | Compliance activity log |
-| `/status` | SystemStatus | Health checks, uptime |
-| `/arbitrage` | Arbitrage | Spot & funding arb opportunities |
-| `/trade` | Trade | Unified spot trader, risk simulator |
-| `/operations` | Operations | Data source health |
-| `/screener` | Screener | Asset screener |
-| `/multi-exchange-demo` | MultiExchangeDemo | Multi-venue routing demo |
-| `/auth` | Auth | Login/signup (public) |
-| `*` | NotFound | 404 handler |
-
-### Hooks (`src/hooks/` — 67 total)
-
-- **29 hooks** doing real backend queries (useAgents, useAuth, usePositions, useLivePriceFeed, useStrategies, useBacktestResults, useSpotArbSpreads, useDashboardMetrics, etc.)
-- **38 hooks** that are stubs, partial, or thin wrappers (useMarketRegimes, useSignalScoring, useDerivativesData, useTradingCopilot, useWhaleAlerts, etc.)
-
-### Component Library
-
-shadcn/ui (Radix UI primitives) with Tailwind CSS. Dark theme trading UI. Recharts + Lightweight Charts for data visualization. 28 component subdirectories covering dashboard, trading, risk, arbitrage, agents, strategies, portfolio, compliance, etc.
-
----
-
-## Database Schema
-
-### Tables (64 total in 1 baseline migration)
-
-**Core Trading:** books, orders, positions, strategies, venues, instruments, leg_events
-**Risk:** risk_limits, circuit_breaker_events, global_settings (kill switch)
-**Users:** profiles, user_roles, user_tenants, tenants, user_exchange_keys
-**Market Data:** market_snapshots, derivatives_metrics, onchain_metrics, whale_transactions
-**Intelligence:** signals, decision_traces, alerts, audit_events
-**Meme:** meme_projects, meme_tasks
-**Arbitrage:** basis_positions, spot_arb_positions, basis_metrics, spot_arb_metrics
-
-### RLS Architecture
-
-- 212 RLS policies across 16+ tables
-- Multi-tenant isolation via `book_id` and `current_tenant_id()` function
-- Role-based access using `has_any_role()` function (7 roles: admin, cio, trader, ops, research, auditor, viewer)
-- Service role bypass for backend operations
-- Audit events table is INSERT-only (immutable by design)
-- API key encryption via pgcrypto AES-256 (SECURITY DEFINER functions)
-
-### Circuit Breaker Triggers
-
-Migration `20260220042730` implements Postgres triggers on fills/positions that:
-- Check daily P&L limits
-- Freeze books when limits breached
-- Activate global kill switch automatically
-
----
-
-## Edge Functions (36 in `supabase/functions/`)
-
-**Trading (7):** live-trading, trading-api, binance-us-trading, coinbase-trading, kraken-trading, hyperliquid, toggle-strategy
-**Arbitrage (4):** cross-exchange-arbitrage, funding-arbitrage, basis-arbitrage, approve-meme-launch
-**Intelligence (5):** market-intelligence, market-data, market-data-stream, whale-alerts, real-news-feed
-**Signals (2):** signal-scoring, analyze-signal
-**Risk/Ops (6):** health-check, kill-switch, freeze-book, reallocate-capital, scheduled-monitor, alert-create + send-alert-notification
-**Integrations (4):** tradingview-webhook, telegram-alerts, external-signals, token-metrics
-**AI (2):** trading-copilot, ai-trading-copilot
-**Exchange (2):** exchange-keys, exchange-validate
-**Audit (1):** audit-log
-**Shared:** `_shared/` (cors, security, oms-client, tenant-guard, validation)
-
-All 36 are real implementations (not stubs).
-
----
-
-## Testing Infrastructure
-
-### Backend Tests (`backend/tests/` — 69 files)
-
-Covers: risk engine (controls, edge cases), arbitrage engine (basis, spot arb, integration), backtesting (enhanced, institutional, walk-forward, e2e workflow), capital allocator (agent, integration), edge/cost models, execution (planner, API), freqtrade (integration, backtester), health (metrics), order gateway (critical), order simulator, performance metrics, portfolio analytics, position manager (sizer, coverage), quant engine (enhanced), scanners (scanner-to-OMS cost gate), strategy (registry, lifecycle agent), security middleware, WebSocket auth, enterprise (audit, compliance, controls, features, reporting), adapters (coverage), agent identity, behavior tracking, config, control plane, database & security, drawdown monitor, engine runner, integration coverage, live reconciliation, logging config, meta-decision agent, model registry, observability, smart order router, system API, trading engine coverage.
-
-**Coverage floor:** 20% (CI `--cov-fail-under=20`)
-
-### Frontend Tests (`src/` — 18 test files)
-
-**Component tests (5):** KillSwitchPanel, AdvancedRiskDashboard, TradeTicket, PositionManagementPanel, RiskGauge.
-**Hook tests (5):** useAlerts, useDashboardMetrics, usePositions, useStrategies, useSystemHealth.
-**Library tests (8):** complianceEnforcement, instrumentParser, schemas, status-colors, symbolUtils, tradingGate, tradingModes, userModes.
-
-### E2E Tests (`e2e/` — 4 Playwright specs)
-
-kill-switch, position-management, risk-dashboard, trade-flow
-
-### Load Tests
-
-`backend/tests/load/locustfile.py`
-
----
-
-## CI/CD
-
-### GitHub Actions
-
-- **ci.yml:** Frontend (Bun → tsc → ESLint → vitest) + Backend (Python 3.12 → Ruff → Bandit → pip-audit → pytest → Docker build)
-- **e2e.yml:** Playwright chromium on PR/nightly/manual
-
-### Dependabot
-
-Weekly updates for pip, npm, and GitHub Actions with reviewer `adii2025`.
-
-### Known CI Issues
-
-- Frontend type-check: `bun run tsc --noEmit` with root `tsconfig.json` `"files": []` — likely compiles nothing (should use `tsc -p tsconfig.app.json --noEmit`)
-- `npm audit` uses `|| true` (non-blocking)
-- `pip-audit` uses `|| echo "::warning::"` (non-blocking)
-- Backend coverage floor: 20% (Archetype 7 requires 60%)
-- Single Python version (no matrix testing)
-- No coverage artifact upload
-- No deployment pipeline
-
----
-
-## Deployment
-
-- Docker multi-stage build (backend)
-- docker-compose (production, staging, FreqTrade bots)
-- `scripts/deploy.sh` for manual deployment
-- Northflank configuration (`northflank.json`)
-- No CD pipeline in GitHub Actions
-- No blue/green or canary deployment
-
----
-
-## Known Gaps
-
-1. **Exchange adapters scaffolded** — All 4 backend adapters return random data. Real exchange API calls not implemented.
-2. **CI type-check ineffective** — Bare `tsc --noEmit` on Vite project with `"files": []` compiles nothing.
-3. **No deployment pipeline** — Manual deploy only, no CD in GitHub Actions.
-4. **Frontend test coverage thin** — 18 test files for 280 source files.
-5. **Security scanning non-blocking** — npm audit and pip-audit don't fail CI.
-6. **147 hardcoded colors** — Violates design token discipline.
-7. **18 fire-and-forget mutations** — Orders/actions submitted without proper error handling.
-8. **No OpenTelemetry/Prometheus** — No distributed tracing or metrics export.
-9. **AI copilot not integrated** — Context provider exists, no UI.
-10. **ML models not deployed** — GPU module exists but no trained model serving.
-
----
-
-_This codebase map was created as Phase 0.5 per Akiva Build Standard v2.14._
-_139 Python files, 280 TypeScript files, 1 SQL baseline migration, 36 edge functions examined._
+The September report records **20 findings (14 P1, 6 P2)** with proposed repairs and acceptance criteria. Product source, tests, dependencies, migrations, and CI remain unchanged. Pre-existing tracked coverage/bytecode deletions remain outside the audit commit.

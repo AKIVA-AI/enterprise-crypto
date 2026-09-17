@@ -1,0 +1,40 @@
+{
+  "source": "e603ddd7bb908d24321a640ba1ac646e5b043600",
+  "probe_count": 5,
+  "observed": {
+    "short_trade_profit_disagrees_with_cash": {
+      "initial_cash": 1000,
+      "entry_price": 100,
+      "exit_price": 90,
+      "trade_pnl": 10.0,
+      "ending_cash": 990.0,
+      "expected_ending_cash": 1010
+    },
+    "final_equity_omits_liquidation_fee_and_trade_pnl_omits_entry_fee": {
+      "last_equity": 999.5,
+      "ending_cash": 999.0025,
+      "trade_pnl": -0.4975,
+      "cash_pnl": -0.9974999999999454,
+      "trade_total_fees": 0.9975
+    },
+    "reconciliation_matches_local_id_instead_of_venue_id": {
+      "internal_id": "local-id",
+      "stored_venue_order_id": "venue-id",
+      "venue_order_present": true,
+      "observed_venue_status": "not_found"
+    },
+    "live_mode_market_gap_yields_untagged_hourly_synthetic_data": {
+      "effective_paper_mode": false,
+      "requested_timeframe": "5m",
+      "returned_interval_minutes": 60.0,
+      "rows": 30,
+      "data_quality_column_present": false
+    },
+    "walk_forward_aggregate_concatenates_overlapping_train_and_test_windows": {
+      "windows": 3,
+      "aggregate_points": 18,
+      "unique_timestamps": 10,
+      "expected_out_of_sample_points": 6
+    }
+  }
+}

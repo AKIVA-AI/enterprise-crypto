@@ -1,0 +1,21 @@
+C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\site-packages\_pytest\unraisableexception.py:67: PytestUnraisableExceptionWarning: Exception ignored in: <function BaseEventLoop.__del__ at 0x0000022E6DF24E00>
+
+Traceback (most recent call last):
+  File "C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 732, in __del__
+    self.close()
+  File "C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 697, in close
+    self._close_self_pipe()
+  File "C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 779, in _close_self_pipe
+    self._ssock.close()
+    ^^^^^^^^^^^
+AttributeError: 'ProactorEventLoop' object has no attribute '_ssock'
+
+Enable tracemalloc to get traceback where the object was allocated.
+See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+  warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
+Exception ignored in: <function BaseEventLoop.__del__ at 0x0000022E6DF24E00>
+Traceback (most recent call last):
+  File "C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 732, in __del__
+  File "C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 697, in close
+  File "C:\Users\ccana\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 779, in _close_self_pipe
+AttributeError: 'ProactorEventLoop' object has no attribute '_ssock'
