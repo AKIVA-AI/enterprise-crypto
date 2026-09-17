@@ -486,6 +486,166 @@ async function simulateFill(order: TradeOrder): Promise<{
 }
 
 /**
+ * EC-03: request a venue cancellation. Returns the observed venue state. A
+ * venue that reports any indeterminate/error state is surfaced to the caller so
+ * the order row is NOT rewritten to a false "cancelled".
+ */
+async function cancelVenueOrder(
+  venue: string,
+  venueOrderId: string,
+): Promise<{ cancelled: boolean; state: string }> {
+  // Best-effort per-venue cancel. If the venue SDK/route for the active
+  // adapter does not expose a cancel path, return "unknown" — never claim
+  // cancelled without venue confirmation.
+  const v = venue.toLowerCase();
+  try {
+    switch (v) {
+      case 'coinbase':
+        return await cancelCoinbaseOrder(venueOrderId);
+      case 'binance':
+      case 'binance_us':
+        return await cancelBinanceOrder(venueOrderId);
+      case 'kraken':
+        return await cancelKrakenOrder(venueOrderId);
+      default:
+        return { cancelled: false, state: 'unsupported_venue' };
+    }
+  } catch (e) {
+    return { cancelled: false, state: 'error' };
+  }
+}
+
+/**
+ * Cancel an acknowledged Coinbase order. Uses Advanced Trade "cancel orders"
+ * endpoint which takes client_order_ids. Returns cancelled only when the venue
+ * confirms.
+ */
+async function cancelCoinbaseOrder(venueOrderId: string): Promise<{ cancelled: boolean; state: string }> {
+  const apiKey = Deno.env.get('COINBASE_API_KEY');
+  const apiSecret = Deno.env.get('COINBASE_API_SECRET');
+  if (!apiKey || !apiSecret) return { cancelled: false, state: 'no_credentials' };
+
+  try {
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const body = JSON.stringify({ client_order_ids: [venueOrderId] });
+    const method = 'POST';
+    const requestPath = '/api/v3/brokerage/orders/batch_cancel';
+    const message = timestamp + method + requestPath + body;
+
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(apiSecret),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+    const signatureHex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+    const resp = await fetch(`https://api.coinbase.com${requestPath}`, {
+      method: 'POST',
+      headers: {
+        'CB-ACCESS-KEY': apiKey,
+        'CB-ACCESS-SIGN': signatureHex,
+        'CB-ACCESS-TIMESTAMP': timestamp,
+        'Content-Type': 'application/json',
+      },
+      body,
+    });
+
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && data) {
+      const results = data.results ?? [];
+      const anyCancelled = results.some((r: any) => r?.success || r?.order_cancelled);
+      return { cancelled: anyCancelled, state: anyCancelled ? 'cancelled' : 'rejected' };
+    }
+    return { cancelled: false, state: `http_${resp.status}` };
+  } catch {
+    return { cancelled: false, state: 'network_error' };
+  }
+}
+
+async function cancelBinanceOrder(venueOrderId: string): Promise<{ cancelled: boolean; state: string }> {
+  const apiKey = Deno.env.get('BINANCE_API_KEY');
+  const apiSecret = Deno.env.get('BINANCE_API_SECRET');
+  if (!apiKey || !apiSecret) return { cancelled: false, state: 'no_credentials' };
+
+  // Best-effort spot cancel for the order id; binance returns 200 + status
+  // 'CANCELED' on success.
+  try {
+    const symbol = Deno.env.get('BINANCE_CANCEL_SYMBOL') || 'BTCUSDT';
+    const qs = new URLSearchParams({ symbol, orderId: venueOrderId }).toString();
+    const signature = await hmacSha256Hex(qs + '&timestamp=' + Date.now(), apiSecret);
+    const url = `https://api.binance.com/api/v3/order?${qs}&timestamp=${Date.now()}&signature=${signature}`;
+    const resp = await fetch(url, { method: 'DELETE', headers: { 'X-MBX-APIKEY': apiKey } });
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && (data.status === 'CANCELED' || data.cancelled === true)) {
+      return { cancelled: true, state: 'cancelled' };
+    }
+    return { cancelled: false, state: `http_${resp.status}` };
+  } catch {
+    return { cancelled: false, state: 'network_error' };
+  }
+}
+
+async function cancelKrakenOrder(venueOrderId: string): Promise<{ cancelled: boolean; state: string }> {
+  const apiKey = Deno.env.get('KRAKEN_API_KEY');
+  const apiSecret = Deno.env.get('KRAKEN_API_SECRET');
+  if (!apiKey || !apiSecret) return { cancelled: false, state: 'no_credentials' };
+
+  try {
+    const nonce = Date.now().toString();
+    const postData = `nonce=${nonce}&txid=${encodeURIComponent(venueOrderId)}`;
+    const path = '/0/private/CancelOrder';
+    const signature = await krakenSignature(path, postData, nonce, apiSecret);
+    const resp = await fetch(`https://api.kraken.com${path}`, {
+      method: 'POST',
+      headers: {
+        'API-Key': apiKey,
+        'API-Sign': signature,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: postData,
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && data.result?.count >= 1) {
+      return { cancelled: true, state: 'cancelled' };
+    }
+    return { cancelled: false, state: 'not_cancelled' };
+  } catch {
+    return { cancelled: false, state: 'network_error' };
+  }
+}
+
+async function hmacSha256Hex(message: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function krakenSignature(path: string, postData: string, nonce: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const sha256 = await crypto.subtle.digest('SHA-256', encoder.encode(nonce + postData));
+  const inner = encoder.encode(path).concat(new Uint8Array(sha256));
+  const keyBytes = Uint8Array.from(atob(secret), c => c.charCodeAt(0));
+  const sha512Key = await crypto.subtle.importKey(
+    'raw', keyBytes, { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', sha512Key, inner);
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
+
+/**
+ * EC-06: a stable client order id derived from the intent so retries reuse the
+ * SAME execution identity rather than generating a fresh UUID per attempt.
+ */
+function stableClientOrderId(orderId: string, venueOrderId: string | null): string {
+  // The venue dedupes on client_order_id. Reuse the durable order id so retry
+  // after a lost response lands idempotently.
+  return venueOrderId ?? `akiva-${orderId}`;
+}
+
+/**
  * Route order to the appropriate exchange for live execution with retry logic.
  * Retries up to MAX_RETRIES times with exponential backoff on transient failures.
  * Returns null if all attempts fail (caller should fail-closed).
@@ -1012,6 +1172,57 @@ serve(async (req) => {
           });
         }
 
+        // EC-03: fetch the venue identity; only treat a local update as venue
+        // cancelled when the venue actually acknowledged a cancel. An order with
+        // no persisted venue_order_id has NEVER been accepted at the venue — its
+        // local "cancelled" state is the terminal state (no venue call needed).
+        const { data: orderRow, error: fetchErr } = await supabase
+          .from('orders')
+          .select('id, venue_order_id, venue:venue_id(name), status')
+          .eq('id', orderId)
+          .single();
+
+        if (fetchErr) throw fetchErr;
+        if (!orderRow || orderRow.status !== 'open') {
+          return new Response(JSON.stringify({ success: true, state: 'already_not_open' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const venueOrderId = orderRow.venue_order_id;
+        const venueName = orderRow.venue?.name;
+
+        if (!venueOrderId || !venueName) {
+          // No venue acceptance on file — local-only order, safe to cancel locally.
+          const { error } = await supabase
+            .from('orders')
+            .update({ status: 'cancelled' })
+            .eq('id', orderId)
+            .eq('status', 'open');
+          if (error) throw error;
+          return new Response(JSON.stringify({ success: true, cancelled: 'local' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Live order: request cancellation at the venue first.
+        const cancelState = await cancelVenueOrder(venueName, venueOrderId);
+        if (!cancelState.cancelled) {
+          // Retain a pending/unknown cancellation state; never claim success.
+          await supabase
+            .from('orders')
+            .update({ status: 'cancel_requested' })
+            .eq('id', orderId);
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Venue cancellation not confirmed; retained as cancel_requested',
+            state: cancelState.state,
+          }), {
+            status: 504,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
         const { error } = await supabase
           .from('orders')
           .update({ status: 'cancelled' })
@@ -1020,7 +1231,7 @@ serve(async (req) => {
 
         if (error) throw error;
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, cancelled: 'venue' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -1055,7 +1266,9 @@ serve(async (req) => {
           });
         }
 
-        // Create closing order
+        // Create closing order. EC-02: route through the REAL venue — the close is
+        // a risk-reducing operation that MUST obtain a venue acknowledgement; do not
+        // simulate and claim a close that never happened.
         const closeSize = position.size * (closePercentage / 100);
         const closeSide = position.side === 'buy' ? 'sell' : 'buy';
 
@@ -1066,27 +1279,56 @@ serve(async (req) => {
           size: closeSize,
           price: position.mark_price,
           orderType: 'market',
-          venue: 'simulated',
+          // EC-02: derive venue from the persisted venue_id FK
+          venue: '' /** overridden below once venue name resolved */,
         };
+
+        // Resolve the venue name from the persisted venue_id so the close lands
+        // back on the same venue where the position lives.
+        let positionVenue: string = 'simulated';
+        if (position.venue_id) {
+          const { data: vrow } = await supabase
+            .from('venues')
+            .select('name')
+            .eq('id', position.venue_id)
+            .single();
+          if (vrow?.name) positionVenue = vrow.name;
+        }
+        closeOrder.venue = positionVenue;
 
         // Recursively place the close order
         const closeResult = await runSafetyChecks(supabase, closeOrder);
         if (!closeResult.passed) {
-          // Allow reduce-only to close positions
-          console.log('Override: allowing position close in reduce-only mode');
+          // Risk-reducing close may proceed through a venue-controlled reduce-only
+          // path even when the general safety gate denies new exposure. Log and
+          // continue — do NOT mark the position closed if no venue confirms it.
+          console.log('Risk-reducing close; continuing despite general safety denial');
         }
 
-        const fill = await simulateFill(closeOrder);
-        
-        // Update position
-        const newSize = position.size - closeSize;
+        // EC-02: actually execute at the venue; refuse to confirm without a venue
+        // acknowledgement. Partial fills are surfaced rather than overstate closure.
+        const fill = await executeOnVenue(closeOrder);
+        const confirmed = fill?.filledSize ?? 0;
+        if (confirmed <= 0) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Venue returned no confirmed fill for the close',
+            filledSize: 0,
+          }), {
+            status: 502,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Account only for the confirmed fill; never subtract the requested size.
+        const newSize = position.size - confirmed;
         if (newSize <= 0) {
           await supabase
             .from('positions')
             .update({ 
               is_open: false, 
               size: 0,
-              realized_pnl: position.realized_pnl + (fill.filledPrice - position.entry_price) * closeSize * (position.side === 'buy' ? 1 : -1)
+              realized_pnl: position.realized_pnl + (fill.filledPrice - position.entry_price) * confirmed * (position.side === 'buy' ? 1 : -1)
             })
             .eq('id', closePositionId);
         } else {
@@ -1098,8 +1340,9 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({ 
           success: true,
-          closedSize: closeSize,
+          closedSize: confirmed,
           closedPrice: fill.filledPrice,
+          remainingOpen: Math.max(newSize, 0),
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
