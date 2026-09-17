@@ -54,6 +54,7 @@ class PortfolioEngine:
 
     def __init__(self):
         self._books_cache: Dict[UUID, Book] = {}
+        self._books_cached_at: Dict[UUID, datetime] = {}
         self._vol_estimates: Dict[str, float] = {}
 
     async def get_books(self) -> List[Book]:
@@ -75,13 +76,31 @@ class PortfolioEngine:
             )
             books.append(book)
             self._books_cache[book.id] = book
+            self._books_cached_at[book.id] = datetime.utcnow()
 
         return books
+
+    def invalidate_book(self, book_id: UUID) -> None:
+        """EC-09: explicit cache invalidation. Called by any writer that changes
+        a book's status (set_reduce_only, halt, freeze) so the next get_book
+        returns the updated row rather than a cached snapshot.
+        """
+        self._books_cache.pop(book_id, None)
+        self._books_cached_at.pop(book_id, None)
 
     async def get_book(self, book_id: UUID) -> Optional[Book]:
         """Get a specific book by ID."""
         if book_id in self._books_cache:
-            return self._books_cache[book_id]
+            # EC-09: cached book state is only valid briefly — an external
+            # freeze (e.g., from the OMS) must invalidate it rather than
+            # silently serving a stale "active" book. TTL: 5 seconds.
+            cached_at = self._books_cached_at.get(book_id)
+            book = self._books_cache[book_id]
+            if cached_at and (datetime.utcnow() - cached_at).total_seconds() <= 5:
+                return book
+            # Expired; drop and re-fetch below.
+            del self._books_cache[book_id]
+            self._books_cached_at.pop(book_id, None)
 
         supabase = get_supabase()
         result = (
@@ -104,6 +123,7 @@ class PortfolioEngine:
                 status=result.data["status"],
             )
             self._books_cache[book.id] = book
+            self._books_cached_at[book.id] = datetime.utcnow()
             return book
 
         return None

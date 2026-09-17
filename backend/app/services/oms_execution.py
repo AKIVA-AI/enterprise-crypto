@@ -380,15 +380,48 @@ class OMSExecutionService:
         }
 
     def _is_reducing_order(self, intent: TradeIntent, positions: List) -> bool:
-        """Check if an intent would reduce an existing position."""
+        """EC-09: reduce-only means the intent must DECREASE absolute signed
+        exposure of the SAME instrument without flipping its sign. Opposite
+        direction alone is insufficient.
+
+        Signed exposure is USD: position.size is base-asset quantity, so use
+        pos.size * pos.mark_price. target_exposure_usd is already USD. A NaN or
+        non-positive exposure cannot reduce — fail closed (return False).
+        """
+        if not positions:
+            return False
+
+        # Signed USD exposure across all open positions of this instrument.
+        signed_usd = 0.0
         for pos in positions:
-            if pos.instrument == intent.instrument:
-                # Reducing if opposite side
-                if pos.side == OrderSide.BUY and intent.direction == OrderSide.SELL:
-                    return True
-                if pos.side == OrderSide.SELL and intent.direction == OrderSide.BUY:
-                    return True
-        return False
+            if pos.instrument != intent.instrument:
+                continue
+            mark = float(pos.mark_price or 0.0)
+            if mark <= 0 or mark != mark:
+                continue
+            usd = float(pos.size) * mark
+            signed_usd += usd if pos.side == OrderSide.BUY else -usd
+
+        if signed_usd == 0.0:
+            return False
+
+        exposure_usd = float(intent.target_exposure_usd)
+        if exposure_usd <= 0 or exposure_usd != exposure_usd:  # NaN guard
+            return False
+
+        delta_usd = exposure_usd if intent.direction == OrderSide.BUY else -exposure_usd
+        post = signed_usd + delta_usd
+
+        # Must be an opposite-direction move
+        if (signed_usd > 0 and intent.direction != OrderSide.SELL) or (
+            signed_usd < 0 and intent.direction != OrderSide.BUY
+        ):
+            return False
+        # No flip: post must keep the same sign as pre.
+        if (signed_usd > 0 and post < 0) or (signed_usd < 0 and post > 0):
+            return False
+        # Must strictly reduce |exposure|.
+        return abs(post) < abs(signed_usd) or post == 0.0
 
     def _resolve_execution_plan(self, intent: TradeIntent):
         metadata = intent.metadata or {}

@@ -60,6 +60,9 @@ class ExecutionPlanner:
 
         executed_orders: List[Tuple[Order, str]] = []
         last_leg_time: Optional[datetime] = None
+        # EC-08: track confirmed fills separately so a rejected leg cannot later
+        # be unwound as if it had exposure.
+        executed_fills: dict[str, float] = {}  # order_id -> confirmed filled size
 
         for leg in plan.legs:
             adapter = adapters.get(leg.venue.lower())
@@ -77,6 +80,7 @@ class ExecutionPlanner:
                     adapters,
                     save_order_callback,
                     event_recorder,
+                    executed_fills=executed_fills,
                 )
 
             now = datetime.now(timezone.utc)
@@ -96,7 +100,23 @@ class ExecutionPlanner:
                         adapters,
                         save_order_callback,
                         event_recorder,
+                        executed_fills=executed_fills,
                     )
+
+            # EC-08: reduce this leg's requested size by the actual filled amount
+            # of the previous leg, so a partial fill never overshoots the next leg.
+            if executed_orders and executed_orders[-1][0].status == OrderStatus.PARTIAL:
+                prev_order, _ = executed_orders[-1]
+                remaining = max(leg.size - prev_order.filled_size, 0.0)
+                leg = ExecutionLeg(
+                    venue=leg.venue,
+                    instrument=leg.instrument,
+                    side=leg.side,
+                    size=remaining,
+                    order_type=leg.order_type,
+                    limit_price=leg.limit_price,
+                    metadata=leg.metadata,
+                )
 
             order = Order(
                 id=uuid4(),
@@ -127,6 +147,11 @@ class ExecutionPlanner:
                 )
                 await save_order_callback(executed)
                 executed_orders.append((executed, leg.venue))
+                # EC-08: only record a *confirmed* fill for unwind purposes.
+                if executed.status == OrderStatus.FILLED and executed.filled_size > 0:
+                    executed_fills[str(executed.id)] = executed.filled_size
+                elif executed.status == OrderStatus.PARTIAL and executed.filled_size > 0:
+                    executed_fills[str(executed.id)] = executed.filled_size
                 last_leg_time = datetime.now(timezone.utc)
                 if event_recorder:
                     await event_recorder(
@@ -154,6 +179,7 @@ class ExecutionPlanner:
                     adapters,
                     save_order_callback,
                     event_recorder,
+                    executed_fills=executed_fills,
                 )
 
             if executed.status in (OrderStatus.REJECTED, OrderStatus.CANCELLED):
@@ -168,6 +194,7 @@ class ExecutionPlanner:
                     adapters,
                     save_order_callback,
                     event_recorder,
+                    executed_fills=executed_fills,
                 )
 
         return [order for order, _ in executed_orders]
@@ -180,6 +207,8 @@ class ExecutionPlanner:
         adapters: Dict[str, Any],
         save_order_callback,
         event_recorder: Optional[Callable[[str, ExecutionLeg, Dict], None]] = None,
+        *,
+        executed_fills: Optional[dict[str, float]] = None,
     ) -> List[Order]:
         if not plan.unwind_on_fail or not executed_orders:
             return []
@@ -191,10 +220,20 @@ class ExecutionPlanner:
             severity="critical",
         )
 
+        # EC-08: only unwind the NET confirmed exposure, never the requested
+        # size of a rejected leg.
+        fills_map = executed_fills or {}
+
         for order, venue in executed_orders:
             adapter = adapters.get(venue.lower())
 
             if not adapter:
+                continue
+
+            # Only confirm-filled exposure can be unwound.
+            confirmed_filled = fills_map.get(str(order.id), 0.0)
+            if confirmed_filled <= 0:
+                # Zero-fill legs have no exposure to unwind.
                 continue
 
             unwind_order = Order(
@@ -204,7 +243,7 @@ class ExecutionPlanner:
                 venue_id=order.venue_id,
                 instrument=order.instrument,
                 side=OrderSide.SELL if order.side == OrderSide.BUY else OrderSide.BUY,
-                size=order.filled_size or order.size,
+                size=confirmed_filled,
                 order_type="market",
                 status=OrderStatus.OPEN,
             )
