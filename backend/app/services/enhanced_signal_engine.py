@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import structlog
 
+from app.config import settings
 from app.database import get_supabase
 from app.models.domain import Book, OrderSide, TradeIntent
 from app.services.technical_analysis import ta_engine
@@ -75,12 +76,20 @@ class EnhancedSignalEngine:
         self, instrument: str, timeframe: str = "1h", limit: int = 100
     ) -> Optional[pd.DataFrame]:
         """
-        Fetch OHLCV data from Supabase or external source.
+        Fetch OHLCV data from Supabase.
+
+        EC-12: in live mode (not paper), missing data cannot supply a synthetic
+        fixture. Return None so callers block live signal generation.
+        Paper/simulation mode may use a synthetic fallback.
         """
+        if not hasattr(self, "_live_mode"):
+            self._live_mode = not settings.is_paper_mode
+        if self._live_mode:
+            return None
+
         try:
             supabase = get_supabase()
 
-            # Get from market snapshots - aggregate into OHLCV
             result = (
                 supabase.table("market_snapshots")
                 .select("recorded_at, last_price, bid, ask, volume_24h")
@@ -91,14 +100,12 @@ class EnhancedSignalEngine:
             )
 
             if not result.data or len(result.data) < 20:
-                # Generate synthetic data for paper trading
                 return self._generate_synthetic_ohlcv(instrument, limit)
 
             df = pd.DataFrame(result.data)
             df["recorded_at"] = pd.to_datetime(df["recorded_at"])
             df = df.sort_values("recorded_at")
 
-            # Convert to OHLCV format
             df["open"] = df["last_price"]
             df["high"] = df["last_price"] * (1 + np.random.uniform(0, 0.005, len(df)))
             df["low"] = df["last_price"] * (1 - np.random.uniform(0, 0.005, len(df)))
