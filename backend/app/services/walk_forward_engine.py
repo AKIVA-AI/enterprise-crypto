@@ -98,8 +98,34 @@ class WalkForwardEngine:
             result = backtester.run_backtest(strategy, window_data)
             window_results.append(result)
 
-            all_equity.extend(result.equity_curve)
-            all_trades.extend(result.trades)
+            # EC-17: aggregate ONLY the window's out-of-sample test segment. The
+            # equity_curve spans train+validate+test; concatenating all of it
+            # would double-count training observations and overlap windows.
+            test_start = result.test_start_ts
+            if test_start is not None:
+                oos_equity = [
+                    p for p in result.equity_curve if p.timestamp >= test_start
+                ]
+                oos_trades = [
+                    t
+                    for t in result.trades
+                    if t.timestamp_open is not None
+                    and pd.to_datetime(t.timestamp_open) >= test_start
+                ]
+            else:
+                # Conservative: only the final fraction of the window's rows is
+                # test — the last test_window segment.
+                test_n = int(
+                    len(result.equity_curve)
+                    * (self.config.test_window / max(
+                        self.config.train_window + self.config.test_window, 1
+                    ))
+                )
+                oos_equity = result.equity_curve[-test_n:] if test_n > 0 else []
+                oos_trades = result.trades[-test_n:] if test_n > 0 else []
+
+            all_equity.extend(oos_equity)
+            all_trades.extend(oos_trades)
 
         aggregate_metrics = None
         if all_equity:

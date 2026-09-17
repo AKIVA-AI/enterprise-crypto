@@ -137,6 +137,11 @@ class InstitutionalBacktester:
         # 6. Build result
         execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
+        # EC-17: mark the OOS boundary so aggregators see only test portion.
+        test_start_ts = None
+        if test_data is not None and len(test_data) > 0:
+            test_start_ts = pd.to_datetime(test_data.iloc[0]["date"])
+
         return BacktestResult(
             id=uuid4(),
             strategy_name=self.config.strategy_name,
@@ -157,6 +162,7 @@ class InstitutionalBacktester:
             in_sample_metrics=train_result["metrics"],
             out_sample_metrics=test_result["metrics"],
             validation_metrics=validate_result["metrics"],
+            test_start_ts=test_start_ts,
         )
 
     def _validate_data(self, data: pd.DataFrame) -> None:

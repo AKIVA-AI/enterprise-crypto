@@ -214,6 +214,12 @@ class BacktestResult:
     out_sample_metrics: Optional[PerformanceMetrics] = None
     validation_metrics: Optional[PerformanceMetrics] = None
 
+    # EC-17: timestamp boundary between the in-sample/validation segment and
+    # the out-of-sample (test) segment. Equity points before this timestamp are
+    # training; only points at/after it are the OOS result the walk-forward
+    # aggregator must consume.
+    test_start_ts: Optional[datetime] = None
+
     def to_dict(self) -> dict:
         """Convert the backtest result to a dictionary."""
         equity_curve = self.equity_curve or []
