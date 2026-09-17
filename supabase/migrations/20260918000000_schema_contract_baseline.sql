@@ -1,0 +1,54 @@
+-- Enterprise Crypto: schema contract baseline (documentation, not a deployable migration).
+-- EC-15: a fresh checkout cannot reconstruct the application schema because the
+-- historical chain was reset on 2026-03-30. This file documents every table the
+-- backend references; production schema lives in Supabase and MUST be exported
+-- via `supabase db dump` as the reproducible baseline before relying on these.
+
+-- Tables referenced by backend/app/**/*.py (must all exist in the live schema):
+--   alerts
+--   allocator_decisions
+--   arb_spreads
+--   audit_events
+--   basis_quotes
+--   books
+--   circuit_breaker_events
+--   fills
+--   funding_rates
+--   global_settings
+--   instruments
+--   intelligence_signals
+--   leg_events
+--   market_data
+--   market_regimes
+--   market_snapshots
+--   meme_metrics
+--   meme_projects
+--   meme_tasks
+--   multi_leg_intents
+--   orders
+--   portfolio_snapshots
+--   positions
+--   risk_breaches
+--   risk_limits
+--   spot_quotes
+--   strategies
+--   strategy_allocations
+--   strategy_performance
+--   strategy_positions
+--   strategy_risk_metrics
+--   strategy_signals
+--   trade_intents
+--   user_roles
+--   venue_health
+--   venue_inventory
+--   venues
+--   walk_forward_results
+
+-- To produce a real reproducible baseline (owner-run):
+--   1. supabase login
+--   2. supabase link --project-ref <live-project-ref>
+--   3. supabase db dump --file supabase/migrations/20260918000000_schema_baseline.sql
+--   4. Verify in a clean local DB (supabase db reset) that contract tests pass.
+--
+-- Do NOT commit partial CREATE TABLE stubs unless verified against the remote
+-- schema; a wrong baseline is strictly worse than a documented missing one.
