@@ -4,7 +4,7 @@
 # FastAPI and server
 fastapi==0.121.3
 uvicorn[standard]==0.27.1
-python-multipart==0.0.30  # PYSEC-2026-3039/-2026-3036 (multipart header DoS + urlencoded quadratic parse)
+python-multipart==0.0.31  # PYSEC-2026-3039/-3036/-3040 (multipart header DoS and urlencoded parse)
 
 # Database
 asyncpg==0.29.0
@@ -40,7 +40,7 @@ pytest-cov==4.1.0
 structlog==24.1.0
 
 # Security and encryption
-cryptography==46.0.7  # CVE-2026-39892 (buffer overflow on non-contiguous Hash.update buffers, Python >3.11)
+cryptography==50.0.0  # PYSEC-2026-3552/-3553/-3554 & GHSA-537c-gmf6-5ccf
 
 # System monitoring
 psutil==5.9.8
