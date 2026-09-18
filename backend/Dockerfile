@@ -21,6 +21,13 @@ RUN pip install --no-cache-dir --user -r requirements.txt && \
 # Production stage - minimal image
 FROM python:3.12-slim as production
 
+# Pull latest security-patched Debian base packages (clears Trivy OS-level
+# findings: perl/sqlite/pcre2/gzip with available deb13u* fixed versions).
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # Create non-root user for production
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser
 
