@@ -44,7 +44,13 @@ export default function Auth() {
     setIsLoading(true);
     try {
       await signUp(signupEmail, signupPassword, signupName);
-      navigate('/');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      } else {
+        toast.success('Check your email to confirm your account, then sign in.');
+        setView('auth');
+      }
     } catch {
       // Error is handled in useAuth
     } finally {
