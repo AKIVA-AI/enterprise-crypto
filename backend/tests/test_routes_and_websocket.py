@@ -11,7 +11,17 @@ from app.api.websocket import (
 
 
 def test_api_router_exposes_expected_routes():
-    paths = {route.path for route in routes.api_router.routes if hasattr(route, "path")}
+    """assert against the OpenAPI spec (the Starlette-1.x-compliant surface).
+
+    fastapi>=0.141 / starlette>=1.0 change nested ``include_router`` to produce
+    opaque ``_IncludedRouter`` entries whose ``.path`` is None; route serving and
+    the schema still resolve every path. Enumerate via ``app.openapi()``.
+    """
+    from fastapi import FastAPI
+
+    app = FastAPI()
+    app.include_router(routes.api_router)
+    paths = set(app.openapi().get("paths", {}).keys())
 
     assert "/system/health" in paths
     assert "/execution/strategies" in paths
