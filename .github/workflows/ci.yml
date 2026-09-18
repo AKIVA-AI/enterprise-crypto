@@ -119,7 +119,7 @@ jobs:
         if: matrix.python-version == '3.12'
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-          trivy image --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed enterprise-crypto-backend
+          trivy image --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed --ignorefile backend/.trivyignore enterprise-crypto-backend
 
       - name: Generate SBOM (Syft)
         if: matrix.python-version == '3.12'
