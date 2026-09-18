@@ -11,21 +11,25 @@ from app.api.websocket import (
 
 
 def test_api_router_exposes_expected_routes():
-    """assert against the OpenAPI spec (the Starlette-1.x-compliant surface).
+    """behavioral check: hit the canonical routes via TestClient.
 
-    fastapi>=0.141 / starlette>=1.0 change nested ``include_router`` to produce
-    opaque ``_IncludedRouter`` entries whose ``.path`` is None; route serving and
-    the schema still resolve every path. Enumerate via ``app.openapi()``.
+    fastapi>=0.141 / starlette>=1.0 changed ``include_router`` to produce opaque
+    ``_IncludedRouter`` entries whose ``.path`` is None; the schema can also
+    resolve unresolved forward references to ``KeyError`` in CI. Assert what the
+    app actually serves instead of route-shape introspection.
     """
     from fastapi import FastAPI
+    from fastapi.testclient import TestClient
 
     app = FastAPI()
     app.include_router(routes.api_router)
-    paths = set(app.openapi().get("paths", {}).keys())
+    client = TestClient(app)
 
-    assert "/system/health" in paths
-    assert "/execution/strategies" in paths
-    assert "/backtest/list" in paths
+    for path in ("/system/health", "/execution/strategies", "/backtest/list"):
+        r = client.get(path)
+        # 200 = served fine; 404/405 = route is there, just not GET; 5xx = handler error, still mounted
+        assert r.status_code != 404, f"{path} not mounted (got {r.status_code})"
+        assert r.status_code != 405, f"{path} mounted without a GET handler (got {r.status_code})"
 
 
 def test_ws_router_uses_ws_prefix():
