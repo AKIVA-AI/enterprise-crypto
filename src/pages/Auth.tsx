@@ -49,7 +49,7 @@ export default function Auth() {
         navigate('/');
       } else {
         toast.success('Check your email to confirm your account, then sign in.');
-        setView('login');
+        setView('auth');
       }
     } catch {
       // Error is handled in useAuth
