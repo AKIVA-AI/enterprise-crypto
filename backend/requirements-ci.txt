@@ -4,7 +4,7 @@
 # FastAPI and server
 fastapi==0.121.3
 uvicorn[standard]==0.27.1
-python-multipart==0.0.26  # CVE-2026-40347 (DoS via crafted multipart preamble/epilogue)
+python-multipart==0.0.30  # PYSEC-2026-3039/-2026-3036 (multipart header DoS + urlencoded quadratic parse)
 
 # Database
 asyncpg==0.29.0
