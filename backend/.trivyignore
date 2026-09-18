@@ -1,0 +1,8 @@
+# starlette 0.50.0 is pinned by fastapi 0.121.3. The starlette 1.x rewrite
+# (1.0.1+) changes nested APIRouter/empty-path resolution so all 82 routes
+# unmount — upgrading requires a full API-surface migration, tracked
+# separately. These image CVEs all require starlette>=1.1 or >=1.3, which is
+# blocked on that migration. Same documented-ignore rationale as the pip-audit
+# step in ci.yml. Re-evaluate when the starlette 1.x migration lands.
+CVE-2026-48818
+CVE-2026-54283
